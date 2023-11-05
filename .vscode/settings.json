@@ -1,0 +1,8 @@
+{
+    "workbench.iconTheme": "vscode-icons",
+    "workbench.view.alwaysShowHeaderActions": true,
+    "editor.fontLigatures": false,
+    "editor.fontFamily": "'Fira Code'",
+    "editor.cursorBlinking": "expand",
+    "liveServer.settings.port": 5501
+}
