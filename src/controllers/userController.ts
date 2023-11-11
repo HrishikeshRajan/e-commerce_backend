@@ -127,7 +127,7 @@ Promise<void> => {
      */
     const response: IResponse = {
       res,
-      message: { token },
+      message: { message: 'An verification link has been sent to your email address'},
       success: true,
       statusCode: StatusCodes.CREATED
     }
