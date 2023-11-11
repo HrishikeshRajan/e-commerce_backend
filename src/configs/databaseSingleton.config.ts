@@ -1,4 +1,4 @@
-import mongoose from 'mongoose'
+import mongoose, { type ConnectOptions } from 'mongoose'
 import type IDatabaseService from '../types/IDatabase.interfaces'
 
 /**
@@ -19,6 +19,7 @@ class DatabaseSingleton implements IDatabaseService {
        */
   async connectDatabase (databaseURL: string): Promise<void> {
     try {
+      mongoose.Promise = global.Promise
       await mongoose.connect(databaseURL)
       if (mongoose.connection.readyState === 1) {
         console.log('Connected to the database.')
