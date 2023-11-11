@@ -1,4 +1,4 @@
-import mongoose, { type ConnectOptions } from 'mongoose'
+import mongoose from 'mongoose'
 import type IDatabaseService from '../types/IDatabase.interfaces'
 
 /**
@@ -26,9 +26,11 @@ class DatabaseSingleton implements IDatabaseService {
       } else {
         console.log('Not connected to the database.')
       }
+      mongoose.connection.on('error', () => {
+        throw new Error(`unable to connect to database: ${databaseURL}`)
+      })
     } catch (error: any) {
       console.log('Opps! Please check the database running or not', error)
-      process.exit(1)
     }
   }
 
