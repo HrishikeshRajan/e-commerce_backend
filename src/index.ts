@@ -11,6 +11,9 @@ import session from 'express-session'
 import DatabaseService from './services/database.services'
 import DatabaseSingleton from './configs/databaseSingleton.config'
 import deserializeUser from './middlewares/deserializeUser'
+import compress from 'compression'
+import helmet from 'helmet'
+import cors from 'cors'
 
 dotenv.config()
 dotenv.config({ path: '.env.test' })
@@ -27,6 +30,10 @@ app.use(session({
   secret: process.env.SESSION_SECRET_DEV as string
 
 }))
+
+app.use(compress())
+app.use(helmet())
+app.use(cors())
 
 // In this step, cloudinary is configured for all routes
 app.use('*', cloudinaryConfig)
