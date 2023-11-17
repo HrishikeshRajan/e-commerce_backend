@@ -39,7 +39,7 @@ router.route('/register/url/')
 router.route('/login')
   .post(disallowLoggedInUsers, validateRequest({ body: LoginSchema }), loginUser)
 
-router.route('/logout').get(isLoggedIn, logoutUser)
+router.route('/signout').get(isLoggedIn, logoutUser)
 
 router.route('/forgot/password')
   .post(disallowLoggedInUsers, validateRequest({ body: ForgotPasswordSchema }), forgotPassword)

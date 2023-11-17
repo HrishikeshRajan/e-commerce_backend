@@ -6,24 +6,21 @@ import { type UploadApiOptions, type UploadApiResponse } from 'cloudinary'
 import { type Request, type Response, type NextFunction, type RequestHandler } from 'express'
 import { type JwtPayload } from 'jsonwebtoken'
 import { type imageUrl } from '../types/cloudinary.interfaces'
-// import { type IEmailFields, type LinkType } from '../types/IEmail.interfaces' // uncomment in production
+import { type IEmailFields, type LinkType } from '../types/IEmail.interfaces' // uncomment in production
 
 import { type IResponse } from '../types/IResponse.interfaces'
 import { type ICookieResponse } from '../types/Cookie.interfaces'
 import { convertToBase64 } from '../utils/image.helper'
 // import UserRespository from '../repository/user.repository'
-/**
- * Uncomment in production
- *  import EmailServices from '../services/email.services'
- *  import Mail from '../utils/Email'
- */
-// import EmailServices from '../services/email.services'
-// import Mail from '../utils/Email'
+
+import EmailServices from '../services/email.services'
+import Mail from '../utils/Email'
+
 import JwtServices from '../services/jwt.services'
 import { sendHTTPResponse, sendHTTPWithTokenResponse } from '../services/response.services'
 // import UserServices from '../services/user.services'
 import CustomError from '../utils/CustomError'
-// import { generateUrl } from '../utils/email.helper.utils' // uncomment in production
+import { generateUrl } from '../utils/email.helper.utils' // uncomment in production
 import Cloudinary from '../repository/ImageProcessing.repository'
 import JwtRepository from '../utils/Jwt.utils'
 import { ImageProcessingServices } from '../services/image.processing.services'
@@ -40,6 +37,7 @@ import { default as USER } from '../exports/user'
 import _ from 'lodash'
 import { StatusCodes } from 'http-status-codes'
 import { type FilterQuery } from 'mongoose'
+import { responseFilter } from '../utils/user.helper'
 
 // const secret = process.env.STRIPE_PRIVATE_KEY as string
 // const stripe = new Stripe(secret, {
@@ -102,41 +100,38 @@ Promise<void> => {
     const jwt = new JwtRepository()
 
     const token = new JwtServices().signPayload(jwt, payload, jwtConfig.secret, jwtConfig.expiresIn)
-    /*
-        Un comment in production
 
-      const urlConfig: LinkType = {
-       host: 'localhost',
-      port: process.env.PORT as string,
-        version: 'v1',
-        route: 'user',
-        path: 'confirm-email',
-      }
+    const urlConfig: LinkType = {
+      host: 'localhost',
+      port: process.env.PORT_DEV as string,
+      version: 'v1',
+      route: 'users',
+      path: 'register'
+    }
 
-      const link  = generateUrl(token, urlConfig)
+    const link = generateUrl(token, urlConfig)
 
-      const emailFields: IEmailFields = {
-        EmailAddress: user.email,
-        FirstName: user.username,
-        ConfirmationLink: link,
-      }
+    const emailFields: IEmailFields = {
+      EmailAddress: user.email,
+      FirstName: user.username,
+      ConfirmationLink: link
+    }
 
-      const mail: Mail = new Mail(process.env.COURIER__TEST_KEY as string, emailFields)
+    const mail: Mail = new Mail(process.env.COURIER__TEST_KEY as string, emailFields)
 
-      const RequestId = await new EmailServices().send_mail(mail, process.env.COURIER_CONFIRMATION_TEMPLATE_ID as string)
-     */
+    await new EmailServices().send_mail(mail, process.env.COURIER_CONFIRMATION_TEMPLATE_ID as string)
+
     const response: IResponse = {
       res,
-      message: { message: 'An verification link has been sent to your email address'},
+      message: {
+        message: 'An verification link has been sent to your email address'
+      },
       success: true,
       statusCode: StatusCodes.CREATED
     }
     sendHTTPResponse(response)
   } catch (error: unknown) {
     next(error)
-    // console.log('beautify', error)
-    // const errorObj = error as CustomError
-    // next(new CustomError(errorObj.message, errorObj.code, false))
   }
 }
 
@@ -217,6 +212,7 @@ Promise<void> => {
     if (user === null) {
       next(new CustomError('Invalid email or password ', StatusCodes.BAD_REQUEST, false)); return
     }
+
     const isVerified = await userService.verifyPassword(userRespository, user, password)
 
     if (!isVerified) {
@@ -252,7 +248,8 @@ Promise<void> => {
       res,
       token: accessToken,
       message: {
-        refreshToken
+        refreshToken,
+        user: responseFilter(user.toObject())
       },
       cookie: {
         expires: time

@@ -3,8 +3,8 @@ import z from 'zod'
 const Countries = ['India'] as const
 const Gender = ['Male', 'Female', 'Unisex'] as const
 export const LoginSchema = z.object({
-  email: z.coerce.string().email({ message: 'Please provide valid email address' }).min(3, 'Please provide valid email address'),
-  password: z.coerce.string().min(1, { message: 'Please enter your password' })
+  email: z.string().email('Please provide valid email address').min(3, 'Please provide valid email address'),
+  password: z.string().min(1, 'Please enter your password')
 })
 
 export const RegisterSchema = z.object({

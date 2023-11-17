@@ -1,14 +1,11 @@
-import { LinkType } from "../types/IEmail.interfaces";
+import { type LinkType } from '../types/IEmail.interfaces'
 
 export const generateUrl = (token: string, configs: LinkType): string => {
-    if (token) {
-        return `https://${configs.host}:${configs.port}/${configs.version}/${configs.route}/${configs.path}/${token}`;
-    } else if (configs.id) {
-        return `https://${configs.host}:${configs.port}/${configs.version}/${configs.route}/${configs.path}/${configs.id}`;
-
-    } else {
-        return `https://${configs.host}:${configs.port}/${configs.version}/${configs.route}/${configs.path}`;
-
-    }
-
+  if (token.length > 0) {
+    return `http://${configs.host}:${configs.port}/api/${configs.version}/${configs.route}/${configs.path}/url?token=${token}`
+  } else if (configs.id != null) {
+    return `http://${configs.host}:${configs.port}/api/${configs.version}/${configs.route}/${configs.path}/${configs.id}`
+  } else {
+    return `http://${configs.host}:${configs.port}/api/${configs.version}/${configs.route}/${configs.path}`
+  }
 }

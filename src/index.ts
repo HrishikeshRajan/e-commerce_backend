@@ -33,7 +33,10 @@ app.use(session({
 
 app.use(compress())
 app.use(helmet())
-app.use(cors())
+app.use(cors({
+  origin: process.env.FRONTEND_URL as string,
+  credentials: true
+}))
 
 // In this step, cloudinary is configured for all routes
 app.use('*', cloudinaryConfig)

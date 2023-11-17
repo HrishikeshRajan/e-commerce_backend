@@ -14,7 +14,7 @@ class UserServices {
       * @param {Record<string, unknown>} fields - Any user fileds that are available in user schema
       * @returns {Promise<Document<IUser>>} - the user document.
       */
-  async createUser (userRepoObject: IUserRepository, fields: Record<string, unknown>): Promise<Document<IUser>> {
+  async createUser (userRepoObject: IUserRepository, fields: Record<string, unknown>): Promise<IUser> {
     return await userRepoObject.create(fields)
   }
 

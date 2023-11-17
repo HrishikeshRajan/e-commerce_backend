@@ -45,7 +45,7 @@ export type UserParam = Record<string, string>
 
 export type UserWithId = IUser & { _id: Types.ObjectId }
 export interface IUserRepository {
-  create: (fields: Record<string, unknown>) => Promise<Document<IUser>>
+  create: (fields: Record<string, unknown>) => Promise<IUser>
   findUser: (key: FilterQuery<UserParam>, includePassword: boolean) => Promise< Query<UserWithId | null, UserWithId >>
   findAllUsers: () => Promise< Query<UserWithId[] | null, UserWithId >>
   deleteUser: (key: FilterQuery<UserParam>) => Promise<UserWithId>

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 /**
  * User Class
  * @author Hrishikesh rajan // https://github.com/HrishikeshRajan
@@ -6,7 +7,7 @@
 
 import { type IUserRepository, type IUser, type UserParam, type IAddress, type UserWithId } from '../types/IUser.interfaces'
 import User from '../models/userModel'
-import { type Document, type Query, type FilterQuery } from 'mongoose'
+import { type Query, type FilterQuery } from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
 import { type imageUrl } from '../types/cloudinary.interfaces'
 class UserRepository implements IUserRepository {
@@ -65,10 +66,10 @@ class UserRepository implements IUserRepository {
   /**
        * create a new user document
        * @param {Record<string, unknown>} fields - user inputs that allowed in the user schema
-       * @returns {Promise<Document<IUser>>} - a promise of created user document
+       * @returns {Promise<IUser>} - a promise of created user document
        * @throws - mongoose Error
        */
-  async create (fields: Record<string, unknown>): Promise<Document<IUser>> {
+  async create (fields: Record<string, unknown>): Promise<IUser> {
     const user = await this.userSchema.create(fields)
     return user
   }
@@ -172,7 +173,7 @@ class UserRepository implements IUserRepository {
     if (user === null) return null
     const isUser = await this.verifyPassword(user, fields.currentPassword)
 
-    if (!(isUser ?? false)) return false
+    if (!isUser) return false
     user.password = fields.newPassword
 
     const result = await this.saveToDatabase(user)
