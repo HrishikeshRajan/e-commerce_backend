@@ -37,6 +37,7 @@ export interface IUser extends Document {
   forgotPasswordTokenId?: string
   unVerifiedUserExpires: Date
   isPrimeUser: boolean
+  seller?: boolean
   verifyPassword: (password: string) => Promise<boolean>
 }
 

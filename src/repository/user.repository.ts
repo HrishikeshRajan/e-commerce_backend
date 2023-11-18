@@ -206,6 +206,7 @@ class UserRepository implements IUserRepository {
   async setProfilePicture (fields: imageUrl, userId: string): Promise<UserWithId | null> {
     const user = await this.findUser({ _id: userId })
     if (user === null) return null
+
     user.photo.id = fields.publicId
     user.photo.secure_url = fields.secureUrl
     user.photo.url = fields.url

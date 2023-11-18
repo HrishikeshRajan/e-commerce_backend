@@ -164,8 +164,10 @@ export const QueryWithTokenSchema = z.object({
   token: z.string().min(1)
 })
 export const UpdateProfileSchema = z.object({
-  fullname: z.string().max(50, { message: 'Password must be at max 50 characters' }),
-  gender: z.enum(Gender)
+  fullname: z.string().min(1),
+  email: z.string().email().min(1),
+  username: z.string().min(1),
+  gender: z.enum(Gender).optional()
 })
 export const PhotoSchema = z.object({
   image: z.any({

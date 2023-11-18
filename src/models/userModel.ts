@@ -100,6 +100,10 @@ const userModel: Schema = new Schema<IUser>({
   isPrimeUser: {
     type: Boolean,
     default: false
+  },
+  seller: {
+    type: Boolean,
+    default: false
   }
 },
 {
