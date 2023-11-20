@@ -707,7 +707,7 @@ Promise<void> => {
 
     const response: IResponse = {
       res,
-      message: { user },
+      message: { user: responseFilter(user.toObject()) },
       success: true,
       statusCode: StatusCodes.OK
     }
@@ -738,7 +738,7 @@ Promise<void> => {
 
     const response: IResponse = {
       res,
-      message: { user },
+      message: { user: responseFilter(user.toObject()) },
       success: true,
       statusCode: StatusCodes.OK
     }
