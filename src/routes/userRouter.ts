@@ -58,7 +58,7 @@ router.route('/address').put(isLoggedIn, validateRequest({ body: AddressSchemaWi
 router.route('/address/:id')
   .delete(isLoggedIn, validateRequest({ params: ParamsByIdSchema }), deleteAddress)
 
-router.route('/addresses')
+router.route('/address')
   .get(isLoggedIn, myAddress)
 
 router.route('/profile')
