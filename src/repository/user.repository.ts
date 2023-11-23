@@ -112,18 +112,24 @@ class UserRepository implements IUserRepository {
    * @returns modified mongoose user instance
    */
   updateAddressHelper (data: UserWithId, addressId: string, newAddress: IAddress): UserWithId {
-    data?.address?.map((address: IAddress) => {
+    interface Index {
+      index: number
+    }
+    const addressIndex: Index = {
+      index: 0
+    }
+    data?.address?.map((address: IAddress, index) => {
       if (address._id.toString() === addressId) {
-        address.fullname = (newAddress.fullname !== '') ? newAddress.fullname : address.fullname
-        address.city = (newAddress.city !== '') ? newAddress.city : address.city
-        address.homeAddress = (newAddress.homeAddress !== '') ? newAddress.homeAddress : address.homeAddress
-        address.state = (newAddress.state !== '') ? newAddress.state : address.state
-        address.postalCode = (newAddress.postalCode !== '') ? newAddress.postalCode : address.postalCode
-        address.phoneNo = (newAddress.phoneNo !== '') ? newAddress.phoneNo : address.phoneNo
-        address.country = (newAddress.country !== '') ? newAddress.country : address.country
+        addressIndex.index = index
+        return address
       }
       return address
     })
+
+    if (data.address !== undefined) {
+      const updatedAddress = Object.assign(data.address[addressIndex.index], newAddress)
+      data.address[addressIndex.index] = updatedAddress
+    }
     return data
   };
 
@@ -140,7 +146,7 @@ class UserRepository implements IUserRepository {
     if (user === null) return null
     const updatedUser = this.updateAddressHelper(user, addressId, newAddress)
     const updatedUserDocument = await this.saveToDatabase(updatedUser)
-    return updatedUserDocument.address ?? null
+    return updatedUserDocument.toObject().address ?? null
   };
 
   async resetPassword (email: FilterQuery<Record<string, string>>, password: string): Promise<UserWithId | null> {

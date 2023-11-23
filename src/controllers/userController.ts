@@ -505,12 +505,13 @@ Promise<void> => {
  * @throws {CustomError} - The error will send as response to client
  */
 export const editAddress = async (
-  req: Request<{}, IResponse, AddressWithAddressId, {}>,
+  req: Request<ID, IResponse, AddressWithAddressId, {}>,
   res: Response<IResponse>,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { addressId, ...address } = req.body
+    const address = req.body
+    const addressId = req.params.id
 
     const isUpdated = await userService
       .updateAddress(userRespository, { address, userId: req.user?.id, addressId })
@@ -522,7 +523,6 @@ export const editAddress = async (
       success: true,
       statusCode: StatusCodes.OK
     }
-
     sendHTTPResponse(response)
   } catch (error: unknown) {
     console.log(error)

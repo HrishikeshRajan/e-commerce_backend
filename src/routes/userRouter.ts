@@ -53,7 +53,7 @@ router.route('/change/password')
 router.route('/address')
   .post(isLoggedIn, validateRequest({ body: UserAddressSchema }), addAddress)
 
-router.route('/address').put(isLoggedIn, validateRequest({ body: AddressSchemaWithAddressId }), editAddress)
+router.route('/address/:id').put(isLoggedIn, validateRequest({ body: UserAddressSchema }), validateRequest({ params: ParamsByIdSchema }), editAddress)
 
 router.route('/address/:id')
   .delete(isLoggedIn, validateRequest({ params: ParamsByIdSchema }), deleteAddress)

@@ -159,6 +159,17 @@ export const ParamsByIdSchema = z.object({
     message: 'Invalid ObjectId'
   })
 })
+export const ParamsByAddressIdSchema = z.object({
+  addressId: z.string().min(1).refine((id) => {
+    if (mongoose.isValidObjectId(id)) {
+      return true
+    } else {
+      return false
+    }
+  }, {
+    message: 'Invalid ObjectId'
+  })
+})
 
 export const QueryWithTokenSchema = z.object({
   token: z.string().min(1)
