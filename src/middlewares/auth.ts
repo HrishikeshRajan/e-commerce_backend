@@ -25,7 +25,9 @@ export const isLoggedIn = (req: Request, res: Response, next: NextFunction): voi
 
     const jwt = new JWT()
     const decodedObj = new JwtServices().verifyToken(jwt, token, jwtConfig.secret)
-
+    if (decodedObj.status === 'failure' && decodedObj.code === 403) {
+      next(new CustomError('Please Login', 401, false)); return
+    }
     req.user = { ...decodedObj.message.data }
   } catch (error: unknown) {
     const errorObj = error as CustomError
