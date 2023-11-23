@@ -25,6 +25,7 @@ export const isLoggedIn = (req: Request, res: Response, next: NextFunction): voi
 
     const jwt = new JWT()
     const decodedObj = new JwtServices().verifyToken(jwt, token, jwtConfig.secret)
+
     req.user = { ...decodedObj.message.data }
   } catch (error: unknown) {
     const errorObj = error as CustomError
