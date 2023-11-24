@@ -21,6 +21,10 @@ class UserRepository implements IUserRepository {
     await this.saveToDatabase(user)
   }
 
+  async convertToUserObject (user: UserWithId): Promise<UserWithId > {
+    return await user.toObject()
+  }
+
   /**
        * Deletes the user document
        *
@@ -188,8 +192,9 @@ class UserRepository implements IUserRepository {
 
   async deleteAddress (fields: any): Promise<IAddress[] | null> {
     const { addressId, userId } = fields
-    const user = await this.findUser({ _id: userId })
+    let user = await this.findUser({ _id: userId })
     if (user === null) return null
+    user = await this.convertToUserObject(user)
 
     const newAddress = user?.address?.filter((address) => address._id.toString() !== addressId.toString())
 
