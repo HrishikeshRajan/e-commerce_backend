@@ -217,7 +217,7 @@ Promise<void> => {
 
     if (!isVerified) {
       next(
-        new CustomError('Email or password is incorrect', 400, false)
+        new CustomError('Invalid email or password ', StatusCodes.BAD_REQUEST, false)
       ); return
     }
 

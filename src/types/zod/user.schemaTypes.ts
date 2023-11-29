@@ -3,8 +3,8 @@ import z from 'zod'
 const Countries = ['India'] as const
 const Gender = ['Male', 'Female', 'Unisex'] as const
 export const LoginSchema = z.object({
-  email: z.string().email('Please provide valid email address').min(3, 'Please provide valid email address'),
-  password: z.string().min(1, 'Please enter your password')
+  email: z.string().min(4),
+  password: z.string()
 })
 
 export const RegisterSchema = z.object({
@@ -28,9 +28,8 @@ export const RegisterSchema = z.object({
 export const ForgotPasswordSchema = z.object({
   email: z
     .string()
-    .email({ message: 'Please provide a valid email address' })
-    .min(3, 'Email address must be at least 3 characters')
-    .max(255, 'Email address can be at most 255 characters')
+    .min(4)
+    .email()
 })
 
 export const ResetPasswordSchema = z.object({
