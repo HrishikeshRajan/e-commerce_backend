@@ -8,7 +8,10 @@
         "ecmaVersion": "latest",
         "sourceType": "module"
     },
+    "plugins": ["@typescript-eslint"],
     "rules": {
-       
+        "@typescript-eslint/explicit-function-return-type": {
+          "allowExpressions": true
+        }
+      }
     }
-}

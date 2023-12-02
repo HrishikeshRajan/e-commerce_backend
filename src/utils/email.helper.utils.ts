@@ -9,3 +9,7 @@ export const generateUrl = (token: string, configs: LinkType): string => {
     return `http://${configs.host}:${configs.port}/api/${configs.version}/${configs.route}/${configs.path}`
   }
 }
+
+export const clientForgotPasswordUrl = (token: string, path: string): string => {
+  return 'http://localhost:5173/' + path + '/' + token
+}

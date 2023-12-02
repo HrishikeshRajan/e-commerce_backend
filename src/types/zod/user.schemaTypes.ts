@@ -33,12 +33,9 @@ export const ForgotPasswordSchema = z.object({
 })
 
 export const ResetPasswordSchema = z.object({
-  token: z
-    .string()
-    .min(3, 'fullname must be at least 2 characters'),
   password: z
     .string()
-    .min(8, { message: 'Password must be at least 8 characters' })
+    .min(4, { message: 'Password must be at least 8 characters' })
     .max(100, { message: 'Password can be at most 100 characters' })
     .regex(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+{}|:;<>,.?~]+$/, 'Password must contain at least one letter and one number')
 })

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import express, { type Express } from 'express'
 import dotenv from 'dotenv'
 
@@ -14,6 +15,8 @@ import deserializeUser from './middlewares/deserializeUser'
 import compress from 'compression'
 import helmet from 'helmet'
 import cors from 'cors'
+import { engine } from 'express-handlebars'
+import path from 'path'
 
 dotenv.config()
 dotenv.config({ path: '.env.test' })
@@ -42,6 +45,11 @@ app.use(cors({
 app.use('*', cloudinaryConfig)
 app.use(deserializeUser)
 
+app.engine('handlebars', engine())
+app.set('view engine', 'handlebars')
+app.set('views', './src/views')
+
+app.use(express.static(path.join(__dirname, '/src/public')))
 // Route middlewares
 app.use('/api/v1/users/', userRouter)
 app.use('/api/v1/product/', productRouter)

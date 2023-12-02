@@ -20,11 +20,11 @@ import JwtServices from '../services/jwt.services'
 import { sendHTTPResponse, sendHTTPWithTokenResponse } from '../services/response.services'
 // import UserServices from '../services/user.services'
 import CustomError from '../utils/CustomError'
-import { generateUrl } from '../utils/email.helper.utils' // uncomment in production
+import { clientForgotPasswordUrl, generateUrl } from '../utils/email.helper.utils' // uncomment in production
 import Cloudinary from '../repository/ImageProcessing.repository'
 import JwtRepository from '../utils/Jwt.utils'
 import { ImageProcessingServices } from '../services/image.processing.services'
-
+import * as crypto from 'crypto';
 // import Stripe from 'stripe'
 import Search from '../utils/search'
 import productModel from '../models/productModel'
@@ -38,6 +38,8 @@ import _ from 'lodash'
 import { StatusCodes } from 'http-status-codes'
 import { type FilterQuery } from 'mongoose'
 import { responseFilter } from '../utils/user.helper'
+import userModel from '../models/userModel'
+import { PARAMS_WITH_ID } from '../types/zod/cart.schemaTypes'
 
 // const secret = process.env.STRIPE_PRIVATE_KEY as string
 // const stripe = new Stripe(secret, {
@@ -330,7 +332,8 @@ Promise<void> => {
     const { email } = req.body
 
     const user = await userService.addForgotPasswordTokenID(userRespository, { email })
-    if (user == null) { next(new CustomError('If the email exists in our system, you will receive password reset instructions', StatusCodes.OK, true)); return }
+
+    if (user == null) { next(new CustomError('Not Found', StatusCodes.NOT_FOUND, false)); return }
 
     const payload = {
       email,
@@ -345,31 +348,30 @@ Promise<void> => {
 
     const token = new JwtServices().signPayload(jwt, payload, jwtConfig.secret, jwtConfig.expiresIn)
 
-    // const urlConfig: LinkType = {
-    //   host: 'localhost',
-    //   port: process.env.PORT as string,
-    //   version: 'v1',
-    //   route: 'user',
-    //   path: 'confirm-password'
-    // }
+    const urlConfig: LinkType = {
+      host: 'localhost',
+      port: process.env.PORT_DEV as string,
+      version: 'v1',
+      route: 'users',
+      path: 'forgot/password'
+    }
 
-    // const link = generateUrl(token, urlConfig)
+    const link = generateUrl(token, urlConfig)
+    const emailFields: IEmailFields = {
+      EmailAddress: user.email,
+      FirstName: user.username,
+      ConfirmationLink: link
+    }
 
-    // const emailFields: IEmailFields = {
-    //   EmailAddress: user.email,
-    //   FirstName: user.username,
-    //   ConfirmationLink: link
-    // }
+    // Will uncomment in production
+    const mail: Mail = new Mail(process.env.COURIER__TEST_KEY as string, emailFields)
 
-    // // Will uncomment in production
-    // const mail: Mail = new Mail(process.env.COURIER__TEST_KEY as string, emailFields)
-
-    // // Will uncomment in production
-    // const RequestId = await new EmailServices().send_mail(mail, process.env.COURIER_CONFIRMATION_TEMPLATE_ID as string)
+    // Will uncomment in production
+    const RequestId = await new EmailServices().send_mail(mail, process.env.COURIER_CONFIRMATION_TEMPLATE_ID as string)
 
     const response: IResponse = {
       res,
-      message: { token },
+      message: { message: 'An email verification link has been send to your email account.' },
       success: true,
       statusCode: StatusCodes.OK
     }
@@ -380,6 +382,43 @@ Promise<void> => {
     const errorObj = error as CustomError
     next(new CustomError(errorObj.message, errorObj.code, false))
   }
+}
+
+export const verifyForgotPassword = async (req: Request<{}, IResponse, {}, QueryWithToken, {}>, res: Response, next: NextFunction) => {
+try {
+  const { token } = req.query
+
+  const jwtConfig = {
+    secret: process.env.JWT_SECRET as string
+  }
+  const jwt = new JwtRepository()
+  const result = new JwtServices().verifyToken(jwt, token, jwtConfig.secret)
+
+  if (result.status === 'failure') {
+    res.redirect('http://localhost:5173/expired'); return
+  }
+
+  const {id, email} =  result.message?.data;
+  const user = await userService.findUser(userRespository, { email }, true)
+  if (user === null) {
+    next(new CustomError('User Not Found ', StatusCodes.NOT_FOUND, false)); return
+  }
+  if(user.forgotPasswordTokenId !== id){
+    res.redirect('http://localhost:5173/expired'); return
+  }
+
+  const isToken = await userService.getResetFormToken( userRespository,email)
+  if (!isToken) { next(new CustomError('Reset from Token creation failed', StatusCodes.INTERNAL_SERVER_ERROR, false)); return }
+ 
+   user.forgotPasswordTokenId = ''
+   user.forgotPasswordTokenExpiry = ''
+   await user.save({validateBeforeSave:false})
+  res.redirect(process.env.FRONTEND_RESET_PASSWORD_URL as string + '/'+ isToken)
+
+} catch (error: unknown) {
+  const errorObj = error as CustomError
+  next(new CustomError(errorObj.message, errorObj.code, false))
+}
 }
 
 /**
@@ -395,31 +434,28 @@ Promise<void> => {
  * @throws {CustomError} - The error will send as response to client
  */
 export const resetPassword = async (
-  req: Request<{}, IResponse, ResetPassword, {}>,
+  req: Request<PARAMS_WITH_ID, IResponse, ResetPassword, {}>,
   res: Response<IResponse>,
   next: NextFunction):
 Promise<void> => {
   try {
-    const { password, token } = req.body
+    const { password } = req.body
 
-    const jwtConfig = {
-      secret: process.env.JWT_SECRET as string
-    }
+    const {id} = req.params
 
-    const jwt = new JwtRepository()
+    const hash =  crypto.createHash('sha256').update(JSON.stringify(req.params.id)).digest('hex')
+   
+    const user = await userModel.findOne({
+      forgotPasswordTokenId:hash,
+      forgotPasswordTokenExpiry:{
+        $gt:JSON.stringify(Date.now())
+      }
 
-    const result: JwtPayload = new JwtServices().verifyToken(jwt, token, jwtConfig.secret)
-
-    if (result.message.err !== null) { next(new CustomError(result.message.err, StatusCodes.BAD_REQUEST, false)); return }
-
-    const user = await userService
-      .resetPassword(userRespository, { email: result.message.data.email, password })
-
-    if (user === null) { next(new CustomError('Invalid token', StatusCodes.BAD_REQUEST, false)); return }
-
-    if (!(result.message.data.id.toString() === user.forgotPasswordTokenId?.toString())) {
-      next(new CustomError('Invalid token', StatusCodes.UNPROCESSABLE_ENTITY, false)); return
-    }
+     })
+    if (user === null) { next(new CustomError('Token Expired', StatusCodes.UNAUTHORIZED, false)); return }
+   
+    user.password = password
+    await user.save()
 
     const response: IResponse = {
       res,
@@ -429,6 +465,7 @@ Promise<void> => {
     }
     sendHTTPResponse(response)
   } catch (error: unknown) {
+
     const errorObj = error as CustomError
     next(new CustomError(errorObj.message, errorObj.code, false))
   }

@@ -35,6 +35,7 @@ export interface IUser extends Document {
 
   forgotpasswordTokenVerfied?: boolean
   forgotPasswordTokenId?: string
+  forgotPasswordTokenExpiry?: string
   unVerifiedUserExpires: Date
   isPrimeUser: boolean
   seller?: boolean
@@ -62,4 +63,5 @@ export interface IUserRepository {
   setProfilePicture: (fields: imageUrl, userId: string) => Promise<UserWithId | null>
   deleteProfilePicture: (userId: string) => Promise<UserWithId | null>
   setEmailVerified: (user: UserWithId) => any
+  resetFormToken:(email:string) => any
 }

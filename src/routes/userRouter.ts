@@ -15,6 +15,7 @@ import {
   resetPassword,
   showProfile,
   uploadProfilePicture,
+  verifyForgotPassword,
   verifyMailLink
 } from '../controllers/userController'
 import { disallowLoggedInUsers, isLoggedIn } from '../middlewares/auth'
@@ -43,8 +44,10 @@ router.route('/signout').get(isLoggedIn, logoutUser)
 
 router.route('/forgot/password')
   .post(disallowLoggedInUsers, validateRequest({ body: ForgotPasswordSchema }), forgotPassword)
+router.route('/forgot/password/url/')
+  .get(disallowLoggedInUsers, verifyForgotPassword)
 
-router.route('/forgot/password/')
+router.route('/forgot/password/:id')
   .put(disallowLoggedInUsers, validateRequest({ body: ResetPasswordSchema }), resetPassword)
 
 router.route('/change/password')

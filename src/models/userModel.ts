@@ -93,6 +93,7 @@ const userModel: Schema = new Schema<IUser>({
     default: false
   },
   forgotPasswordTokenId: String,
+  forgotPasswordTokenExpiry: String,
   unVerifiedUserExpires: {
     type: Date,
     default: () => new Date(+new Date() + 10 * 60 * 1000)
@@ -141,5 +142,6 @@ userModel.methods.verifyPassword = async function (password: string): Promise<bo
   const result = await bcrypt.compare(password, user.password)
   return result
 }
+
 
 export default model<IUser>('User', userModel)

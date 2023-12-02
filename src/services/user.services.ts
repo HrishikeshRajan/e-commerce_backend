@@ -106,6 +106,9 @@ class UserServices {
   async verifyPassword (userRepoObject: IUserRepository, user: UserWithId, password: string): Promise<any> {
     return await userRepoObject.verifyPassword(user, password)
   }
+  async getResetFormToken (userRepoObject: IUserRepository, email:string): Promise<any> {
+    return await userRepoObject.resetFormToken(email)
+  }
 }
 
 export default UserServices

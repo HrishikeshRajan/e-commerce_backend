@@ -1,4 +1,5 @@
-/* eslint-disable @typescript-eslint/strict-boolean-expressions */
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+
 /**
  * User Class
  * @author Hrishikesh rajan // https://github.com/HrishikeshRajan
@@ -10,6 +11,7 @@ import User from '../models/userModel'
 import { type Query, type FilterQuery } from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
 import { type imageUrl } from '../types/cloudinary.interfaces'
+import * as crypto from 'crypto';
 class UserRepository implements IUserRepository {
   private readonly userSchema: typeof User
   constructor () {
@@ -115,6 +117,7 @@ class UserRepository implements IUserRepository {
    * @param {IAddress} newAddress
    * @returns modified mongoose user instance
    */
+
   updateAddressHelper (data: UserWithId, addressId: string, newAddress: IAddress): UserWithId {
     interface Index {
       index: number
@@ -161,6 +164,10 @@ class UserRepository implements IUserRepository {
     return result
   }
 
+  private calculateExpiry () {
+   return  JSON.stringify(Date.now() + (1 * 60 * 1000))
+  }
+
   async addForgotTokenId (email: FilterQuery<string>): Promise<UserWithId | null> {
     const user = await this.findUser({ email })
     if (user === null) return null
@@ -170,6 +177,17 @@ class UserRepository implements IUserRepository {
     user.forgotPasswordTokenId = id
     const result = await this.saveToDatabase(user)
     return result
+  }
+
+  async resetFormToken (email: string) {
+    const user = await this.findUser({ email })
+    if (user == null) return
+    const forgotToken = crypto.randomBytes(20).toString('hex');
+    const hash =  crypto.createHash('sha256').update(JSON.stringify(forgotToken)).digest('hex')
+    user.forgotPasswordTokenId = hash
+    user.forgotPasswordTokenExpiry = this.calculateExpiry()
+    await this.saveToDatabase(user)
+    return forgotToken
   }
 
   async verifyPassword (user: UserWithId, password: string): Promise<any> {
