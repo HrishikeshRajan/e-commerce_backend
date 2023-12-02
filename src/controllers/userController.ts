@@ -115,7 +115,7 @@ Promise<void> => {
 
     const emailFields: IEmailFields = {
       EmailAddress: user.email,
-      FirstName: user.username,
+      FirstName: user.email.split('@')[0],
       ConfirmationLink: link
     }
 

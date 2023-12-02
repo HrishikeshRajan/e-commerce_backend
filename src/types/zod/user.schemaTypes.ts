@@ -171,10 +171,9 @@ export const QueryWithTokenSchema = z.object({
   token: z.string().min(1)
 })
 export const UpdateProfileSchema = z.object({
-  fullname: z.string().min(1),
-  email: z.string().email().min(1),
-  username: z.string().min(1),
-  gender: z.enum(Gender).optional()
+  fullname: z.string(),
+  email: z.string().email(),
+  username: z.string(),
 })
 export const PhotoSchema = z.object({
   image: z.any({
