@@ -585,14 +585,14 @@ export const deleteAddress = async (
 Promise<void> => {
   try {
     const addressId = req.params.id
-    const ids: FilterQuery<Record<string, string>> = { addressId, userId: req.user?.id }
+    const ids = { addressId, userId: req.user?.id }
 
-    const address = await userService.deleteAddressByAddressId(userRespository, ids)
-    if (!address) { next(new CustomError('User not found', StatusCodes.NOT_FOUND, false)); return }
+    const user = await userService.deleteAddressById(userRespository, ids)
+    if (!user) { next(new CustomError('User not found', StatusCodes.NOT_FOUND, false)); return }
 
     const response: IResponse = {
       res,
-      message: { address },
+      message: { user: responseFilter(user.toObject() )},
       success: true,
       statusCode: StatusCodes.OK
     }
@@ -619,13 +619,13 @@ export const myAddress = async (
 Promise<void> => {
   try {
     const id = req.user?.id as FilterQuery<string>
-    const result = await userService.fetchAddressByUserId(userRespository, id)
+    const result = await userService.findUser(userRespository,{_id:id},false)
 
-    if (!result) { next(new CustomError('Address fetch failed', StatusCodes.NOT_FOUND, false)); return }
+    if (!result) { next(new CustomError('User not found', StatusCodes.NOT_FOUND, false)); return }
 
     const response: IResponse = {
       res,
-      message: { address: result },
+      message: { user: responseFilter(result.toObject()) },
       success: true,
       statusCode: StatusCodes.OK
     }

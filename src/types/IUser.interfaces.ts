@@ -58,7 +58,7 @@ export interface IUserRepository {
   verifyPassword: (user: UserWithId, password: string) => Promise<any>
   changePassword: (fields: { id: FilterQuery<Record<string, string>>, currentPassword: string, newPassword: string }) => Promise<UserWithId | null | boolean>
   fetchAddresses: (userId: FilterQuery<string>) => Promise<Query<IAddress[] | null, IAddress>>
-  deleteAddress: (fields: any) => Promise<IAddress[] | null>
+  deleteAddress: (addressId:string, userId:string) =>any;
   updateUserProfile: (fields: any, userId: string) => Promise<UserWithId | null>
   setProfilePicture: (fields: imageUrl, userId: string) => Promise<UserWithId | null>
   deleteProfilePicture: (userId: string) => Promise<UserWithId | null>

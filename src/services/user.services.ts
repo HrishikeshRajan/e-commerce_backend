@@ -83,8 +83,8 @@ class UserServices {
     return await userRepoObject.fetchAddresses(fields)
   }
 
-  async deleteAddressByAddressId (userRepoObject: IUserRepository, fields: FilterQuery<Record<string, string>>): Promise<IAddress[] | null > {
-    return await userRepoObject.deleteAddress(fields)
+ async deleteAddressById (userRepoObject: IUserRepository, fields: {addressId:string, userId:string}):Promise<UserWithId | null> {
+    return await userRepoObject.deleteAddress(fields.addressId, fields.userId)
   }
 
   async updateUserProfile (userRepoObject: IUserRepository, fields: FilterQuery<Record<string, string>>, userId: string): Promise<UserWithId | null > {

@@ -208,18 +208,16 @@ class UserRepository implements IUserRepository {
     return result
   }
 
-  async deleteAddress (fields: any): Promise<IAddress[] | null> {
-    const { addressId, userId } = fields
+  async deleteAddress (addressId:string, userId:string) {
     let user = await this.findUser({ _id: userId })
     if (user === null) return null
-    user = await this.convertToUserObject(user)
 
     const newAddress = user?.address?.filter((address) => address._id.toString() !== addressId.toString())
 
     user.address = newAddress as IAddress[]
     const result = await this.saveToDatabase(user)
 
-    return result.address ?? null
+    return result ?? null
   }
 
   async updateUserProfile (fields: any, userId: string): Promise<UserWithId | null> {
