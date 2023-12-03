@@ -52,13 +52,14 @@ export interface IUserRepository {
   findAllUsers: () => Promise< Query<UserWithId[] | null, UserWithId >>
   deleteUser: (key: FilterQuery<UserParam>) => Promise<UserWithId>
   addAddress: (address: IAddress, userId: FilterQuery<string>) => Promise<Query<UserWithId | null, UserWithId>>
-  updateAddress: (address: IAddress, userId: FilterQuery<string>, addressId: string) => Promise<IAddress[] | null>
+  
   resetPassword: (email: FilterQuery<string>, password: string) => Promise<UserWithId | null>
   addForgotTokenId: (email: FilterQuery<string>) => Promise<UserWithId | null>
   verifyPassword: (user: UserWithId, password: string) => Promise<any>
   changePassword: (fields: { id: FilterQuery<Record<string, string>>, currentPassword: string, newPassword: string }) => Promise<UserWithId | null | boolean>
   fetchAddresses: (userId: FilterQuery<string>) => Promise<Query<IAddress[] | null, IAddress>>
   deleteAddress: (addressId:string, userId:string) =>any;
+  updateAddress: (address: IAddress, userId: string, addressId: string) => any
   updateUserProfile: (fields: any, userId: string) => Promise<UserWithId | null>
   setProfilePicture: (fields: imageUrl, userId: string) => Promise<UserWithId | null>
   deleteProfilePicture: (userId: string) => Promise<UserWithId | null>

@@ -59,7 +59,7 @@ class UserServices {
        * @returns mongoose user instance;
        */
 
-  async updateAddress (userRepoObject: IUserRepository, fields: any): Promise<IAddress[] | null> {
+  async updateAddress (userRepoObject: IUserRepository, fields: any): Promise<IAddress | null> {
     return await userRepoObject.updateAddress(fields.address, fields.userId, fields.addressId)
   }
 

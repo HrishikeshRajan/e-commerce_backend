@@ -148,12 +148,18 @@ class UserRepository implements IUserRepository {
      * @param addressId
      * @returns user with id field
      */
-  async updateAddress (newAddress: IAddress, userId: FilterQuery<string>, addressId: string): Promise<IAddress[] | null> {
+  async updateAddress (newAddress: IAddress, userId:string, addressId: string) {
     const user = await this.findUser({ _id: userId })
     if (user === null) return null
     const updatedUser = this.updateAddressHelper(user, addressId, newAddress)
     const updatedUserDocument = await this.saveToDatabase(updatedUser)
-    return updatedUserDocument.toObject().address ?? null
+    const address = updatedUserDocument.address?.find((address: IAddress, index) => {
+      if (address._id.toString() === addressId) {
+        return address
+      }
+      return address
+    })
+    return address ?? null
   };
 
   async resetPassword (email: FilterQuery<Record<string, string>>, password: string): Promise<UserWithId | null> {
