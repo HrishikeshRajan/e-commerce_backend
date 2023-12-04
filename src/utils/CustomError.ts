@@ -8,7 +8,9 @@ class CustomError extends Error {
   
         this.code = code;
         this.success = success;
+        if(process.env.NODE_ENV !== 'production'){
         Error.captureStackTrace(this, this.constructor);
+        }
     }
 }
 export default CustomError;  

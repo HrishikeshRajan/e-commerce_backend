@@ -5,7 +5,7 @@ import dotenv from 'dotenv'
 import userRouter from './routes/userRouter'
 import productRouter from './routes/productRouter'
 import adminRouter from './routes/adminRouter'
-import { errorHandler } from './middlewares/error.handler'
+import { errorHandler, notFound, productionErrors } from './middlewares/error.handler'
 import cookieParser from 'cookie-parser'
 import cloudinaryConfig from './configs/cloudinary.config'
 import session from 'express-session'
@@ -40,14 +40,15 @@ app.use(session({
   secret: process.env.SESSION_SECRET_DEV as string
 
 }))
+
+//Here we configure the cloudinary keys
 app.use('*', cloudinaryConfig)
+
+//Here we handle the JWT token validation
 app.use(deserializeUser)
 
 
-
-
 // Cloudinary is configured for all routes
-
 // app.engine('handlebars', engine())
 // app.set('view engine', 'handlebars')
 // app.set('views', './src/views')
@@ -58,14 +59,18 @@ app.use('/api/v1/users/', userRouter)
 app.use('/api/v1/product/', productRouter)
 app.use('/api/v1/admin/', adminRouter)
 
+// This will catch the unmatched routes and forward to error handler 
+app.use(notFound)
 
 export const createDatabaseConnection = async (url: string): Promise<void> => {
   const databaseService = new DatabaseService()
-
   // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
   await databaseService.connectDatabase(DatabaseSingleton.getInstance(), url)
 }
 
+/* 
+  The production and development errors is handled in Error class
+*/
 app.use(errorHandler)
 
 export default app
