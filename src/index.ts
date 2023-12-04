@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import express, { type Express } from 'express'
+import express, { type Express, type Request, type Response } from 'express'
 import dotenv from 'dotenv'
 
 import userRouter from './routes/userRouter'
@@ -15,15 +15,22 @@ import deserializeUser from './middlewares/deserializeUser'
 import compress from 'compression'
 import helmet from 'helmet'
 import cors from 'cors'
-import { engine } from 'express-handlebars'
-import path from 'path'
 
 dotenv.config()
 dotenv.config({ path: '.env.test' })
 
 const app: Express = express()
 
+
 // Middlewares
+app.use(cors({
+  origin: true,
+  credentials: true
+}))
+
+
+app.use(compress())
+app.use(helmet())
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
@@ -33,27 +40,24 @@ app.use(session({
   secret: process.env.SESSION_SECRET_DEV as string
 
 }))
-
-app.use(compress())
-app.use(helmet())
-app.use(cors({
-  origin: process.env.FRONTEND_URL as string,
-  credentials: true
-}))
-
-// In this step, cloudinary is configured for all routes
 app.use('*', cloudinaryConfig)
 app.use(deserializeUser)
 
-app.engine('handlebars', engine())
-app.set('view engine', 'handlebars')
-app.set('views', './src/views')
 
-app.use(express.static(path.join(__dirname, '/src/public')))
-// Route middlewares
+
+
+// Cloudinary is configured for all routes
+
+// app.engine('handlebars', engine())
+// app.set('view engine', 'handlebars')
+// app.set('views', './src/views')
+// app.use(express.static(path.join(__dirname, '/src/public')))
+
+// Route API
 app.use('/api/v1/users/', userRouter)
 app.use('/api/v1/product/', productRouter)
 app.use('/api/v1/admin/', adminRouter)
+
 
 export const createDatabaseConnection = async (url: string): Promise<void> => {
   const databaseService = new DatabaseService()
