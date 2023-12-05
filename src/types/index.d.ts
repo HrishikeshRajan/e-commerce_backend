@@ -19,10 +19,10 @@ declare module 'express-session'{
 }
 
 declare module 'express-serve-static-core'{
-  interface Request {
-    user?: Record<string, any>
-    cookies?: Record<string, any>
-    session?: Record<string, any>
+ export interface Request {
+    user: any
+    cookies: any
+    session: any
   }
 }
 

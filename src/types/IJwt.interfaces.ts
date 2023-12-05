@@ -3,7 +3,7 @@
  */
 
 import { JwtPayload } from "jsonwebtoken";
-import { IToken } from "./IUser.interfaces";
+
 
 
 /**

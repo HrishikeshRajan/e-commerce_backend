@@ -215,7 +215,8 @@ Promise<void> => {
       next(new CustomError('Invalid email or password ', StatusCodes.BAD_REQUEST, false)); return
     }
 
-    const isVerified = await userService.verifyPassword(userRespository, user, password)
+    const isVerified = 
+    await userService.verifyPassword(userRespository, user, password)
 
     if (!isVerified) {
       next(
@@ -589,7 +590,7 @@ Promise<void> => {
 
     const user = await userService.deleteAddressById(userRespository, ids)
     if (!user) { next(new CustomError('User not found', StatusCodes.NOT_FOUND, false)); return }
-
+    
     const response: IResponse = {
       res,
       message: { user: responseFilter(user.toObject() )},

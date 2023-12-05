@@ -4,6 +4,7 @@ import CustomError from '../utils/CustomError'
 
 import JwtServices from '../services/jwt.services'
 import JWT from '../utils/Jwt.utils'
+import { merge } from 'lodash'
 
 /**
  * Ensures that the user is logged in for accessing the protected routes.

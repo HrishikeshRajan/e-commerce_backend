@@ -1,7 +1,7 @@
 import { SessionData } from "express-session";
 // import { mongooseID } from "../repository/Cart";
 import { Request } from 'express';
-import { CART } from "../types";
+import { CART } from "..";
 import mongoose from "mongoose";
 // import { Cart } from "../types";
 type mongooseID = mongoose.Types.ObjectId;
@@ -84,9 +84,12 @@ export class CartBuilder {
 
 
     constructor(session :Request) {
+
+     if(session && session.session){
         if(session.session.cart as CART){
             this.#products = [(session.session.cart as CART)];
         }
+     }
         this.#products = [];
        
         this.#totalPrice = 0;
