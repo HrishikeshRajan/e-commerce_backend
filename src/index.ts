@@ -1,10 +1,14 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
+import 'module-alias/register'
+
 import express, { type Express, type Request, type Response } from 'express'
 import dotenv from 'dotenv'
+
 
 import userRouter from './routes/userRouter'
 import productRouter from './routes/productRouter'
 import adminRouter from './routes/adminRouter'
+import sellerRouter from '@/src/routes/sellerRouter'
 import { errorHandler, notFound, productionErrorHandler } from './middlewares/error.handler'
 import cookieParser from 'cookie-parser'
 import cloudinaryConfig from './configs/cloudinary.config'
@@ -57,6 +61,7 @@ app.use(deserializeUser)
 app.use('/api/v1/users/', userRouter)
 app.use('/api/v1/product/', productRouter)
 app.use('/api/v1/admin/', adminRouter)
+app.use('/api/v1/seller/', sellerRouter)
 
 // This will catch the unmatched routes and forward to error handler 
 app.use(notFound)
