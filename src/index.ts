@@ -5,7 +5,7 @@ import dotenv from 'dotenv'
 import userRouter from './routes/userRouter'
 import productRouter from './routes/productRouter'
 import adminRouter from './routes/adminRouter'
-import { errorHandler, notFound, productionErrors } from './middlewares/error.handler'
+import { errorHandler, notFound, productionErrorHandler } from './middlewares/error.handler'
 import cookieParser from 'cookie-parser'
 import cloudinaryConfig from './configs/cloudinary.config'
 import session from 'express-session'
@@ -20,7 +20,6 @@ dotenv.config()
 dotenv.config({ path: '.env.test' })
 
 const app: Express = express()
-
 
 // Middlewares
 app.use(cors({
@@ -69,8 +68,12 @@ export const createDatabaseConnection = async (url: string): Promise<void> => {
 }
 
 /* 
-  The production and development errors is handled in Error class
+  Here we handle production error
 */
+if(process.env.NODE_ENV === 'production'){
+  app.use(productionErrorHandler)
+}
+
 app.use(errorHandler)
 
 export default app

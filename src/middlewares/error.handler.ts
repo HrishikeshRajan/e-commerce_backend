@@ -9,6 +9,10 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
   sendHTTPResponse({ res, message: { error: err.message ?? 'Server Internal Error' }, statusCode: err.code ?? 500, success: err.success ?? false })
 }
 
+export const productionErrorHandler = (err: any, req: Request, res: Response, next: NextFunction): void => {
+  sendHTTPResponse({ res, message: { error: err.message ?? 'Server Internal Error' }, statusCode: 500, success: false })
+}
+
 // Not Found Error Handler
 
 // If we hit a route that is not found, we mark it as 404 and pass it along to the next error handler to display
