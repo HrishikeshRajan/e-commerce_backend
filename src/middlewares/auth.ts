@@ -17,6 +17,7 @@ import { merge } from 'lodash'
  */
 export const isLoggedIn = (req: Request, res: Response, next: NextFunction): void => {
   try {
+    console.log('k')
     const token = (req.cookies) ? req.cookies.token : null
     if (!(token)) { next(new CustomError('Unauthorized: Access is denied due to invalid credentials', 401, false)); return }
 

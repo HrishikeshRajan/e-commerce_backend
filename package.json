@@ -77,6 +77,11 @@
     "zod": "^3.21.4"
   },
   "_moduleAliases": {
-    "@": "."
+    "@routes":"dist/routes",
+    "@controllers":"dist/controllers",
+    "@middlewares":"dist/middlewares",
+    "@services":"dist/services",
+    "@repositories":"dist/repository",
+    "@utils":"dist/utils"
   }
 }
