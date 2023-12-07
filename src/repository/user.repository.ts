@@ -12,7 +12,6 @@ import { type Query, type FilterQuery } from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
 import { type imageUrl } from '../types/cloudinary.interfaces'
 import * as crypto from 'crypto';
-import { ParamsDictionary } from 'express-serve-static-core'
 class UserRepository implements IUserRepository {
   private readonly userSchema: typeof User
   constructor () {

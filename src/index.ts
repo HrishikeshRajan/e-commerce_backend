@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import 'module-alias/register'
+
 import express, { type Express, type Request, type Response } from 'express'
 import dotenv from 'dotenv'
 
@@ -18,7 +18,7 @@ import deserializeUser from './middlewares/deserializeUser'
 import compress from 'compression'
 import helmet from 'helmet'
 import cors from 'cors'
-
+import 'module-alias/register'
 dotenv.config()
 dotenv.config({ path: '.env.test' })
 
