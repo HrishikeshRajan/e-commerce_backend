@@ -9,8 +9,9 @@
     }
   },
   "scripts": {
-    "build": "./node_modules/.bin/tsc && cp package.json ./dist/package.json",
-    "start": "node dist/app.js",
+    "clean": "rimraf dist",
+    "build": "yarn clean && ./node_modules/.bin/tsc && cp package.json ./dist/package.json",
+    "start": "TS_NODE_BASEURL=./dist node -r tsconfig-paths/register dist/app.js",
     "dev": "nodemon --watch \"src/**\" --ext \"ts,json\" --inspect=0.0.0.0 --exec \"ts-node  src/app.ts\"",
     "test": "jest --watch  --detectOpenHandles",
     "test-clear": "jest --clear-cache"
@@ -69,6 +70,7 @@
     "lodash": "^4.17.21",
     "module-alias": "^2.2.3",
     "mongoose": "^7.0.1",
+    "rimraf": "^5.0.5",
     "stripe": "^12.9.0",
     "supertest": "^6.3.3",
     "ts-jest": "^29.1.1",
@@ -77,11 +79,13 @@
     "zod": "^3.21.4"
   },
   "_moduleAliases": {
-    "@routes":"dist/routes",
-    "@controllers":"dist/controllers",
-    "@middlewares":"dist/middlewares",
-    "@services":"dist/services",
-    "@repositories":"dist/repository",
-    "@utils":"dist/utils"
+    "@routes": "dist/routes",
+    "@services": "dist/services",
+    "@controllers": "dist/controllers",
+    "@repositories": "dist/repository",
+    "@models": "dist/models",
+    "@utils": "dist/utils",
+    "@configs": "dist/configs",
+    "@middlewares": "dist/middlewares"
   }
 }

@@ -6,6 +6,7 @@ import { type DataURI } from 'datauri/types'
 import DataURIParser from 'datauri/parser'
 
 import { type UploadedFile } from '../types/product'
+import { GenericRequest } from 'types/IUser.interfaces'
 const storage: StorageEngine = multer.memoryStorage()
 
 /**
@@ -18,7 +19,7 @@ const multerUploadArray: RequestHandler = multer({ storage }).array('images', 12
 
 const dUri: DataURIParser = new DataURIParser()
 
-const convertToBase64 = (req: Request): string | undefined => {
+const convertToBase64 = (req: GenericRequest<{},{},{}>): string | undefined => {
   return dUri.format(path.extname(req.file?.originalname as string).toString(), req.file?.buffer as DataURI.Input).content
 }
 

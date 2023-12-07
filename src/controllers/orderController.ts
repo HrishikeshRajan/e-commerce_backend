@@ -29,11 +29,21 @@ export const Checkout = async (
   next: NextFunction):
 Promise<void> => {
   try {
+
+    interface User {
+      user: {
+        id: string,
+        email: string
+      }
+    }
+    const typedRequest = (req as unknown as User);
+    const { id, email } = typedRequest.user;
+
     const cart = await cartRepository.findCartByCartId(req.params.cartId)
     if (cart === null) { next(new CustomError(getReasonPhrase(StatusCodes.NOT_FOUND), StatusCodes.NOT_FOUND, false)); return }
 
     const order = orderManagement.setProducts(cart)
-      .setUserId(req.user?.id)
+      .setUserId(id)
       .setCurrencyCode(cart.currencyCode)
       .setOrderStatus(ORDER_STATUS.ACTIVE)
       .setGrandTotal(cart.subTotal)

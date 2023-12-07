@@ -1,7 +1,7 @@
 import { type Query, type Document, type FilterQuery } from 'mongoose'
 import { type IUserRepository, type IUser, type UserParam, type UserWithId, type IAddress } from '../types/IUser.interfaces'
 import { type imageUrl } from '../types/cloudinary.interfaces'
-
+import {ParamsDictionary} from 'express-serve-static-core'
 /**
  * Higher level class that act as an interface for the client
  * Author - Hrishikesh Rajan
@@ -108,6 +108,10 @@ class UserServices {
   }
   async getResetFormToken (userRepoObject: IUserRepository, email:string): Promise<any> {
     return await userRepoObject.resetFormToken(email)
+  }
+
+  async getForgotPasswordToken(userRepoObject:IUserRepository, id: string):Promise<any>{
+    await userRepoObject.getForgotPasswordToken(id)
   }
 }
 

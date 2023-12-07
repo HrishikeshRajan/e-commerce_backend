@@ -1,13 +1,12 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import 'module-alias/register'
-
 import express, { type Express, type Request, type Response } from 'express'
 import dotenv from 'dotenv'
 
 
-import userRouter from './routes/userRouter'
-import productRouter from './routes/productRouter'
-import adminRouter from './routes/adminRouter'
+import userRouter from '@routes/userRouter'
+import productRouter from '@routes/productRouter'
+import adminRouter from '@routes/adminRouter'
 import sellerRouter from '@routes/sellerRouter'
 import { errorHandler, notFound, productionErrorHandler } from './middlewares/error.handler'
 import cookieParser from 'cookie-parser'
@@ -25,12 +24,11 @@ dotenv.config({ path: '.env.test' })
 
 const app: Express = express()
 
-// Middlewares
+
 app.use(cors({
   origin: true,
   credentials: true
 }))
-
 
 app.use(compress())
 app.use(helmet())

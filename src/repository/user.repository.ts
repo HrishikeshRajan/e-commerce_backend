@@ -12,6 +12,7 @@ import { type Query, type FilterQuery } from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
 import { type imageUrl } from '../types/cloudinary.interfaces'
 import * as crypto from 'crypto';
+import { ParamsDictionary } from 'express-serve-static-core'
 class UserRepository implements IUserRepository {
   private readonly userSchema: typeof User
   constructor () {
@@ -256,6 +257,23 @@ class UserRepository implements IUserRepository {
     const result = await this.saveToDatabase(user)
     return result
   }
+
+  #createHash(id:string){
+    return crypto.createHash('sha256').update(JSON.stringify(id)).digest('hex')
+  }
+  async getForgotPasswordToken(id:string){
+    const hash = this.#createHash(id)
+   const result = await this.userSchema.findOne({
+      forgotPasswordTokenId: hash,
+      forgotPasswordTokenExpiry: {
+        $gt: JSON.stringify(Date.now())
+      }
+
+    })
+    return result;
+  }
 }
 
 export default UserRepository
+
+

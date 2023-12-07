@@ -26,6 +26,8 @@ declare module 'express-serve-static-core'{
   }
 }
 
+
+
 export interface ApiResponse<T> extends ExpressResponse {
   json: (data: T) => this
 }

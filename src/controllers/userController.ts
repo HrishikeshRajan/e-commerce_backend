@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { type UploadApiOptions, type UploadApiResponse } from 'cloudinary'
 
-import { type Request, type Response, type NextFunction, type RequestHandler } from 'express'
+import { type Request, type Response, type NextFunction } from 'express'
 import { type JwtPayload } from 'jsonwebtoken'
 import { type imageUrl } from '../types/cloudinary.interfaces'
 import { type IEmailFields, type LinkType } from '../types/IEmail.interfaces' // uncomment in production
@@ -30,16 +30,16 @@ import Search from '../utils/search'
 import productModel from '../models/productModel'
 
 // import { StripeStrategy, PaymentStrategy } from '../utils/payment_strategy'
-import { type AddressWithAddressId, type ForgotPassword, type Login, type Register, type ResetPassword, type QueryWithToken, type UserAddress, type ID, type UpdateProfile, type Photo } from '../types/zod/user.schemaTypes'
+import { type AddressWithAddressId, type ForgotPassword, type Login, type Register, type ResetPassword, type QueryWithToken, type UserAddress, type ID, type UpdateProfile, type Photo, ChangePassword, Params } from '../types/zod/user.schemaTypes'
 
 // eslint-disable-next-line import/no-named-default
 import { default as USER } from '../exports/user'
 import _ from 'lodash'
 import { StatusCodes } from 'http-status-codes'
-import { type FilterQuery } from 'mongoose'
 import { responseFilter } from '../utils/user.helper'
-import userModel from '../models/userModel'
 import { PARAMS_WITH_ID } from '../types/zod/cart.schemaTypes'
+
+import { Token, TypedRequest, GenericRequest } from '../types/IUser.interfaces'
 
 // const secret = process.env.STRIPE_PRIVATE_KEY as string
 // const stripe = new Stripe(secret, {
@@ -73,7 +73,7 @@ export const registerUser = async (
   req: Request<{}, IResponse, Register, {}>,
   res: Response<IResponse, {}>,
   next: NextFunction):
-Promise<void> => {
+  Promise<void> => {
   try {
     const { email } = req.body
 
@@ -152,7 +152,7 @@ export const verifyMailLink = async (
   req: Request<{}, IResponse, {}, QueryWithToken, {}>,
   res: Response<IResponse>,
   next: NextFunction):
-Promise<void> => {
+  Promise<void> => {
   try {
     const { token } = req.query
 
@@ -207,7 +207,7 @@ export const loginUser = async (
   req: Request<{}, ICookieResponse, Login, {}>,
   res: Response<ICookieResponse, {}>,
   next: NextFunction):
-Promise<void> => {
+  Promise<void> => {
   try {
     const { email, password } = req.body
     const user = await userService.findUser(userRespository, { email }, true)
@@ -215,8 +215,8 @@ Promise<void> => {
       next(new CustomError('Invalid email or password ', StatusCodes.BAD_REQUEST, false)); return
     }
 
-    const isVerified = 
-    await userService.verifyPassword(userRespository, user, password)
+    const isVerified =
+      await userService.verifyPassword(userRespository, user, password)
 
     if (!isVerified) {
       next(
@@ -284,7 +284,7 @@ export const logoutUser = async (
   req: Request<{}, ICookieResponse, {}, {}>,
   res: Response<ICookieResponse, {}>,
   next: NextFunction):
-Promise<void> => {
+  Promise<void> => {
   try {
     const time = 0
 
@@ -324,11 +324,12 @@ Promise<void> => {
  * @throws {CustomError} - The error will send as response to client
  */
 
+
 export const forgotPassword = async (
   req: Request<{}, IResponse, ForgotPassword, {}>,
   res: Response<IResponse>,
   next: NextFunction):
-Promise<void> => {
+  Promise<void> => {
   try {
     const { email } = req.body
 
@@ -386,40 +387,40 @@ Promise<void> => {
 }
 
 export const verifyForgotPassword = async (req: Request<{}, IResponse, {}, QueryWithToken, {}>, res: Response, next: NextFunction) => {
-try {
-  const { token } = req.query
+  try {
+    const { token } = req.query
 
-  const jwtConfig = {
-    secret: process.env.JWT_SECRET as string
+    const jwtConfig = {
+      secret: process.env.JWT_SECRET as string
+    }
+    const jwt = new JwtRepository()
+    const result = new JwtServices().verifyToken(jwt, token, jwtConfig.secret)
+
+    if (result.status === 'failure') {
+      res.redirect('http://localhost:5173/expired'); return
+    }
+
+    const { id, email } = result.message?.data;
+    const user = await userService.findUser(userRespository, { email }, true)
+    if (user === null) {
+      next(new CustomError('User Not Found ', StatusCodes.NOT_FOUND, false)); return
+    }
+    if (user.forgotPasswordTokenId !== id) {
+      res.redirect('http://localhost:5173/expired'); return
+    }
+
+    const isToken = await userService.getResetFormToken(userRespository, email)
+    if (!isToken) { next(new CustomError('Reset from Token creation failed', StatusCodes.INTERNAL_SERVER_ERROR, false)); return }
+
+    user.forgotPasswordTokenId = ''
+    user.forgotPasswordTokenExpiry = ''
+    await user.save({ validateBeforeSave: false })
+    res.redirect(process.env.FRONTEND_RESET_PASSWORD_URL as string + '/' + isToken)
+
+  } catch (error: unknown) {
+    const errorObj = error as CustomError
+    next(new CustomError(errorObj.message, errorObj.code, false))
   }
-  const jwt = new JwtRepository()
-  const result = new JwtServices().verifyToken(jwt, token, jwtConfig.secret)
-
-  if (result.status === 'failure') {
-    res.redirect('http://localhost:5173/expired'); return
-  }
-
-  const {id, email} =  result.message?.data;
-  const user = await userService.findUser(userRespository, { email }, true)
-  if (user === null) {
-    next(new CustomError('User Not Found ', StatusCodes.NOT_FOUND, false)); return
-  }
-  if(user.forgotPasswordTokenId !== id){
-    res.redirect('http://localhost:5173/expired'); return
-  }
-
-  const isToken = await userService.getResetFormToken( userRespository,email)
-  if (!isToken) { next(new CustomError('Reset from Token creation failed', StatusCodes.INTERNAL_SERVER_ERROR, false)); return }
- 
-   user.forgotPasswordTokenId = ''
-   user.forgotPasswordTokenExpiry = ''
-   await user.save({validateBeforeSave:false})
-  res.redirect(process.env.FRONTEND_RESET_PASSWORD_URL as string + '/'+ isToken)
-
-} catch (error: unknown) {
-  const errorObj = error as CustomError
-  next(new CustomError(errorObj.message, errorObj.code, false))
-}
 }
 
 /**
@@ -435,26 +436,18 @@ try {
  * @throws {CustomError} - The error will send as response to client
  */
 export const resetPassword = async (
-  req: Request<PARAMS_WITH_ID, IResponse, ResetPassword, {}>,
+  req: GenericRequest<Params,ResetPassword, {}>,
   res: Response<IResponse>,
   next: NextFunction):
-Promise<void> => {
+  Promise<void> => {
   try {
     const { password } = req.body
 
-    const {id} = req.params
+    const { id } = req.params
 
-    const hash =  crypto.createHash('sha256').update(JSON.stringify(req.params.id)).digest('hex')
-   
-    const user = await userModel.findOne({
-      forgotPasswordTokenId:hash,
-      forgotPasswordTokenExpiry:{
-        $gt:JSON.stringify(Date.now())
-      }
-
-     })
+    const user = await userService.getForgotPasswordToken(userRespository, id)
     if (user === null) { next(new CustomError('Token Expired', StatusCodes.UNAUTHORIZED, false)); return }
-   
+
     user.password = password
     await user.save()
 
@@ -472,11 +465,22 @@ Promise<void> => {
   }
 }
 
-export const changePassword: RequestHandler = (req, res, next): void => {
+
+export const changePassword = (
+
+  req: TypedRequest<ChangePassword, Token>,
+
+  res: Response<IResponse>,
+
+  next: NextFunction): void => {
+
   void (async () => {
     try {
       const { currentPassword, newPassword } = req.body
-      const user = await userService.updatePassword(userRespository, { id: req.user ? req?.user?.id : '', currentPassword, newPassword })
+
+      if (!req.user) return
+      const id = req.user.id;
+      const user = await userService.updatePassword(userRespository, { id, currentPassword, newPassword })
 
       if (user === null) { next(new CustomError('Password update failed', StatusCodes.INTERNAL_SERVER_ERROR, false)); return }
       if (typeof user === 'boolean' && !user) { next(new CustomError('Incorrect password', StatusCodes.FORBIDDEN, false)); return }
@@ -508,14 +512,18 @@ export const changePassword: RequestHandler = (req, res, next): void => {
  * @throws {CustomError} - The error will send as response to client
  */
 export const addAddress = async (
-  req: Request<{}, IResponse, UserAddress, {}>,
+  req: TypedRequest<UserAddress, Token>,
   res: Response<IResponse>,
   next: NextFunction):
-Promise<void> => {
+  Promise<void> => {
   try {
-    const address = req.body
 
-    const user = await userService.addAddress(userRespository, { id: req.user ? req.user.id : '', address })
+    const address = { ...req.body };
+
+    if (!req.user) return;
+    const { id, email } = req.user;
+
+    const user = await userService.addAddress(userRespository, { id, address })
     if (user === null) { next(new CustomError('Address update failed', StatusCodes.INTERNAL_SERVER_ERROR, false)); return }
 
     const response: IResponse = {
@@ -543,7 +551,7 @@ Promise<void> => {
  * @throws {CustomError} - The error will send as response to client
  */
 export const editAddress = async (
-  req: Request<ID, IResponse, AddressWithAddressId, {}>,
+  req: GenericRequest<ID, AddressWithAddressId, Token>,
   res: Response<IResponse>,
   next: NextFunction
 ): Promise<void> => {
@@ -551,8 +559,11 @@ export const editAddress = async (
     const address = req.body
     const addressId = req.params.id
 
+    if (!req.user) return
+    const { id, email } = req.user;
+
     const isUpdated = await userService
-      .updateAddress(userRespository, { address, userId: req.user?.id, addressId })
+      .updateAddress(userRespository, { address, userId: id, addressId })
     if (isUpdated === null) { next(new CustomError('User not found', StatusCodes.NOT_FOUND, false)); return }
 
     const response: IResponse = {
@@ -580,20 +591,23 @@ export const editAddress = async (
  * @throws {CustomError} -  The error will send as response to client
  */
 export const deleteAddress = async (
-  req: Request<ID, IResponse, {}, {}>,
+  req: GenericRequest<ID, {}, Token>,
   res: Response<IResponse>,
   next: NextFunction):
-Promise<void> => {
+  Promise<void> => {
   try {
+    if (!req.user) return
+
     const addressId = req.params.id
-    const ids = { addressId, userId: req.user?.id }
+    const id = req.user.id
+    const ids = { addressId, userId: id }
 
     const user = await userService.deleteAddressById(userRespository, ids)
     if (!user) { next(new CustomError('User not found', StatusCodes.NOT_FOUND, false)); return }
-    
+
     const response: IResponse = {
       res,
-      message: { user: responseFilter(user.toObject() )},
+      message: { user: responseFilter(user.toObject()) },
       success: true,
       statusCode: StatusCodes.OK
     }
@@ -614,14 +628,17 @@ Promise<void> => {
  * @throws {CustomError} -  The error will send as response to client
  */
 export const myAddress = async (
-  req: Request<{}, IResponse, {}, {}>,
+  req: GenericRequest<{}, {}, Token>,
   res: Response<IResponse>,
   next: NextFunction):
-Promise<void> => {
+  Promise<void> => {
   try {
-    const id = req.user?.id as FilterQuery<string>
-    const result = await userService.findUser(userRespository,{_id:id},false)
 
+
+    if (!req.user) return;
+    const { id, email } = req.user;
+
+    const result = await userService.findUser(userRespository, { _id: id }, false)
     if (!result) { next(new CustomError('User not found', StatusCodes.NOT_FOUND, false)); return }
 
     const response: IResponse = {
@@ -630,6 +647,7 @@ Promise<void> => {
       success: true,
       statusCode: StatusCodes.OK
     }
+
     sendHTTPResponse(response)
   } catch (error: unknown) {
     console.log(error)
@@ -647,12 +665,16 @@ Promise<void> => {
  * @throws {CustomError} -  The error will send as response to client
  */
 export const showProfile = async (
-  req: Request,
+  req: GenericRequest<{}, {}, Token>,
   res: Response,
   next: NextFunction):
-Promise<void> => {
+  Promise<void> => {
   try {
-    const user = await userService.findUser(userRespository, { _id: req.user?.id })
+
+    if (!req.user) return;
+    const { id, email } = req.user;
+
+    const user = await userService.findUser(userRespository, { _id: id })
     if (!user) { next(new CustomError('User not found', StatusCodes.NOT_FOUND, false)); return }
 
     const response: IResponse = {
@@ -661,6 +683,7 @@ Promise<void> => {
       success: true,
       statusCode: StatusCodes.OK
     }
+
     sendHTTPResponse(response)
   } catch (error: unknown) {
     console.log(error)
@@ -678,12 +701,16 @@ Promise<void> => {
  * @throws {CustomError} -  The error will send as response to client
  */
 export const editProfile = async (
-  req: Request<{}, IResponse, UpdateProfile, {}>,
+  req: GenericRequest<{}, UpdateProfile, Token>,
   res: Response<IResponse>,
   next: NextFunction):
-Promise<void> => {
+  Promise<void> => {
   try {
-    const user = await userService.updateUserProfile(userRespository, { ...req.body }, req.user?.id)
+
+    if (!req.user) return;
+    const { id, email } = req.user;
+
+    const user = await userService.updateUserProfile(userRespository, { ...req.body }, id)
     if (!user) { next(new CustomError('User not found', StatusCodes.INTERNAL_SERVER_ERROR, false)); return }
 
     const response: IResponse = {
@@ -692,6 +719,7 @@ Promise<void> => {
       success: true,
       statusCode: StatusCodes.OK
     }
+
     sendHTTPResponse(response)
   } catch (error: unknown) {
     console.log(error)
@@ -711,12 +739,16 @@ Promise<void> => {
  * @throws {CustomError} - The error will send as response to client
  */
 export const uploadProfilePicture = async (
-  req: Request<{}, IResponse, Photo, {}>,
+  req: GenericRequest<{}, Photo, Token>,
   res: Response<IResponse>,
   next: NextFunction):
-Promise<void> => {
+  Promise<void> => {
   try {
+
     if (!req.file) { next(new CustomError('Please provide an image', StatusCodes.UNPROCESSABLE_ENTITY, false)); return }
+    if (!req.user) { next(new CustomError('User not found in req object', StatusCodes.UNPROCESSABLE_ENTITY, false)); return }
+
+    const { id } = req.user
 
     const options: UploadApiOptions = {
       folder: 'ProfilePicture',
@@ -726,22 +758,18 @@ Promise<void> => {
       zoom: '0.6',
       crop: 'thumb'
     }
-
     const base64: string | undefined = convertToBase64(req)
-
     const ImageServiceRepository = new Cloudinary()
     const imageServices = new ImageProcessingServices()
-
     const imageUrls: UploadApiResponse = await imageServices.uploadImage(ImageServiceRepository, base64 as string, options)
-
     const photoUrls: imageUrl = {
       publicId: imageUrls.public_id,
       secureUrl: imageUrls.secure_url,
       url: imageUrls.url
     }
 
-    const user = await userService.updateImageUrl(userRespository, photoUrls, req.user?.id)
-    if (!user) { next(new CustomError('User not found', StatusCodes.INTERNAL_SERVER_ERROR, false)); return }
+    const user = await userService.updateImageUrl(userRespository, photoUrls, id)
+    if (!user) { next(new CustomError('User not found while updating the image url', StatusCodes.INTERNAL_SERVER_ERROR, false)); return }
 
     const response: IResponse = {
       res,
@@ -766,12 +794,16 @@ Promise<void> => {
  * @throws {CustomError} -  The error will send as response to client
  */
 export const deleteProfilePicture = async (
-  req: Request<{}, IResponse, {}, {}>,
+  req: GenericRequest<{}, {}, Token>,
   res: Response<IResponse>,
   next: NextFunction):
-Promise<void> => {
+  Promise<void> => {
   try {
-    const user = await userService.deleteProfilePicture(userRespository, req.user?.id)
+
+
+    if(!req.user) return
+    const { id } = req.user;
+    const user = await userService.deleteProfilePicture(userRespository, id)
     if (!user) { next(new CustomError('User not found', StatusCodes.INTERNAL_SERVER_ERROR, false)); return }
 
     const response: IResponse = {

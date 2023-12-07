@@ -155,6 +155,10 @@ export const ParamsByIdSchema = z.object({
     message: 'Invalid ObjectId'
   })
 })
+export const ParamsSchema = z.object({  
+  id: z.string()
+})
+
 export const ParamsByAddressIdSchema = z.object({
   addressId: z.string().min(1).refine((id) => {
     if (mongoose.isValidObjectId(id)) {
@@ -192,3 +196,4 @@ export type QueryWithToken = z.infer<typeof QueryWithTokenSchema>
 export type UserAddress = z.infer<typeof UserAddressSchema>
 export type UpdateProfile = z.infer<typeof UpdateProfileSchema>
 export type Photo = z.infer<typeof PhotoSchema>
+export type Params = z.infer<typeof ParamsSchema>

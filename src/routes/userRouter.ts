@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import express from 'express'
+import express ,{Express} from 'express'
 import {
   addAddress,
   changePassword,
@@ -23,7 +23,7 @@ import { multerUpload } from '../utils/image.helper'
 
 import { ADD_TO_CART_SCHEMA, CART_QTY_SCHEMA, PARAMS_WITH_ID_SCHEMA } from '../types/zod/cart.schemaTypes'
 import { VALIDATE_REQUEST } from '../utils/request.validator'
-import { AddressSchemaWithAddressId, ChangePasswordSchema, ForgotPasswordSchema, LoginSchema, ParamsByIdSchema, PhotoSchema, QueryWithTokenSchema, RegisterSchema, ResetPasswordSchema, UpdateProfileSchema, UserAddressSchema } from '../types/zod/user.schemaTypes'
+import { ParamsSchema, ChangePasswordSchema, ForgotPasswordSchema, LoginSchema, ParamsByIdSchema, PhotoSchema, QueryWithTokenSchema, RegisterSchema, ResetPasswordSchema, UpdateProfileSchema, UserAddressSchema } from '../types/zod/user.schemaTypes'
 import { validateRequest } from '../middlewares/userInputValidator'
 import { addToCart, getCart, changeQty, deleteCart } from '../controllers/cartController'
 import { Checkout, paymentMethod, setShippingAddress } from '../controllers/orderController'
@@ -48,7 +48,7 @@ router.route('/forgot/password/url/')
   .get(disallowLoggedInUsers, verifyForgotPassword)
 
 router.route('/forgot/password/:id')
-  .put(disallowLoggedInUsers, validateRequest({ body: ResetPasswordSchema }), resetPassword)
+  .put(disallowLoggedInUsers,validateRequest({params: ParamsSchema}) ,validateRequest({ body: ResetPasswordSchema }), resetPassword)
 
 router.route('/change/password')
   .put(isLoggedIn, validateRequest({ body: ChangePasswordSchema }), changePassword)
