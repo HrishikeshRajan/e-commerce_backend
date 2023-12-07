@@ -6,7 +6,7 @@
  *
  */
 
-import { type IUserRepository, type IUser, type UserParam, type IAddress, type UserWithId } from '../types/IUser.interfaces'
+import { type IUserRepository, type IUser, type UserParam, type IAddress, type UserWithId, UserCore } from '../types/IUser.interfaces'
 import User from '../models/userModel'
 import { type Query, type FilterQuery } from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
@@ -14,40 +14,64 @@ import { type imageUrl } from '../types/cloudinary.interfaces'
 import * as crypto from 'crypto';
 class UserRepository implements IUserRepository {
   private readonly userSchema: typeof User
-  constructor () {
+  constructor() {
     this.userSchema = User
   }
 
-  async setEmailVerified (user: UserWithId): Promise<any> {
-    user.emailVerified = true
-    await this.saveToDatabase(user)
-  }
-
-  async convertToUserObject (user: UserWithId): Promise<UserWithId > {
-    return await user.toObject()
-  }
+  //New APIS
 
   /**
-       * Deletes the user document
-       *
-       * @param {UserParam} param  - The user document will be deleted based on the param
-       * @returns {Promise<UserWithId>} - plain javacript object of deleted user document
-       * @throws - Mongoose error if occur
-       */
-  async deleteUser (param: FilterQuery<UserParam>): Promise<UserWithId> {
+   * Returns user as plain javascript Object
+   * @param userId 
+   * @returns user object
+   */
+  async get(userId: string): Promise<any> {
+    const user = await this.userSchema.findById(userId);
+    return user ? user.toObject() : null;
+  }
+  /**
+   * Updates both seller and role property
+   * @param {string} userId 
+   * @returns 
+   */
+  async setSeller(userId: string): Promise<UserCore | null> {
+    const user = await this.findUser({ _id: userId })
+    if (!user) return null
+    user.seller = !user.seller
+    user.role = user.seller ? 'seller' : 'user'
+    return await this.saveToDatabase(user);
+  }
+
+
+  /**
+     * Deletes the user document
+     *
+     * @param {UserParam} param  - The user document will be deleted based on the param
+     * @returns {Promise<UserWithId>} - plain javacript object of deleted user document
+     * @throws - Mongoose error if occur
+     */
+  async deleteUser(param: FilterQuery<UserParam>): Promise<UserWithId> {
     const result = await this.userSchema.findOneAndDelete(param).lean()
     return result
   }
 
+  async setEmailVerified(user: UserWithId): Promise<any> {
+    user.emailVerified = true
+    await this.saveToDatabase(user)
+  }
+
+  async convertToUserObject(user: UserWithId): Promise<UserWithId> {
+    return await user.toObject()
+  }
   /**
-       * Finds user based on param
-       *
-       * @param {Object} key - Document is searched based on this key
-       * @param {Boolean} includePassword - Set to true if you want document with password field
-       * @returns { Promise< Query<UserWithId | null, UserWithId >>>} - The user if exists else return null.
-       * @throws {CustomError} - Throws http error if any failure occurs
-       */
-  async findUser (key: FilterQuery<UserParam>, includePassword: boolean = false): Promise<Query<UserWithId | null, UserWithId>> {
+     * Finds user based on param
+     *
+     * @param {Object} key - Document is searched based on this key
+     * @param {Boolean} includePassword - Set to true if you want document with password field
+     * @returns { Promise< Query<UserWithId | null, UserWithId >>>} - The user if exists else return null.
+     * @throws {CustomError} - Throws http error if any failure occurs
+     */
+  async findUser(key: FilterQuery<UserParam>, includePassword: boolean = false): Promise<Query<UserWithId | null, UserWithId>> {
     let user: UserWithId | null
 
     if (includePassword) {
@@ -64,7 +88,7 @@ class UserRepository implements IUserRepository {
        * @returns {Promise<Array<IUser> | null>} - The user if exists else return null.
        * @throws {CustomError} - Throws http error if any failure occurs
        */
-  async findAllUsers (): Promise<Query<UserWithId[] | null, UserWithId>> {
+  async findAllUsers(): Promise<Query<UserWithId[] | null, UserWithId>> {
     const users = await this.userSchema.find({})
     return users
   }
@@ -75,7 +99,7 @@ class UserRepository implements IUserRepository {
        * @returns {Promise<IUser>} - a promise of created user document
        * @throws - mongoose Error
        */
-  async create (fields: Record<string, unknown>): Promise<IUser> {
+  async create(fields: Record<string, unknown>): Promise<IUser> {
     const user = await this.userSchema.create(fields)
     return user
   }
@@ -86,7 +110,7 @@ class UserRepository implements IUserRepository {
    * @param {string} userId
    * @returns - user document
    */
-  async addAddress (address: IAddress, userId: FilterQuery<string>): Promise<Query<UserWithId | null, UserWithId>> {
+  async addAddress(address: IAddress, userId: FilterQuery<string>): Promise<Query<UserWithId | null, UserWithId>> {
     const user = await this.findUser({ userId })
     if (user === null) return null
     user.address?.push(address)
@@ -94,7 +118,7 @@ class UserRepository implements IUserRepository {
     return result
   };
 
-  async fetchAddresses (userId: FilterQuery<string>): Promise<Query<IAddress[] | null, IAddress>> {
+  async fetchAddresses(userId: FilterQuery<string>): Promise<Query<IAddress[] | null, IAddress>> {
     const user = await this.findUser({ _id: userId })
     if (user === null) return null
     return user.address ?? null
@@ -104,7 +128,7 @@ class UserRepository implements IUserRepository {
      * Update the user document fields in database.     *
      * @param {UserWithId} mongooseObj
      */
-  async saveToDatabase (mongooseObj: UserWithId): Promise<UserWithId> {
+  async saveToDatabase(mongooseObj: UserWithId): Promise<UserWithId> {
     const result = await mongooseObj.save()
     return result
   }
@@ -118,7 +142,7 @@ class UserRepository implements IUserRepository {
    * @returns modified mongoose user instance
    */
 
-  updateAddressHelper (data: UserWithId, addressId: string, newAddress: IAddress): UserWithId {
+  updateAddressHelper(data: UserWithId, addressId: string, newAddress: IAddress): UserWithId {
     interface Index {
       index: number
     }
@@ -148,7 +172,7 @@ class UserRepository implements IUserRepository {
      * @param addressId
      * @returns user with id field
      */
-  async updateAddress (newAddress: IAddress, userId:string, addressId: string) {
+  async updateAddress(newAddress: IAddress, userId: string, addressId: string) {
     const user = await this.findUser({ _id: userId })
     if (user === null) return null
     const updatedUser = this.updateAddressHelper(user, addressId, newAddress)
@@ -162,7 +186,7 @@ class UserRepository implements IUserRepository {
     return address ?? null
   };
 
-  async resetPassword (email: FilterQuery<Record<string, string>>, password: string): Promise<UserWithId | null> {
+  async resetPassword(email: FilterQuery<Record<string, string>>, password: string): Promise<UserWithId | null> {
     const user = await this.findUser({ email }, true)
     if (user === null) return null
     user.password = password
@@ -170,11 +194,11 @@ class UserRepository implements IUserRepository {
     return result
   }
 
-  private calculateExpiry () {
-   return  JSON.stringify(Date.now() + (1 * 60 * 1000))
+  private calculateExpiry() {
+    return JSON.stringify(Date.now() + (1 * 60 * 1000))
   }
 
-  async addForgotTokenId (email: FilterQuery<string>): Promise<UserWithId | null> {
+  async addForgotTokenId(email: FilterQuery<string>): Promise<UserWithId | null> {
     const user = await this.findUser({ email })
     if (user === null) return null
 
@@ -185,23 +209,23 @@ class UserRepository implements IUserRepository {
     return result
   }
 
-  async resetFormToken (email: string) {
+  async resetFormToken(email: string) {
     const user = await this.findUser({ email })
     if (user == null) return
     const forgotToken = crypto.randomBytes(20).toString('hex');
-    const hash =  crypto.createHash('sha256').update(JSON.stringify(forgotToken)).digest('hex')
+    const hash = crypto.createHash('sha256').update(JSON.stringify(forgotToken)).digest('hex')
     user.forgotPasswordTokenId = hash
     user.forgotPasswordTokenExpiry = this.calculateExpiry()
     await this.saveToDatabase(user)
     return forgotToken
   }
 
-  async verifyPassword (user: UserWithId, password: string): Promise<any> {
+  async verifyPassword(user: UserWithId, password: string): Promise<any> {
     const result = await user.verifyPassword(password)
     return result
   }
 
-  async changePassword (fields: { id: FilterQuery<Record<string, string>>, currentPassword: string, newPassword: string }): Promise<UserWithId | null | boolean> {
+  async changePassword(fields: { id: FilterQuery<Record<string, string>>, currentPassword: string, newPassword: string }): Promise<UserWithId | null | boolean> {
     const user = await this.findUser({ _id: fields.id }, true)
 
     if (user === null) return null
@@ -214,7 +238,7 @@ class UserRepository implements IUserRepository {
     return result
   }
 
-  async deleteAddress (addressId:string, userId:string) {
+  async deleteAddress(addressId: string, userId: string) {
     let user = await this.findUser({ _id: userId })
     if (user === null) return null
 
@@ -226,7 +250,7 @@ class UserRepository implements IUserRepository {
     return result ?? null
   }
 
-  async updateUserProfile (fields: any, userId: string): Promise<UserWithId | null> {
+  async updateUserProfile(fields: any, userId: string): Promise<UserWithId | null> {
     const user = await this.findUser({ _id: userId })
     if (user === null) return null
     user.fullname = fields.fullname
@@ -236,7 +260,7 @@ class UserRepository implements IUserRepository {
     return result
   }
 
-  async setProfilePicture (fields: imageUrl, userId: string): Promise<UserWithId | null> {
+  async setProfilePicture(fields: imageUrl, userId: string): Promise<UserWithId | null> {
     const user = await this.findUser({ _id: userId })
     if (user === null) return null
 
@@ -247,7 +271,7 @@ class UserRepository implements IUserRepository {
     return result
   }
 
-  async deleteProfilePicture (userId: string): Promise<UserWithId | null> {
+  async deleteProfilePicture(userId: string): Promise<UserWithId | null> {
     const user = await this.findUser({ _id: userId })
     if (user === null) return null
     user.photo.id = ''
@@ -257,12 +281,12 @@ class UserRepository implements IUserRepository {
     return result
   }
 
-  #createHash(id:string){
+  #createHash(id: string) {
     return crypto.createHash('sha256').update(JSON.stringify(id)).digest('hex')
   }
-  async getForgotPasswordToken(id:string){
+  async getForgotPasswordToken(id: string) {
     const hash = this.#createHash(id)
-   const result = await this.userSchema.findOne({
+    const result = await this.userSchema.findOne({
       forgotPasswordTokenId: hash,
       forgotPasswordTokenExpiry: {
         $gt: JSON.stringify(Date.now())

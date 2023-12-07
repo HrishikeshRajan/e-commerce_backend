@@ -21,6 +21,7 @@ export interface IAddress extends Document {
 }
 //This core user type
 export interface UserCore {
+  _id: string
   fullname: string
   username: string
   email: string
@@ -80,10 +81,12 @@ export type UserParam = Record<string, string>
 export type UserWithId = IUser & { _id: Types.ObjectId }
 export interface IUserRepository {
   create: (fields: Record<string, unknown>) => Promise<IUser>
+  get:(userId: string) => any
   findUser: (key: FilterQuery<UserParam>, includePassword: boolean) => Promise<Query<UserWithId | null, UserWithId>>
   findAllUsers: () => Promise<Query<UserWithId[] | null, UserWithId>>
   deleteUser: (key: FilterQuery<UserParam>) => Promise<UserWithId>
   addAddress: (address: IAddress, userId: FilterQuery<string>) => Promise<Query<UserWithId | null, UserWithId>>
+
 
   resetPassword: (email: FilterQuery<string>, password: string) => Promise<UserWithId | null>
   addForgotTokenId: (email: FilterQuery<string>) => Promise<UserWithId | null>
@@ -118,6 +121,9 @@ export interface GenericRequest<P extends ParamsDictionary,B, L> extends Express
   params: P
   body: B
   user?: L
+  cookies:{
+    token:string
+  }
 }
 
 
