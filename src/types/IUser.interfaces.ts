@@ -1,6 +1,7 @@
 import { type Query, type Document, type Types, type FilterQuery } from 'mongoose'
 import { type imageUrl } from './cloudinary.interfaces'
 import { ParamsDictionary } from 'express-serve-static-core'
+import { ShopCore } from '@models/shopModel'
 export interface Address {
   fullname: string
   city: string
@@ -117,10 +118,21 @@ export interface TypedRequestWithParams<P extends ParamsDictionary, B, L> extend
   user?: L
 }
 
-export interface GenericRequest<P extends ParamsDictionary,B, L> extends Express.Request {
+export interface GenericRequest<P extends ParamsDictionary,B,L> extends Express.Request {
   params: P
   body: B
   user?: L
+  cookies:{
+    token:string
+  }
+}
+
+
+export interface GenericWithShopRequest<P extends ParamsDictionary,B,L,S> extends Express.Request {
+  params: P
+  body: B
+  user?: L
+  shop?:S
   cookies:{
     token:string
   }

@@ -2,6 +2,7 @@ import { type Response as ExpressResponse } from 'express'
 import 'express-session'
 import { type mongooseID } from '../repository/CartRepository'
 import 'express-serve-static-core'
+import { ShopCore } from '@models/shopModel'
 
 export { }
 
@@ -23,6 +24,7 @@ declare module 'express-serve-static-core'{
     user: any
     cookies: any
     session: any
+    shop:any
   }
 }
 

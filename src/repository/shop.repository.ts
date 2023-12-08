@@ -1,5 +1,5 @@
 import { ShopCore, ShopDocument } from "@models/shopModel";
-import { Model } from "mongoose";
+import { Model, Query, Document } from "mongoose";
 
 class ShopRepository {
   shop: Model<ShopDocument>;
@@ -23,7 +23,27 @@ class ShopRepository {
     const isDeleted = await this.shop.findByIdAndDelete(shopId)
     return isDeleted ? true : false
   }
+  
+  /**
+   * @param {string} shopId 
+   * @returns the document if exists else null
+   */
+
+    async findById<T>(shopId: T): Promise<ShopDocument | null> {
+      const shop = await this.shop.findById(shopId)
+      return shop ?? null
+    }
+  /**
+   * @param {T} ownerId 
+   * @returns a query object if exists else null
+   */
+       findShopByOwnerId<T>(ownerId: T): Query< ShopDocument | null, ShopDocument,{},{}> {
+        const shop = this.shop.findOne({owner:ownerId})
+      
+        return shop ?? null
+      }
 }
 
 
 export default ShopRepository;
+
