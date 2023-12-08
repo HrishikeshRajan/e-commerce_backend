@@ -37,7 +37,6 @@ import { default as USER } from '../exports/user'
 import _ from 'lodash'
 import { StatusCodes } from 'http-status-codes'
 import { responseFilter } from '../utils/user.helper'
-import { PARAMS_WITH_ID } from '../types/zod/cart.schemaTypes'
 
 import { Token, TypedRequest, GenericRequest } from '../types/IUser.interfaces'
 

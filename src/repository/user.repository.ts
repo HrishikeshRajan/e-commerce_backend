@@ -39,7 +39,8 @@ class UserRepository implements IUserRepository {
     if (!user) return null
     user.seller = !user.seller
     user.role = user.seller ? 'seller' : 'user'
-    return await this.saveToDatabase(user);
+    const userDocument = await user.save();
+    return userDocument.toObject()
   }
 
 

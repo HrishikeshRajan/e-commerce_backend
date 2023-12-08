@@ -11,7 +11,7 @@ export const responseFilter = (user: UserWithId): any => {
   return newUser
 }
 
-export const userFilter = (user: any) => {
+export const userFilter = (user: UserCore):UserCore => {
   const newUser = { ...user } as any
   newUser._id = newUser._id.toString()
   delete newUser.password

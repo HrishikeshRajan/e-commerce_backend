@@ -33,9 +33,9 @@ export const isLoggedIn = (req: GenericRequest<{},{},UserCore>, res: Response, n
     const tokenData = { ...decodedObj.message.data } as Token
     
 
-    // Throw error if another user id is submitted
-    if(req.user?._id !== tokenData.id){
-       next(new CustomError('Id are not matching', 401, false)); return 
+   // Throw an error if a different user ID is provided in the parameters.
+    if(req.user?._id && (req.user?._id !== tokenData.id)){
+       next(new CustomError('Id\'s are not matching', 401, false)); return 
     }
     merge(req,{user:tokenData} )
   } catch (error: unknown) {
