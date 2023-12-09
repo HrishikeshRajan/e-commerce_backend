@@ -1,5 +1,6 @@
 import { ShopCore, ShopDocument } from "@models/shopModel";
-import { Model, Query, Document } from "mongoose";
+import { merge } from "lodash";
+import { Model, Query, Document, Types } from "mongoose";
 
 class ShopRepository {
   shop: Model<ShopDocument>;
@@ -25,7 +26,7 @@ class ShopRepository {
   }
   
   /**
-   * @param {string} shopId 
+   * @param {T} shopId 
    * @returns the document if exists else null
    */
 
@@ -39,9 +40,20 @@ class ShopRepository {
    */
        findShopByOwnerId<T>(ownerId: T): Query< ShopDocument | null, ShopDocument,{},{}> {
         const shop = this.shop.findOne({owner:ownerId})
-      
         return shop ?? null
       }
+  /**
+   * Saves the modified paths only
+   * @param {T} shopId 
+   * @returns mongoose document
+   */
+       async editById<T,D extends ShopCore>(shopId: T, details:D): Promise< ShopDocument | null> {
+          const shop = await this.shop.findById(shopId)
+          merge(shop,details)
+          shop?.modifiedPaths()
+          await shop?.save()
+          return shop ?? null
+        }
 }
 
 

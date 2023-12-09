@@ -1,18 +1,20 @@
 
-import { type NextFunction, type Request, type Response } from "express";
-import CustomError from "@utils/CustomError"
+import { type NextFunction, type Response } from "express"
 import userService from '@services/user.services'
-import UserRepository from "@repositories/user.repository";
-import { isEmpty, merge } from "lodash";
-import { GenericRequest, GenericWithShopRequest, Token } from "types/IUser.interfaces";
-import { IResponse } from "types/IResponse.interfaces";
-import { sendHTTPResponse } from "@services/response.services";
-import { StatusCodes } from "http-status-codes";
-import { userFilter } from "@utils/user.helper";
-import shopModel, { ShopCore, ShopDocument } from "@models/shopModel";
-import ShopRepository from "@repositories/shop.repository";
-import { ID } from "../types/zod/user.schemaTypes";
-import { Types } from "mongoose";
+import { sendHTTPResponse } from "@services/response.services"
+import UserRepository from "@repositories/user.repository"
+import ShopRepository from "@repositories/shop.repository"
+import shopModel, { ShopCore, ShopDocument } from "@models/shopModel"
+import { shopFilter } from "@utils/shop.helper"
+import { userFilter } from "@utils/user.helper"
+import CustomError from "@utils/CustomError"
+
+import { isEmpty, merge } from "lodash"
+import { GenericRequest, GenericWithShopRequest, Token, UserCore } from "types/IUser.interfaces"
+import { IResponse } from "types/IResponse.interfaces"
+import { StatusCodes } from "http-status-codes"
+import { ID } from "../types/zod/user.schemaTypes"
+import { Types } from "mongoose"
 
 /**
  * Update the user document seller property 
@@ -124,7 +126,36 @@ export const listMyShops = async (
     }
 }
 
+/**
+ * Edits shops by shop id
+ * @param req 
+ * @param res 
+ * @param next 
+ * @returns void 
+ */
+export const editShop = async (
+    req: GenericWithShopRequest<{}, ShopCore, Token, ShopDocument>,
+    res: Response<IResponse>,
+    next: NextFunction) => {
+    try {
+        const shop = new ShopRepository(shopModel)
+        const shopDocument = await shop.editById<Types.ObjectId, ShopCore>(req.shop?._id, req.body)
+        if (!shopDocument) {
+            return next(new CustomError('Shop not found by give shopId', StatusCodes.NOT_FOUND, false))
+        }
 
+        /**
+         * This function returns a modified shop object 
+         */
+        const result = shopFilter.sanitize<ShopDocument>(shopDocument)
+        sendHTTPResponse({ res, message: { message: result }, statusCode: StatusCodes.OK, success: true })
+
+    } catch (error) {
+        next(error)
+    }
+}
+
+ 
 
 /**
  * Middleware that injects a user object into the req object.
