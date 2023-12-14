@@ -42,6 +42,15 @@ class ShopRepository {
         const shop = this.shop.findOne({owner:ownerId})
         return shop ?? null
       }
+
+  /**
+   * @param {T} ownerId 
+   * @returns a query object if exists else null
+   */
+        findShopsByOwnerId<T>(ownerId: T): Query< ShopDocument[] | null, ShopDocument,{},{}> {
+          const shop = this.shop.find({owner:ownerId})
+          return shop ?? null
+        }
   /**
    * Saves the modified paths only
    * @param {T} shopId 
@@ -54,6 +63,7 @@ class ShopRepository {
           await shop?.save()
           return shop ?? null
         }
+
 }
 
 

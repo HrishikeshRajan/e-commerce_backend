@@ -1,6 +1,6 @@
 import { Schema, Model, Types, model, Document } from 'mongoose'
 
-export interface CloudinaryImage { id: String, secure_url: String, url: String }
+export interface CloudinaryImage { id: string, secure_url: string, url: string }
 export interface ShopReview {
     userId: Types.ObjectId
     title: string,
@@ -21,6 +21,7 @@ export interface ShopCore {
     updated: Date
     created: Date
     owner: Types.ObjectId
+    email:string
 }
 // Create a document type for ShopCore
 export type ShopDocument = ShopCore & Document
@@ -32,6 +33,13 @@ const shopSchema = new Schema<ShopDocument, Model<ShopDocument>>(
                 required: [true, 'Please provide product name'],
                 trim: true
             },
+            email: {
+                type: String,
+                trim: true,
+                unique: true,
+                lowercase: true,
+                required: true
+              },
             description: {
                 type: String,
                 required: [true, 'Please provide product description']

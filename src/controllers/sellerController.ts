@@ -15,6 +15,11 @@ import { IResponse } from "types/IResponse.interfaces"
 import { StatusCodes } from "http-status-codes"
 import { ID } from "../types/zod/user.schemaTypes"
 import { Types } from "mongoose"
+import { UploadApiOptions, UploadApiResponse } from "cloudinary"
+import Cloudinary from "@repositories/ImageProcessing.repository"
+import { ImageProcessingServices } from "@services/image.processing.services"
+import { convertToBase64 } from "@utils/image.helper"
+import { imageUrl } from "types/cloudinary.interfaces"
 
 /**
  * Update the user document seller property 
@@ -58,12 +63,35 @@ export const createShop = async (
     res: Response<IResponse>,
     next: NextFunction) => {
     try {
+
+        //Handles image upload 
+        const options: UploadApiOptions = {
+          folder: 'shop',
+          gravity: 'faces',
+          height: 150,
+          width: 150,
+          zoom: '0.6',
+          crop: 'thumb'
+        }
+        const ImageServiceRepository = new Cloudinary()
+        const imageServices = new ImageProcessingServices()
+        const imageUrls = await imageServices.uploadImage(ImageServiceRepository, req.body.logo as unknown as string, options)
+
+        const logoUrls = {
+          id: imageUrls.public_id,
+          secure_url: imageUrls.secure_url,
+          url: imageUrls.url
+        }
         const shop = new ShopRepository(shopModel)
+
         if (!req.user) {
             return next(new CustomError('user property not found in req object ', StatusCodes.NOT_FOUND, false));
         }
-        merge(req.body, { owner: req.user?.id })
+ 
+        merge(req.body, { owner: req.user?.id },{logo:logoUrls})
+
         const isShop = await shop.create<ShopDocument>(req.body)
+        
         sendHTTPResponse({ res, message: { message: isShop }, statusCode: StatusCodes.OK, success: true })
 
     } catch (error) {
@@ -114,12 +142,11 @@ export const listMyShops = async (
     next: NextFunction) => {
     try {
         const shop = new ShopRepository(shopModel)
-        const shopDocuments = await shop.findShopByOwnerId<string>(req.user?.id as string).limit(5)
-
+        const shopDocuments = await shop.findShopsByOwnerId<string>(req.user?.id as string).limit(5).populate('owner')
         if (!shopDocuments) {
             return next(new CustomError('Now shop not found for given userid', StatusCodes.NOT_FOUND, false))
         }
-        sendHTTPResponse({ res, message: { message: shopDocuments.toObject() }, statusCode: StatusCodes.OK, success: true })
+        sendHTTPResponse({ res, message: { message: shopDocuments }, statusCode: StatusCodes.OK, success: true })
 
     } catch (error) {
         next(error)
@@ -128,6 +155,7 @@ export const listMyShops = async (
 
 /**
  * Edits shops by shop id
+ 
  * @param req 
  * @param res 
  * @param next 
@@ -138,6 +166,29 @@ export const editShop = async (
     res: Response<IResponse>,
     next: NextFunction) => {
     try {
+        if(req.body.logo){
+
+        //Handles image upload 
+        const options: UploadApiOptions = {
+            folder: 'shop',
+            gravity: 'faces',
+            height: 150,
+            width: 150,
+            zoom: '0.6',
+            crop: 'thumb'
+          }
+          const ImageServiceRepository = new Cloudinary()
+          const imageServices = new ImageProcessingServices()
+          const imageUrls = await imageServices.uploadImage(ImageServiceRepository, req.body.logo as unknown as string, options)
+  
+          const logoUrls = {
+            id: imageUrls.public_id,
+            secure_url: imageUrls.secure_url,
+            url: imageUrls.url
+          }
+          merge(req.body,{logo:logoUrls})
+        }
+
         const shop = new ShopRepository(shopModel)
         const shopDocument = await shop.editById<Types.ObjectId, ShopCore>(req.shop?._id, req.body)
         if (!shopDocument) {
@@ -154,6 +205,7 @@ export const editShop = async (
         next(error)
     }
 }
+
 
  
 
