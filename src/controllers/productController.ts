@@ -45,11 +45,11 @@ export const add = async (
       zoom: '0.6',
       crop: 'thumb'
     }
-    const base64: string | undefined = convertToBase64(req)
+    // const base64: string | undefined = convertToBase64(req)
     const ImageServiceRepository = new Cloudinary()
     const imageServices = new ImageProcessingServices()
 
-    const imageUrls: UploadApiResponse = await imageServices.uploadImage(ImageServiceRepository, base64 as string, options)
+    const imageUrls: UploadApiResponse = await imageServices.uploadImage(ImageServiceRepository, req.body.image as unknown as string, options)
     const photoUrls: imageUrl = {
       publicId: imageUrls.public_id,
       secureUrl: imageUrls.secure_url,
