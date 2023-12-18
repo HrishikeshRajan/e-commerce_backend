@@ -15,6 +15,7 @@ const storage: StorageEngine = multer.memoryStorage()
  */
 const multerUpload: RequestHandler = multer({ storage }).single('image')
 
+
 const multerUploadArray: RequestHandler = multer({ storage }).array('images', 12)
 
 const dUri: DataURIParser = new DataURIParser()

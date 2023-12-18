@@ -1,7 +1,7 @@
-import mongoose from 'mongoose'
-import { type Product } from '../types/product'
+import mongoose, { Schema, Model} from 'mongoose'
+import {type ProductDocument, type Product } from '../types/product'
 
-const productSchema = new mongoose.Schema<Product>(
+const productSchema = new Schema<ProductDocument, Model<ProductDocument>>(
   {
     name: {
       type: String,
@@ -25,7 +25,7 @@ const productSchema = new mongoose.Schema<Product>(
       type: String,
       required: [true, 'Please provide product price'],
       uppercase: true,
-      enum: ['INR']
+      enum: ['INR'],
     },
     brand: {
       type: String,
@@ -37,7 +37,7 @@ const productSchema = new mongoose.Schema<Product>(
     },
     sizes: [{ type: String }],
 
-    photo:
+    image:
     {
       url: {
         type: String
@@ -47,7 +47,7 @@ const productSchema = new mongoose.Schema<Product>(
 
       }
     },
-    photos: [
+    images: [
       {
         url: {
           type: String,
@@ -90,14 +90,15 @@ const productSchema = new mongoose.Schema<Product>(
       type: Boolean,
       default: false
     },
-    keywords: [String]
-  },
-
-  {
-    timestamps: true
+    keywords: [String],
+    updatedAt: { type: Date },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    }
   }
 )
-productSchema.pre<Product>(/^save$/, async function (next): Promise<void> {
+productSchema.pre<ProductDocument>(/^save$/, async function (next): Promise<void> {
   if (!this.isModified('name')) {
     next(); return
   }
@@ -112,5 +113,8 @@ productSchema.pre<Product>(/^save$/, async function (next): Promise<void> {
   }
   this.brand = this.name.split(' ').map((item) => item.charAt(0).toUpperCase() + item.slice(1)).join(' ')
 })
-
-export default mongoose.model<Product>('Product', productSchema)
+productSchema.pre('save', function(next) {
+  this.updatedAt = new Date(Date.now());
+  next();
+});
+export default mongoose.model<ProductDocument>('Product', productSchema)

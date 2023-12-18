@@ -1,4 +1,4 @@
-import type mongoose, { Document } from 'mongoose'
+import type mongoose, { Types, type Document } from 'mongoose'
 import { type IUser } from './IUser.interfaces'
 
 enum currencyCode { currencyCode = 'INR' };
@@ -7,14 +7,43 @@ interface Photo {
   url: string
   secure_url: string
 }
+interface Image {
+  url: string
+  secure_url: string
+}
+
+export interface ProductCore {
+  _id:Types.ObjectId
+  name: string
+  price: number
+  currencyCode: currencyCode
+  description: string
+  image: Photo
+  images: Types.DocumentArray<Image>
+  category: string
+  brand: string
+  ratings: number
+  numberOfReviews: number
+  sellerId: Types.ObjectId
+  reviews: Types.DocumentArray<Review>
+  sizes: Types.Array<string>
+  color: string
+  gender: string
+  isDiscontinued: boolean
+  keywords: Types.Array<string>
+  updatedAt: Date
+  createdAt: Date
+}
+
+export type ProductDocument = ProductCore & Document
 
 export interface Product extends Document {
   name: string
   price: number
   currencyCode: currencyCode
   description: string
-  photo: Photo
-  photos: Photo[]
+  image: Photo
+  images: Photo[]
   category: string
   brand: string
   ratings: number
@@ -26,6 +55,8 @@ export interface Product extends Document {
   gender: string
   isDiscontinued: boolean
   keywords: string[]
+  updated: Date
+  created: Date
 }
 
 export interface UploadedFile {
@@ -36,12 +67,19 @@ export interface UploadedFile {
   buffer: Buffer
   size: number
 }
-
+export interface Review {
+  _id:Types.ObjectId
+  title: string
+  description: string
+  star: number
+  userId: Types.ObjectId
+  date: Date
+}
 export interface IReview {
   title: string
   description: string
   star: number
-  userId: mongoose.Types.ObjectId
+  userId: Types.ObjectId
   date: Date
 }
 

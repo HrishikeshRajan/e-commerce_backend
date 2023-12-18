@@ -25,7 +25,7 @@ import { ADD_TO_CART_SCHEMA, CART_QTY_SCHEMA, PARAMS_WITH_ID_SCHEMA } from '../t
 import { VALIDATE_REQUEST } from '../utils/request.validator'
 import { ParamsSchema, ChangePasswordSchema, ForgotPasswordSchema, LoginSchema, ParamsByIdSchema, PhotoSchema, QueryWithTokenSchema, RegisterSchema, ResetPasswordSchema, UpdateProfileSchema, UserAddressSchema } from '../types/zod/user.schemaTypes'
 import { validateRequest } from '../middlewares/userInputValidator'
-import { addToCart, getCart, changeQty, deleteCart } from '../controllers/cartController'
+// import { addToCart, getCart, changeQty, deleteCart } from '../controllers/cartController'
 import { Checkout, paymentMethod, setShippingAddress } from '../controllers/orderController'
 
 const router = express.Router()
@@ -78,10 +78,10 @@ router.route('/profile-picture')
 
 // User Cart
 
-router.route('/cart').post(VALIDATE_REQUEST({ body: ADD_TO_CART_SCHEMA }), addToCart)
-router.route('/cart/:id').get(VALIDATE_REQUEST({ params: PARAMS_WITH_ID_SCHEMA }), getCart)
-router.route('/cart').put(VALIDATE_REQUEST({ body: CART_QTY_SCHEMA }), changeQty)
-router.route('/cart/:id').delete(VALIDATE_REQUEST({ params: PARAMS_WITH_ID_SCHEMA }), deleteCart)
+// router.route('/cart').post(VALIDATE_REQUEST({ body: ADD_TO_CART_SCHEMA }), addToCart)
+// router.route('/cart/:id').get(VALIDATE_REQUEST({ params: PARAMS_WITH_ID_SCHEMA }), getCart)
+// router.route('/cart').put(VALIDATE_REQUEST({ body: CART_QTY_SCHEMA }), changeQty)
+// router.route('/cart/:id').delete(VALIDATE_REQUEST({ params: PARAMS_WITH_ID_SCHEMA }), deleteCart)
 
 // User Orders
 router.route('/orders/:cartId').post(isLoggedIn, Checkout)
