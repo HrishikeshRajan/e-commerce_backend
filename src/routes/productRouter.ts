@@ -1,13 +1,30 @@
 import express, { type Router } from 'express'
+import * as schema from 'types/zod/product.schemaTypes'
+
+//Middlewares
+import { Role } from '@middlewares/roles'
+import { validateRequest } from '@middlewares/userInputValidator'
+import { isLoggedIn } from '../middlewares/auth'
+
+//Controllers
 import * as product from '../controllers/productController'
 
-// import { multerUpload, multerUploadArray } from '../utils/image.helper';
-import { isLoggedIn } from '../middlewares/auth'
+//Utils
 import { multerUpload } from '@utils/image.helper'
-import { validateRequest } from '@middlewares/userInputValidator'
-import { ProductSchemaType, productSchema } from 'types/zod/product.schemaTypes'
+
+
 const router: Router = express.Router()
 
-router.route('/add').post(isLoggedIn,multerUpload, validateRequest({body:productSchema}) ,product.add)
+enum ROLES {
+    SELLER = 'seller',
+    USER ='user'
+}
+
+//API ACCESS: seller
+router.route('/').post(isLoggedIn,Role(ROLES.SELLER),multerUpload, validateRequest({body:schema.productSchema}) ,product.add)
+router.route('/:productId').put(isLoggedIn,Role(ROLES.SELLER),multerUpload, validateRequest({body:schema.productSchema}) ,product.update)
+router.route('/:productId').delete(isLoggedIn,Role(ROLES.SELLER),validateRequest({params:schema.productIdSchema}) ,product.deleteProduct)
+router.route('/seller').get(isLoggedIn,Role(ROLES.SELLER),validateRequest({query:schema.productQuerySchema}) ,product.queryProductBySellerId)
+
 
 export default router

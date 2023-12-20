@@ -1,19 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { type Model, type Document } from 'mongoose'
+import { type Model,  Query } from 'mongoose'
+import { ProductDocument, type ProductCore } from '../types/product'
 
-import { type IProduct } from '../types/IProduct.interface'
-import { ProductDocument, type IReview, type ITEM, type Product, ProductCore } from '../types/product'
-import type CustomError from '../utils/CustomError'
-import ProductModel from '../models/productModel'
+import { merge } from 'lodash'
 
-export class ProductRepo<T extends ProductDocument>{
+export class ProductRepo<T extends ProductDocument> {
   private readonly ProductModel: Model<T>
 
-  constructor (model: Model<T>) {
+  constructor(model: Model<T>) {
     this.ProductModel = model
   }
 
-  /**
+  /**creates new document
    * @param {ProductCore} product
    * @returns plain object
    */
@@ -21,6 +19,64 @@ export class ProductRepo<T extends ProductDocument>{
     const result = await this.ProductModel.create<T>(product);
     return result
   }
+
+  /**
+   * finds new document that satifies both ids
+   * @param {string} productId 
+   * @param {string} userId
+   * @returns plain object
+   */
+  async getProductById<T extends String>(productId: T, userId: T): Promise<ProductDocument | null> {
+    const result = await this.ProductModel.findOne({ _id: productId, sellerId: userId });
+    return result
+  }
+
+  /**
+    * merges and update the document
+    * @param {ProductDocument} product
+    * @param {ProductCore} body
+    * @returns plain object
+    */
+  async updateProduct<T extends ProductDocument, P extends ProductCore>(product: T, body: P): Promise<ProductDocument> {
+    merge(product, body)
+    product.modifiedPaths()
+    const result = await product.save()
+    return result
+  }
+
+  
+/**
+   * finds new document that satifies both ids and deletes it
+   * @param {string} productId 
+   * @param {string} userId
+   * @returns plain object
+   */
+  async deleteProductById<T extends String>(productId: T, userId: T): Promise<ProductDocument | null> {
+    const result = await this.ProductModel.findOneAndDelete({ _id: productId, sellerId: userId });
+    return result
+  }
+
+ /**
+   * Query method that returns mongoose query object based on id
+   * @param {string} userId
+   * @returns plain object
+   */
+  queryProductsBySellerId<T extends String>(userId: T): Query<ProductDocument[] | null, ProductDocument,{},ProductDocument> {
+    const result = this.ProductModel.find({sellerId: userId });
+    return result
+  }
+  
+   /**
+   * Counts the total number of documents
+   * @param {string} userId
+   * @returns {number} promise
+   */
+   async countTotalProductsBySellerId<T extends String>(userId: T): Promise<number> {
+    const result = await this.ProductModel.countDocuments({sellerId:userId})
+    return result
+  }
+  
+  
 }
 
 // /**

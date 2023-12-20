@@ -26,7 +26,7 @@ import JwtRepository from '../utils/Jwt.utils'
 import { ImageProcessingServices } from '../services/image.processing.services'
 import * as crypto from 'crypto';
 // import Stripe from 'stripe'
-import Search from '../utils/search'
+// import Search from '../utils/search'
 import productModel from '../models/productModel'
 
 // import { StripeStrategy, PaymentStrategy } from '../utils/payment_strategy'
@@ -226,7 +226,8 @@ export const loginUser = async (
     const payload: JwtPayload = {
       email,
       id: user._id,
-      loggedIn: true
+      loggedIn: true,
+      role:user.role
     }
 
     const accessOptions = {
@@ -821,12 +822,12 @@ export const deleteProfilePicture = async (
 
 export const searchProduct = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const search = new Search(req.query, productModel.find({})).search().filter()
-    let products = await search.method
-    const page = parseInt(req.query.page as string)
-    search.pager(page)
-    products = await search.method.clone()
-    sendHTTPResponse({ res, message: { products }, statusCode: StatusCodes.OK, success: true })
+    // // const search = new Search(req.query, productModel.find({})).search().filter()
+    // let products = await search.method
+    // const page = parseInt(req.query.page as string)
+    // search.pager(page)
+    // products = await search.method.clone()
+    // sendHTTPResponse({ res, message: { products }, statusCode: StatusCodes.OK, success: true })
   } catch (error: unknown) {
     console.error(error)
     const errorObj = error as CustomError

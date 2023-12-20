@@ -128,6 +128,7 @@ export interface GenericRequest<P extends ParamsDictionary,B,L> extends Express.
 }
 
 
+
 export interface GenericWithShopRequest<P extends ParamsDictionary,B,L,S> extends Express.Request {
   params: P
   body: B

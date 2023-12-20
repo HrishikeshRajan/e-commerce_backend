@@ -25,6 +25,7 @@ declare module 'express-serve-static-core'{
     cookies: any
     session: any
     shop:any
+    query:any
   }
 }
 
