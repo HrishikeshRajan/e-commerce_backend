@@ -15,7 +15,7 @@ export class ProductRepo<T extends ProductDocument> {
    * @param {ProductCore} product
    * @returns plain object
    */
-  async create<T extends ProductCore>(product: T): Promise<ProductDocument> {
+  async create<T>(product: T): Promise<ProductDocument> {
     const result = await this.ProductModel.create<T>(product);
     return result
   }

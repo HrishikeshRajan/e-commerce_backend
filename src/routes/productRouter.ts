@@ -10,7 +10,7 @@ import { isLoggedIn } from '../middlewares/auth'
 import * as product from '../controllers/productController'
 
 //Utils
-import { multerUpload } from '@utils/image.helper'
+import { multerUpload, multerUploadArray } from '@utils/image.helper'
 
 
 const router: Router = express.Router()
@@ -21,7 +21,7 @@ enum ROLES {
 }
 
 //API ACCESS: seller
-router.route('/').post(isLoggedIn,Role(ROLES.SELLER),multerUpload, validateRequest({body:schema.productSchema}) ,product.add)
+router.route('/').post(isLoggedIn,Role(ROLES.SELLER), multerUploadArray, validateRequest({body:schema.productSchema}),  product.add)
 router.route('/:productId').put(isLoggedIn,Role(ROLES.SELLER),multerUpload, validateRequest({body:schema.productSchema}) ,product.update)
 router.route('/:productId').delete(isLoggedIn,Role(ROLES.SELLER),validateRequest({params:schema.productIdSchema}) ,product.deleteProduct)
 router.route('/seller').get(isLoggedIn,Role(ROLES.SELLER),validateRequest({query:schema.productQuerySchema}) ,product.queryProductBySellerId)

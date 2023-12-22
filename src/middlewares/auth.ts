@@ -6,6 +6,8 @@ import JwtServices from '../services/jwt.services'
 import JWT from '@utils/Jwt.utils'
 import { GenericRequest, Token, UserCore } from 'types/IUser.interfaces'
 import { merge } from 'lodash'
+import Logger from '@utils/LoggerFactory/LoggerFactory'
+const logger = Logger()
 
 /**
  * Ensures that the user is logged in for accessing the protected routes.
@@ -18,9 +20,12 @@ import { merge } from 'lodash'
  */
 export const isLoggedIn = (req: GenericRequest<{},{},UserCore>, res: Response, next: NextFunction): void => {
   try {
-  
+    logger.info('Validating cookies')
     const token = (req.cookies) ? req.cookies.token : null
-    if (!(token)) { next(new CustomError('Unauthorized: Access is denied due to invalid credentials', 401, false)); return }
+    if (!(token)) { 
+      logger.info('Cookies are not present')
+      return next(new CustomError('Unauthorized: Access is denied due to invalid credentials', 401, false));
+    }
 
     const jwtConfig = {
       secret: process.env.JWT_SECRET as string
@@ -29,6 +34,7 @@ export const isLoggedIn = (req: GenericRequest<{},{},UserCore>, res: Response, n
     const jwt = new JWT()
     const decodedObj = new JwtServices().verifyToken(jwt, token, jwtConfig.secret)
     if (decodedObj.status === 'failure' && decodedObj.code === 403) {
+      logger.error('Token verification failed. Please Login')
       next(new CustomError('Please Login', 401, false)); return
     }
     const tokenData = { ...decodedObj.message.data } as Token
@@ -36,11 +42,13 @@ export const isLoggedIn = (req: GenericRequest<{},{},UserCore>, res: Response, n
 
    // Throw an error if a different user ID is provided in the parameters.
     if(req.user?._id && (req.user?._id !== tokenData.id)){
-       next(new CustomError('Id\'s are not matching', 401, false)); return 
+      logger.error('User ID mismatch in request parameters')
+     return  next(new CustomError('Id\'s are not matching', 401, false))
     }
     merge(req,{user:tokenData} )
   } catch (error: unknown) {
     const errorObj = error as CustomError
+    logger.error(`Error in isLoggedIn middleware: ${errorObj.message} statusCode:${errorObj.code}`)
     next(new CustomError(errorObj.message, errorObj.code, false)); return
   }
   next()

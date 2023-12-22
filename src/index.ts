@@ -18,13 +18,15 @@ import deserializeUser from './middlewares/deserializeUser'
 import compress from 'compression'
 import helmet from 'helmet'
 import cors from 'cors'
+import morgan from 'morgan'
+
 import 'module-alias/register'
 dotenv.config()
 dotenv.config({ path: '.env.test' })
 
 const app: Express = express()
 
-
+app.use(morgan('tiny'))
 app.use(cors({
   origin: true,
   credentials: true

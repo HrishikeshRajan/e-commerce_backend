@@ -5,7 +5,7 @@ import { type IResponse } from '../types/IResponse.interfaces'
 import { type GenericRequest, type Token } from 'types/IUser.interfaces'
 import { type ProductDocument, type ProductCore } from 'types/product'
 import { type imageUrl } from 'types/cloudinary.interfaces'
-import { type GenericRequestWithQuery,type ProductQuery } from 'types/IProduct.interface'
+import { type GenericRequestWithQuery, type ProductQuery } from 'types/IProduct.interface'
 //Repos
 import { ProductRepo } from '@repositories/product.repository'
 import Cloudinary from '@repositories/ImageProcessing.repository'
@@ -23,6 +23,10 @@ import { isEmpty, merge } from 'lodash'
 import { productFilter } from '@utils/product.helper'
 import CustomError from '@utils/CustomError'
 import SearchEngine from '@utils/SearchEngine'
+import Logger from '@utils/LoggerFactory/LoggerFactory'
+import { convertToBase64, convertToBase64Array } from '@utils/image.helper'
+import { ProductSchemaType } from 'types/zod/product.schemaTypes'
+const logger = Logger()
 
 
 
@@ -35,15 +39,13 @@ import SearchEngine from '@utils/SearchEngine'
  * @returns void
  */
 export const add = async (
-  req: GenericRequest<{}, ProductCore, Token>,
+  req: GenericRequest<{}, ProductSchemaType, Token>,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    if (isEmpty(req.user)) {
-      return next(new CustomError('User not found in req.user', StatusCodes.INTERNAL_SERVER_ERROR, false))
 
-    }
+
     const options: UploadApiOptions = {
       folder: 'Products',
       gravity: 'faces',
@@ -52,33 +54,37 @@ export const add = async (
       zoom: '0.6',
       crop: 'thumb'
     }
-    // const base64: string | undefined = convertToBase64(req)
+    logger.info('Starting image upload process...');
+
+    const base64Array: string[] | undefined = convertToBase64Array(req.files)
+    
     const ImageServiceRepository = new Cloudinary()
     const imageServices = new ImageProcessingServices()
 
-    const imageUrls: UploadApiResponse = await imageServices.uploadImage(ImageServiceRepository, req.body.image as unknown as string, options)
-    const photoUrls: imageUrl = {
-      publicId: imageUrls.public_id,
-      secureUrl: imageUrls.secure_url,
-      url: imageUrls.url
-    }
-
+   
+    const imageUrlArray= await imageServices.uploadMultipleImages(ImageServiceRepository, base64Array, options)
+    logger.info('Image uploaded successfully.')
+    
+    const images = imageUrlArray.map(({url, secure_url}) =>({url, secure_url}) )
     const productRepo = new ProductRepo<ProductDocument>(ProductModel)
 
     //Updates the req.body with new values
-    merge(req.body, { sellerId: req.user.id }, { image: photoUrls })
+    merge(req.body, { sellerId: req.user?.id }, {images:images} )
 
-    const product = await productRepo.create<ProductCore>(req.body)
-
+    logger.info('Creating product...')
+    const product = await productRepo.create<ProductSchemaType>(req.body)
+    logger.info('Product created successfully.')
     const response: IResponse = {
       res,
       message: { product: productFilter.sanitize(product) },
       statusCode: StatusCodes.OK,
       success: true
     }
+    logger.info('Response send successfully.')
     sendHTTPResponse(response)
   } catch (error: any) {
     const errorObj = error as CustomError
+    logger.error(`${error.message}, statusode: ${errorObj.code}`)
     next(new CustomError(errorObj.message, errorObj.code, false))
   }
 }
@@ -209,7 +215,7 @@ export const queryProductBySellerId = async (
     const resultPerPage = 5
 
     const query = { sellerId: req.user.id, ...req.query }
-    const searchEngine = new SearchEngine<ProductDocument,ProductQuery>(ProductModel, query).customSearch().filter().pager(resultPerPage, totalAvailableProducts)
+    const searchEngine = new SearchEngine<ProductDocument, ProductQuery>(ProductModel, query).customSearch().filter().pager(resultPerPage, totalAvailableProducts)
     if (typeof searchEngine === 'number') {
       return next(new CustomError('No more products', StatusCodes.OK, false))
     }
@@ -222,7 +228,7 @@ export const queryProductBySellerId = async (
 
     const response: IResponse = {
       res,
-      message: { product: products, itemsShowing: products?.length, totalItems:totalAvailableProducts },
+      message: { product: products, itemsShowing: products?.length, totalItems: totalAvailableProducts },
       statusCode: StatusCodes.OK,
       success: true
     }

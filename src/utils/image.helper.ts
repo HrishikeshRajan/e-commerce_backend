@@ -24,9 +24,9 @@ const convertToBase64 = (req: GenericRequest<{},{},{}>): string | undefined => {
   return dUri.format(path.extname(req.file?.originalname as string).toString(), req.file?.buffer as DataURI.Input).content
 }
 
-const convertToBase64Array = (item: UploadedFile[]): string[] => {
+const convertToBase64Array = (item: any): string[] => {
   const Base64Array: string[] = []
-  item.forEach((item: UploadedFile) => {
+  item.forEach((item:any) => {
     return Base64Array.push(dUri.format(path.extname(item.originalname).toString(), item.buffer as DataURI.Input).content as string)
   })
   return Base64Array

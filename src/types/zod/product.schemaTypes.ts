@@ -20,8 +20,6 @@ export const productSchema = z.object({
   price: z.string(),
   currencyCode: z.string(), 
   description: z.string(),
-  image: z.string(),
-  images: z.array(photoSchema).optional(),
   category: z.string(),
   brand: z.string(),
   sellerId: z.string().optional(),
@@ -29,7 +27,7 @@ export const productSchema = z.object({
   color: z.string(),
   gender: z.string(),
   isDiscontinued: z.string(),
-  keywords: z.array(z.string()).optional(),
+  keywords: z.string().optional(),
 });
 
 export const productIdSchema = z.object({
