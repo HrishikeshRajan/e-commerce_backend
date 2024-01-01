@@ -3,7 +3,7 @@
 import { type Response, type NextFunction } from 'express'
 import { type IResponse } from '../types/IResponse.interfaces'
 import { type GenericRequest, type Token } from 'types/IUser.interfaces'
-import { type ProductDocument, type ProductCore } from 'types/product'
+import { type ProductDocument, type ProductCore } from 'types/product.interface'
 import { type imageUrl } from 'types/cloudinary.interfaces'
 import { type GenericRequestWithQuery, type ProductQuery } from 'types/IProduct.interface'
 //Repos
@@ -24,7 +24,7 @@ import { productFilter } from '@utils/product.helper'
 import CustomError from '@utils/CustomError'
 import SearchEngine from '@utils/SearchEngine'
 import Logger from '@utils/LoggerFactory/LoggerFactory'
-import { convertToBase64, convertToBase64Array } from '@utils/image.helper'
+import { convertToBase64Array } from '@utils/image.helper'
 import { ProductSchemaType } from 'types/zod/product.schemaTypes'
 const logger = Logger()
 
@@ -57,19 +57,19 @@ export const add = async (
     logger.info('Starting image upload process...');
 
     const base64Array: string[] | undefined = convertToBase64Array(req.files)
-    
+
     const ImageServiceRepository = new Cloudinary()
     const imageServices = new ImageProcessingServices()
 
-   
-    const imageUrlArray= await imageServices.uploadMultipleImages(ImageServiceRepository, base64Array, options)
+
+    const imageUrlArray = await imageServices.uploadMultipleImages(ImageServiceRepository, base64Array, options)
     logger.info('Image uploaded successfully.')
-    
-    const images = imageUrlArray.map(({url, secure_url}) =>({url, secure_url}) )
+
+    const images = imageUrlArray.map(({ url, secure_url }) => ({ url, secure_url }))
     const productRepo = new ProductRepo<ProductDocument>(ProductModel)
 
     //Updates the req.body with new values
-    merge(req.body, { sellerId: req.user?.id }, {images:images} )
+    merge(req.body, { sellerId: req.user?.id }, { images: images })
 
     logger.info('Creating product...')
     const product = await productRepo.create<ProductSchemaType>(req.body)
@@ -103,18 +103,7 @@ export const update = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    if (isEmpty(req.user)) {
-      return next(new CustomError('User not found in req.user', StatusCodes.INTERNAL_SERVER_ERROR, false))
 
-    }
-
-    const productRepo = new ProductRepo<ProductDocument>(ProductModel)
-
-    const product = await productRepo.getProductById<string>(req.params.productId, req.user.id)
-
-    if (!product) {
-      return next(new CustomError('No product found that owned by your seller id', StatusCodes.INTERNAL_SERVER_ERROR, false))
-    }
     const options: UploadApiOptions = {
       folder: 'Products',
       gravity: 'faces',
@@ -123,19 +112,28 @@ export const update = async (
       zoom: '0.6',
       crop: 'thumb'
     }
+    logger.info('Starting image upload process...');
+
+    const base64Array: string[] | undefined = convertToBase64Array(req.files)
 
     const ImageServiceRepository = new Cloudinary()
     const imageServices = new ImageProcessingServices()
 
-    const imageUrls: UploadApiResponse = await imageServices.uploadImage(ImageServiceRepository, req.body.image as unknown as string, options)
-    const photoUrls: imageUrl = {
-      publicId: imageUrls.public_id,
-      secureUrl: imageUrls.secure_url,
-      url: imageUrls.url
+
+    const imageUrlArray = await imageServices.uploadMultipleImages(ImageServiceRepository, base64Array, options)
+    logger.info('Image uploaded successfully.')
+
+    const images = imageUrlArray.map(({ url, secure_url }) => ({ url, secure_url }))
+    const productRepo = new ProductRepo<ProductDocument>(ProductModel)
+
+    const product = await productRepo.getProductById<string>(req.params.productId, req.user?.id as string)
+
+    if (!product) {
+      return next(new CustomError('No product found that owned by your seller id', StatusCodes.INTERNAL_SERVER_ERROR, false))
     }
 
     //Updates the req.body.image base64 string with corresponding cloudinary urls
-    merge(req.body, { image: photoUrls })
+    merge(req.body, { sellerId: req.user?.id }, { images: images })
 
     const updatedProduct = await productRepo.updateProduct<ProductDocument, ProductCore>(product, req.body)
 
@@ -154,7 +152,7 @@ export const update = async (
 
 /**
  * API ACCESS: seller
- * Deletes the product owned by seller id
+ * Delete product by product and seller ids
  * @param GenericRequest 
  * @param res 
  * @param next 
@@ -181,7 +179,7 @@ export const deleteProduct = async (
 
     const response: IResponse = {
       res,
-      message: { product: productFilter.sanitize(deletedProduct) },
+      message: { product: deletedProduct },
       statusCode: StatusCodes.OK,
       success: true
     }
@@ -194,13 +192,100 @@ export const deleteProduct = async (
 
 /**
  * API ACCESS: seller
+ * Delete the products by seller and products ids
+ * @param GenericRequest 
+ * @param res 
+ * @param next 
+ * @returns void
+ */
+export const deleteProducts = async (
+  req: GenericRequest<{}, { productsIds: string[] }, Token>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    logger.info(`Initiating bulk product deletion, Seller ID: ${req.user?.id}`)
+    const productRepo = new ProductRepo<ProductDocument>(ProductModel)
+    logger.info(`Bulk product deletion process started`)
+    const deletedProduct = await productRepo.deleteProductsByIds<string>(req.body.productsIds)
+  
+    logger.info(`Verifying products deletion result`)
+
+    if (!deletedProduct.deletedCount) {
+      logger.error(`No products documents found for deletion, Seller ID: ${req.user?.id}`)
+      return next(new CustomError('No product found that owned by your seller id', StatusCodes.INTERNAL_SERVER_ERROR, false))
+    }
+    logger.info(`Products deletion successfull`)
+    const response: IResponse = {
+      res,
+      message: { product: deletedProduct },
+      statusCode: StatusCodes.OK,
+      success: true
+    }
+    logger.info(`Response sent to Seller ID: ${req.user?.id}`);
+    sendHTTPResponse(response)
+  } catch (error: any) {
+    const errorObj = error as CustomError
+    logger.error(`Error occurred in deleteProducts: ${errorObj.message}. Seller ID: ${req.user?.id}`);
+    next(new CustomError(errorObj.message, errorObj.code, false))
+  }
+}
+/**
+ * API ACCESS: seller
  * Query the products owned by seller id as default
  * @param GenericRequest 
  * @param res 
  * @param next 
  * @returns void
  */
-export const queryProductBySellerId = async (
+export const queryProductsBySellerId = async (
+  req: GenericRequestWithQuery<{}, { [key: string]: string | undefined }, {}, Token>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (isEmpty(req.user)) {
+      return next(new CustomError('User not found in req.user', StatusCodes.NOT_FOUND, false))
+    }
+    const productRepo = new ProductRepo<ProductDocument>(ProductModel)
+    const totalAvailableProducts = await productRepo.countTotalProductsBySellerId<string>(req.user.id)
+    const resultPerPage = parseInt((req.query?.limit ? req.query.limit : 10) as string)
+
+    const query = { sellerId: req.user.id, ...req.query }
+    const searchEngine = new SearchEngine<ProductDocument, ProductQuery>(ProductModel, query).customSearch().filter().pager(resultPerPage, totalAvailableProducts)
+    if (typeof searchEngine === 'number') {
+      return next(new CustomError('No more products', StatusCodes.OK, false))
+    }
+
+    //Resolving the  mongoose promise
+    const products = await searchEngine.query?.populate('sellerId', '_id fullname').populate('shopId', '_id name').select('name _id createdAt price stock shopId sellerId')
+
+    if (isEmpty(products)) {
+      return next(new CustomError('No product found that owned by your seller id', StatusCodes.NOT_FOUND, false))
+    }
+
+    const response: IResponse = {
+      res,
+      message: { products: products, itemsShowing: products?.length, totalItems: totalAvailableProducts },
+      statusCode: StatusCodes.OK,
+      success: true
+    }
+    sendHTTPResponse(response)
+  } catch (error: any) {
+    const errorObj = error as CustomError
+    next(new CustomError(errorObj.message, errorObj.code, false))
+  }
+}
+
+/**
+ * API ACCESS: seller
+ * Query the products shop by seller id as default
+ * @param GenericRequest 
+ * @param res 
+ * @param next 
+ * @returns void
+ */
+export const queryProductsByShopId = async (
   req: GenericRequestWithQuery<{}, { [key: string]: string | undefined }, {}, Token>,
   res: Response,
   next: NextFunction
@@ -220,7 +305,7 @@ export const queryProductBySellerId = async (
       return next(new CustomError('No more products', StatusCodes.OK, false))
     }
 
-    //Resolving the  mongoose promise
+    //Resolving the mongoose promise
     const products = await searchEngine.query
     if (isEmpty(products)) {
       return next(new CustomError('No product found that owned by your seller id', StatusCodes.NOT_FOUND, false))
@@ -238,6 +323,7 @@ export const queryProductBySellerId = async (
     next(new CustomError(errorObj.message, errorObj.code, false))
   }
 }
+
 
 
 // /**

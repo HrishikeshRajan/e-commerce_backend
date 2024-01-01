@@ -24,7 +24,8 @@ enum ROLES {
 router.route('/').post(isLoggedIn,Role(ROLES.SELLER), multerUploadArray, validateRequest({body:schema.productSchema}),  product.add)
 router.route('/:productId').put(isLoggedIn,Role(ROLES.SELLER),multerUpload, validateRequest({body:schema.productSchema}) ,product.update)
 router.route('/:productId').delete(isLoggedIn,Role(ROLES.SELLER),validateRequest({params:schema.productIdSchema}) ,product.deleteProduct)
-router.route('/seller').get(isLoggedIn,Role(ROLES.SELLER),validateRequest({query:schema.productQuerySchema}) ,product.queryProductBySellerId)
+router.route('/multiples').post(isLoggedIn,Role(ROLES.SELLER) ,product.deleteProducts)
+router.route('/seller/list').get(isLoggedIn,Role(ROLES.SELLER),validateRequest({query:schema.productQuerySchema}) ,product.queryProductsBySellerId)
 
 
 export default router

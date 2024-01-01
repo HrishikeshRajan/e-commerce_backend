@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { type Model,  Query } from 'mongoose'
-import { ProductDocument, type ProductCore } from '../types/product'
-
+import { type Model, type Query  } from 'mongoose'
+import { ProductDocument, type ProductCore, DeleteResult } from '../types/product.interface'
 import { merge } from 'lodash'
+
 
 export class ProductRepo<T extends ProductDocument> {
   private readonly ProductModel: Model<T>
@@ -44,39 +44,70 @@ export class ProductRepo<T extends ProductDocument> {
     return result
   }
 
-  
-/**
-   * finds new document that satifies both ids and deletes it
-   * @param {string} productId 
-   * @param {string} userId
-   * @returns plain object
-   */
-  async deleteProductById<T extends String>(productId: T, userId: T): Promise<ProductDocument | null> {
-    const result = await this.ProductModel.findOneAndDelete({ _id: productId, sellerId: userId });
+
+  /**
+     * finds new document that satifies both ids and deletes it
+     * @param {string} productId 
+     * @param {string} userId
+     * @returns 
+     */
+  async deleteProductById<T extends String>(productId: T, userId: T): Promise<any | null> {
+    const result = await this.ProductModel.findOneAndDelete({ _id: productId, sellerId: userId }).select('name _id').lean();
     return result
   }
 
- /**
+  /**
+    * Query method that returns mongoose query object based on seller id
+    * @param {string} userId
+    * @returns plain object
+    */
+  queryProductsBySellerId<T extends String>(userId: T): Query<ProductDocument[] | null, ProductDocument, {}, ProductDocument> {
+    const result = this.ProductModel.find({ sellerId: userId });
+    return result
+  }
+
+  /**
    * Query method that returns mongoose query object based on id
    * @param {string} userId
    * @returns plain object
    */
-  queryProductsBySellerId<T extends String>(userId: T): Query<ProductDocument[] | null, ProductDocument,{},ProductDocument> {
-    const result = this.ProductModel.find({sellerId: userId });
+  queryProductsByShopId<T, D extends String>(shopId: D, userId: T): Query<ProductDocument[] | null, ProductDocument, {}, ProductDocument> {
+    const result = this.ProductModel.find({ sellerId: userId, _id: shopId });
     return result
   }
-  
-   /**
+
+  /**
+    * Counts the total number of documents
+    * @param {string} userId
+    * @returns {number} promise
+    */
+  async countTotalProductsBySellerId<T extends String>(userId: T): Promise<number> {
+    const result = await this.ProductModel.countDocuments({ sellerId: userId })
+    return result
+  }
+
+  /**
    * Counts the total number of documents
    * @param {string} userId
    * @returns {number} promise
    */
-   async countTotalProductsBySellerId<T extends String>(userId: T): Promise<number> {
-    const result = await this.ProductModel.countDocuments({sellerId:userId})
+  async countTotalProductsByShopId<T, D extends String>(userId: T, shopId: D): Promise<number> {
+    const result = await this.ProductModel.countDocuments({ sellerId: userId, _id: shopId })
     return result
   }
-  
-  
+
+  /**
+    * Deletes the documents from array of id's
+    * @param {string[]} productsIds
+    * @returns {number} promise
+    */
+  async deleteProductsByIds<I>(productsIds: I[]): Promise<DeleteResult> {
+    const result = await this.ProductModel.deleteMany({ _id: { $in: productsIds } })
+    return result
+  }
+
+
+
 }
 
 // /**

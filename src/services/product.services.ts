@@ -1,5 +1,5 @@
 import { type IProduct } from '../types/IProduct.interface'
-import { type IReview, type ITEM, type Product } from '../types/product'
+import { type IReview, type ITEM, type Product } from '../types/product.interface'
 
 class ProductServices {
   async creatProduct (respository: IProduct, product: Product): Promise<any> {

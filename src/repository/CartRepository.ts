@@ -1,6 +1,6 @@
 import { type Model } from 'mongoose'
 import { type ICART } from '../models/cartModel'
-import { type Product, type CART_ITEM } from '../types/product'
+import { type Product, type CART_ITEM } from '../types/product.interface'
 import { type CART_MODEL } from '../types/Cart.interfaces'
 
 export class CartRepository {

@@ -1,9 +1,10 @@
-import type mongoose, { Types, type Document } from 'mongoose'
+
+import { type Types, type Document } from 'mongoose'
 import { type IUser } from './IUser.interfaces'
 
 enum currencyCode { currencyCode = 'INR' };
 
-interface Photo {
+export interface Photo {
   url: string
   secure_url: string
 }
@@ -12,6 +13,11 @@ interface Image {
   secure_url: string
 }
 
+export interface DeleteResult {
+  n?: number; 
+  ok?: number;
+  deletedCount: number;
+}
 export interface ProductCore {
   _id:Types.ObjectId
   name: string
@@ -25,6 +31,7 @@ export interface ProductCore {
   ratings: number
   numberOfReviews: number
   sellerId: Types.ObjectId
+  shopId: Types.ObjectId
   reviews: Types.DocumentArray<Review>
   sizes: Types.Array<string>
   color: string

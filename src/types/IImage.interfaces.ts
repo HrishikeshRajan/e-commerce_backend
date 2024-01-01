@@ -1,5 +1,5 @@
 import { type UploadApiOptions, type UploadApiResponse } from 'cloudinary'
-import { type Photo } from './product'
+import { type Photo } from './product.interface'
 
 export interface IImageProcessing {
   uploadImage: (payload: string, options: UploadApiOptions) => Promise<UploadApiResponse>

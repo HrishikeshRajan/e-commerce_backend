@@ -5,7 +5,7 @@
 // Model give access to instance method
 import mongoose, { type Document } from 'mongoose'
 import { type IUser } from '../types/IUser.interfaces'
-import { type CART_ITEM } from '../types/product'
+import { type CART_ITEM } from '../types/product.interface'
 
 // Extends Document will entends nodejs event emmitter and model properties also
 

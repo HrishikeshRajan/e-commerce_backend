@@ -13,14 +13,14 @@ const logger = Logger()
  * @returns 
  */
 export const Role = (...roles: string[]) => {
-    logger.info('Checking user role')
     return (req: GenericRequest<{}, {}, Token>, _: Response, next: NextFunction) => {
+        logger.info(`Verifying user role, User ID: ${req.user?.id}`)
         if (!isEmpty(req.user)) {
             if (!roles.includes(req.user.role)) {
-                logger.error(`User not activated seller account, userId: ${req.user.id} `)
+                logger.error(`User not activated seller account, UserId: ${req.user.id} `)
                 next(new CustomError('You need to activate the seller account', StatusCodes.FORBIDDEN, false))
             }
-            logger.info('Role validation successfull')
+            logger.info(`User role verification successfull, Seller ID: ${req.user?.id}`)
             next()
         }
     }

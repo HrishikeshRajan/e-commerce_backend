@@ -3,7 +3,7 @@ import type CustomError from '../utils/CustomError'
 import { type modifiedImageUrl } from '../types/cloudinary.interfaces'
 
 import { type IImageProcessing } from '../types/IImage.interfaces'
-import { type Photo } from '../types/product'
+import { type Photo } from '../types/product.interface'
 import ProductModel from '../models/productModel'
 
 class Cloudinary implements IImageProcessing {

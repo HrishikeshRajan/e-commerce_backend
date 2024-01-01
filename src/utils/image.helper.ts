@@ -5,7 +5,7 @@ import path from 'path'
 import { type DataURI } from 'datauri/types'
 import DataURIParser from 'datauri/parser'
 
-import { type UploadedFile } from '../types/product'
+import { type UploadedFile } from '../types/product.interface'
 import { GenericRequest } from 'types/IUser.interfaces'
 const storage: StorageEngine = multer.memoryStorage()
 

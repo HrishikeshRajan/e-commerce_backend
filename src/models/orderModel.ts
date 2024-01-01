@@ -1,6 +1,6 @@
 import mongoose, { type Document } from 'mongoose'
 import { type Address, type IUser } from '../types/IUser.interfaces'
-import { type CART_ITEM } from '../types/product'
+import { type CART_ITEM } from '../types/product.interface'
 
 export type mongoose_id = mongoose.Types.ObjectId
 

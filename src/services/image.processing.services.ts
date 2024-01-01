@@ -1,6 +1,6 @@
 import { type IImageProcessing } from '../types/IImage.interfaces'
 import { type UploadApiOptions, type UploadApiResponse } from 'cloudinary'
-import { type Photo } from '../types/product'
+import { type Photo } from '../types/product.interface'
 
 export class ImageProcessingServices {
   async uploadMultipleImages (respository: IImageProcessing, payload: string[], options: UploadApiOptions): Promise<UploadApiResponse[]> {

@@ -1,6 +1,6 @@
 
 import { merge } from "lodash";
-import { ProductCore, ProductDocument } from "types/product";
+import { ProductCore, ProductDocument } from "types/product.interface";
 
 export const productFilter = {
     sanitize:function <T extends ProductDocument>(shop: T): ProductCore{

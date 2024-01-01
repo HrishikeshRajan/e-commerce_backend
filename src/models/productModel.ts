@@ -1,5 +1,5 @@
-import mongoose, { Schema, Model} from 'mongoose'
-import {type ProductDocument, type Product } from '../types/product'
+import mongoose, { Schema, Model, Types} from 'mongoose'
+import {type ProductDocument, type Product } from '../types/product.interface'
 
 const productSchema = new Schema<ProductDocument, Model<ProductDocument>>(
   {
@@ -71,6 +71,11 @@ const productSchema = new Schema<ProductDocument, Model<ProductDocument>>(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true
+    },
+    shopId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Shop',
+      required: true,
     },
     reviews: [{
       userId: { type: mongoose.Types.ObjectId, ref: 'User', required: true },

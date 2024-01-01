@@ -1,4 +1,4 @@
-import { type IReview, type ITEM, type Product } from './product'
+import { type IReview, type ITEM, type Product } from './product.interface'
 import { Query,  ParamsDictionary } from 'express-serve-static-core';
 export interface IProduct {
   createProduct: (product: Product) => Promise<any>

@@ -2,7 +2,7 @@ import { type Model } from 'mongoose'
 import { type ICART } from '../models/cartModel'
 import { type IORDER, type ORDER } from '../models/orderModel'
 import { type Address, type IUser, type IAddress } from '../types/IUser.interfaces'
-import { type CART_ITEM } from '../types/product'
+import { type CART_ITEM } from '../types/product.interface'
 
 export class OrderManagement {
   private readonly order: ORDER
