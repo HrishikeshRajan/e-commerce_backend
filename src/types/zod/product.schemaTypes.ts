@@ -51,6 +51,12 @@ export const productQuerySchema = z.object({
 }).strict({message:'Please provide a valid query'});
 
 
+export const productIdsSchema = z.object({
+  productsIds:z.array(z.string())
+}).strict({message:'Please provide a valid products ids'});
+
+
 export type ProductSchemaType = z.infer<typeof productSchema >
 export type ProductIdSchemaType = z.infer<typeof productIdSchema >
 export type ProductQuerySchemaType = z.infer<typeof productQuerySchema >
+export type ProductIdsSchemaType = z.infer<typeof productIdsSchema >

@@ -25,7 +25,7 @@ import CustomError from '@utils/CustomError'
 import SearchEngine from '@utils/SearchEngine'
 import Logger from '@utils/LoggerFactory/LoggerFactory'
 import { convertToBase64Array } from '@utils/image.helper'
-import { ProductSchemaType } from 'types/zod/product.schemaTypes'
+import { ProductIdsSchemaType, ProductSchemaType } from 'types/zod/product.schemaTypes'
 const logger = Logger()
 
 
@@ -199,7 +199,7 @@ export const deleteProduct = async (
  * @returns void
  */
 export const deleteProducts = async (
-  req: GenericRequest<{}, { productsIds: string[] }, Token>,
+  req: GenericRequest<{}, ProductIdsSchemaType, Token>,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
