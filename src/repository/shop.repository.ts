@@ -1,6 +1,7 @@
 import { ShopCore, ShopDocument } from "@models/shopModel";
 import { merge } from "lodash";
 import { Model, Query, Document, Types } from "mongoose";
+import { DeleteResult } from "types/ISeller.interface";
 
 class ShopRepository {
   shop: Model<ShopDocument>;
@@ -20,10 +21,20 @@ class ShopRepository {
    * @param {string} shopId 
    * @returns true if deleted else false
    */
-  async delete<T>(shopId: T): Promise<boolean> {
-    const isDeleted = await this.shop.findByIdAndDelete(shopId)
-    return isDeleted ? true : false
+  async delete<T>(shopId: T): Promise<ShopDocument | null> {
+    const isDeleted = await this.shop.findByIdAndDelete(shopId).select('name _id')
+    return isDeleted
   }
+  
+  /**
+    * Deletes shop documents from array of id's
+    * @param {string[]} productsIds
+    * @returns {number} promise
+    */
+    async deleteShopsByIds<I>(shopsIds: I): Promise<DeleteResult> {
+      const result = await this.shop.deleteMany({ _id: { $in: shopsIds } })
+      return result
+    }
   
   /**
    * @param {T} shopId 
@@ -64,6 +75,15 @@ class ShopRepository {
           return shop ?? null
         }
 
+  /**
+    * Counts the total number of documents
+    * @param {string} userId
+    * @returns {number} promise
+    */
+  async countTotalShopsBySellerId<T extends String>(userId: T): Promise<number> {
+    const result = await this.shop.countDocuments({ owner: userId })
+    return result
+  }
 }
 
 

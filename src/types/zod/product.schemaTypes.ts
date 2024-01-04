@@ -23,11 +23,13 @@ export const productSchema = z.object({
   category: z.string(),
   brand: z.string(),
   sellerId: z.string().optional(),
-  sizes: z.string(),
+  sizes: z.array(z.string()),
   color: z.string(),
   gender: z.string(),
   isDiscontinued: z.string(),
-  keywords: z.string().optional(),
+  keywords:z.array( z.string()).optional(),
+  shopId:z.string(),
+  stock:z.string()
 });
 
 export const productIdSchema = z.object({

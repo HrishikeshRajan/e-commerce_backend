@@ -9,7 +9,7 @@ import { shopFilter } from "@utils/shop.helper"
 import { userFilter } from "@utils/user.helper"
 import CustomError from "@utils/CustomError"
 
-import { isEmpty, merge } from "lodash"
+import { get, isEmpty, merge } from "lodash"
 import { GenericRequest, GenericWithShopRequest, Token, UserCore } from "types/IUser.interfaces"
 import { IResponse } from "types/IResponse.interfaces"
 import { StatusCodes } from "http-status-codes"
@@ -20,6 +20,13 @@ import Cloudinary from "@repositories/ImageProcessing.repository"
 import { ImageProcessingServices } from "@services/image.processing.services"
 import { convertToBase64 } from "@utils/image.helper"
 import { imageUrl } from "types/cloudinary.interfaces"
+import SearchEngine from "@utils/SearchEngine"
+import { ShopQuery } from "types/ISeller.interface"
+import { GenericRequestWithQuery } from "types/IProduct.interface"
+import { ProductRepo } from "@repositories/product.repository"
+import { ProductDocument } from "types/product.interface"
+import productModel from "@models/productModel"
+import { ShopsIds } from "types/zod/shop.schemaTypes"
 
 /**
  * Update the user document seller property 
@@ -66,32 +73,32 @@ export const createShop = async (
 
         //Handles image upload 
         const options: UploadApiOptions = {
-          folder: 'shop',
-          gravity: 'faces',
-          height: 150,
-          width: 150,
-          zoom: '0.6',
-          crop: 'thumb'
+            folder: 'shop',
+            gravity: 'faces',
+            height: 150,
+            width: 150,
+            zoom: '0.6',
+            crop: 'thumb'
         }
         const ImageServiceRepository = new Cloudinary()
         const imageServices = new ImageProcessingServices()
         const imageUrls = await imageServices.uploadImage(ImageServiceRepository, req.body.logo as unknown as string, options)
 
         const logoUrls = {
-          id: imageUrls.public_id,
-          secure_url: imageUrls.secure_url,
-          url: imageUrls.url
+            id: imageUrls.public_id,
+            secure_url: imageUrls.secure_url,
+            url: imageUrls.url
         }
         const shop = new ShopRepository(shopModel)
 
         if (!req.user) {
             return next(new CustomError('user property not found in req object ', StatusCodes.NOT_FOUND, false));
         }
- 
-        merge(req.body, { owner: req.user?.id },{logo:logoUrls})
+
+        merge(req.body, { owner: req.user?.id }, { logo: logoUrls })
 
         const isShop = await shop.create<ShopDocument>(req.body)
-        
+
         sendHTTPResponse({ res, message: { message: isShop }, statusCode: StatusCodes.OK, success: true })
 
     } catch (error) {
@@ -119,11 +126,39 @@ export const deleteShop = async (
         const shop = new ShopRepository(shopModel)
         const isDeleted = await shop.delete<Types.ObjectId>(req.shop._id)
 
-        if (!isDeleted) {
+        if (isEmpty(isDeleted) || !isDeleted) {
             return next(new CustomError('Delete method returns null', StatusCodes.INTERNAL_SERVER_ERROR, false))
         }
 
-        sendHTTPResponse({ res, message: { message: 'Shop successfully deleted' }, statusCode: StatusCodes.OK, success: true })
+        sendHTTPResponse({ res, message: { deleted: isDeleted.toJSON() }, statusCode: StatusCodes.OK, success: true })
+
+    } catch (error) {
+        next(error)
+    }
+}
+
+/**
+ * Delete the shop document by shop id
+ * @param req 
+ * @param res 
+ * @param next 
+ * @returns void
+ */
+export const deleteShops = async (
+    req: GenericWithShopRequest<{}, ShopsIds, {}, ShopDocument>,
+    res: Response<IResponse>,
+    next: NextFunction) => {
+    try {
+
+
+        const shop = new ShopRepository(shopModel)
+        const isShopsDeleted = await shop.deleteShopsByIds<string[]>(req.body.shopsIds)
+
+        if (!isShopsDeleted.deletedCount) {
+            return next(new CustomError('No product found that owned by your seller id', StatusCodes.INTERNAL_SERVER_ERROR, false))
+          }
+
+        sendHTTPResponse({ res, message: { deleted: isShopsDeleted }, statusCode: StatusCodes.OK, success: true })
 
     } catch (error) {
         next(error)
@@ -137,16 +172,68 @@ export const deleteShop = async (
  * @returns void 
  */
 export const listMyShops = async (
+    req: GenericRequestWithQuery<{}, { [key: string]: string | undefined }, {}, Token>,
+    res: Response<IResponse>,
+    next: NextFunction) => {
+    try {
+
+        if (!req.query.owner) {
+            return next(new CustomError('Please select the owner', StatusCodes.BAD_REQUEST, false))
+        }
+
+        const shop = new ShopRepository(shopModel)
+        const totalAvailableShops = await shop.countTotalShopsBySellerId<string>(req.user?.id!)
+        const productRepo = new ProductRepo<ProductDocument>(productModel)
+
+        const query = { owner: req.user?.id, ...req.query }
+        const resultPerPage = parseInt((req.query?.limit ? req.query.limit : 10) as string)
+        const searchEngine = new SearchEngine<ShopDocument, ShopQuery>(shopModel, query).customSearch().filter().pager(resultPerPage, totalAvailableShops)
+
+
+        if (typeof searchEngine === 'number') {
+            return next(new CustomError('No more products', StatusCodes.OK, false))
+        }
+
+        //Resolving the  mongoose promise
+        const shops = await searchEngine.query?.populate('owner', '_id fullname').select('name _id created email')
+
+        if (isEmpty(shops) || !shops) {
+            return next(new CustomError('No shops found that owned by your owner Id', StatusCodes.NOT_FOUND, false))
+        }
+  
+        
+        for (let i = 0; i < shops.length; i++) {
+            const totalAvailableProducts = await productRepo.countTotalProductsByShopId<string, string>(req.user?.id!, shops[i]._id)
+            shops[i] = shops[i].toObject()
+            merge(shops[i],{totalProducts:totalAvailableProducts})
+
+        }
+ 
+        sendHTTPResponse({ res, message: { shops, itemsShowing: shops?.length, totalItems: totalAvailableShops }, statusCode: StatusCodes.OK, success: true })
+
+    } catch (error) {
+        next(error)
+    }
+}
+
+/**
+ * fetchs the shop by shop id
+ * @param req 
+ * @param res 
+ * @param next 
+ * @returns void 
+ */
+export const getShopById = async (
     req: GenericRequest<ID, {}, Token>,
     res: Response<IResponse>,
     next: NextFunction) => {
     try {
-        const shop = new ShopRepository(shopModel)
-        const shopDocuments = await shop.findShopsByOwnerId<string>(req.user?.id as string).limit(5).populate('owner')
-        if (!shopDocuments) {
-            return next(new CustomError('Now shop not found for given userid', StatusCodes.NOT_FOUND, false))
-        }
-        sendHTTPResponse({ res, message: { message: shopDocuments }, statusCode: StatusCodes.OK, success: true })
+        // const shop = new ShopRepository(shopModel)
+        // const shopDocuments = await shop.findById<string>(req.params?.id as string)
+        // if (!shopDocuments) {
+        //     return next(new CustomError('Now shop not found for given userid', StatusCodes.NOT_FOUND, false))
+        // }
+        sendHTTPResponse({ res, message: { shop: get(req, 'shop') }, statusCode: StatusCodes.OK, success: true })
 
     } catch (error) {
         next(error)
@@ -166,27 +253,28 @@ export const editShop = async (
     res: Response<IResponse>,
     next: NextFunction) => {
     try {
-        if(req.body.logo){
 
-        //Handles image upload 
-        const options: UploadApiOptions = {
-            folder: 'shop',
-            gravity: 'faces',
-            height: 150,
-            width: 150,
-            zoom: '0.6',
-            crop: 'thumb'
-          }
-          const ImageServiceRepository = new Cloudinary()
-          const imageServices = new ImageProcessingServices()
-          const imageUrls = await imageServices.uploadImage(ImageServiceRepository, req.body.logo as unknown as string, options)
-  
-          const logoUrls = {
-            id: imageUrls.public_id,
-            secure_url: imageUrls.secure_url,
-            url: imageUrls.url
-          }
-          merge(req.body,{logo:logoUrls})
+        if (typeof req.body.logo === 'string') {
+
+            //Handles image upload 
+            const options: UploadApiOptions = {
+                folder: 'shop',
+                gravity: 'faces',
+                height: 150,
+                width: 150,
+                zoom: '0.6',
+                crop: 'thumb'
+            }
+            const ImageServiceRepository = new Cloudinary()
+            const imageServices = new ImageProcessingServices()
+            const imageUrls = await imageServices.uploadImage(ImageServiceRepository, req.body.logo as unknown as string, options)
+
+            const logoUrls = {
+                id: imageUrls.public_id,
+                secure_url: imageUrls.secure_url,
+                url: imageUrls.url
+            }
+            merge(req.body, { logo: logoUrls })
         }
 
         const shop = new ShopRepository(shopModel)
@@ -207,7 +295,7 @@ export const editShop = async (
 }
 
 
- 
+
 
 /**
  * Middleware that injects a user object into the req object.

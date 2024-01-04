@@ -91,6 +91,10 @@ const productSchema = new Schema<ProductDocument, Model<ProductDocument>>(
       default: null,
       required: true
     },
+    stock:{
+      type: Number,
+     default:0
+    },
     isDiscontinued: {
       type: Boolean,
       default: false

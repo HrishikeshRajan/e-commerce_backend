@@ -92,12 +92,12 @@ export class ProductRepo<T extends ProductDocument> {
    * @returns {number} promise
    */
   async countTotalProductsByShopId<T, D extends String>(userId: T, shopId: D): Promise<number> {
-    const result = await this.ProductModel.countDocuments({ sellerId: userId, _id: shopId })
+    const result = await this.ProductModel.countDocuments({ sellerId: userId, shopId: shopId })
     return result
   }
 
   /**
-    * Deletes the documents from array of id's
+    * Deletes product documents from array of id's
     * @param {string[]} productsIds
     * @returns {number} promise
     */

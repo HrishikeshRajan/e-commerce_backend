@@ -45,7 +45,6 @@ export const add = async (
 ): Promise<void> => {
   try {
 
-
     const options: UploadApiOptions = {
       folder: 'Products',
       gravity: 'faces',
@@ -69,7 +68,8 @@ export const add = async (
     const productRepo = new ProductRepo<ProductDocument>(ProductModel)
 
     //Updates the req.body with new values
-    merge(req.body, { sellerId: req.user?.id }, { images: images })
+
+    merge(req.body, { sellerId: req.user?.id }, { images: images },{isDiscontinued :Boolean(req.body.isDiscontinued) },{stock:parseInt(req.body.stock)})
 
     logger.info('Creating product...')
     const product = await productRepo.create<ProductSchemaType>(req.body)
@@ -276,6 +276,44 @@ export const queryProductsBySellerId = async (
     next(new CustomError(errorObj.message, errorObj.code, false))
   }
 }
+
+
+/**
+ * API ACCESS: seller
+ * Get product by product Id
+ * @param GenericRequest 
+ * @param res 
+ * @param next 
+ * @returns void
+ */
+export const getProductById = async (
+  req: GenericRequest<{ id: string },{}, Token>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+
+    const productRepo = new ProductRepo<ProductDocument>(ProductModel)
+
+    const isProduct = await productRepo.getProductById<string>(req.params.id, req.user?.id as string)
+
+    if (isEmpty(isProduct)) {
+      return next(new CustomError('No product found that owned by the seller id', StatusCodes.NOT_FOUND, false))
+    }
+
+    const response: IResponse = {
+      res,
+    message: { product: productFilter.sanitize(isProduct) },
+      statusCode: StatusCodes.OK,
+      success: true
+    }
+    sendHTTPResponse(response)
+  } catch (error: any) {
+    const errorObj = error as CustomError
+    next(new CustomError(errorObj.message, errorObj.code, false))
+  }
+}
+
 
 /**
  * API ACCESS: seller

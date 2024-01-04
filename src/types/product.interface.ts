@@ -40,7 +40,9 @@ export interface ProductCore {
   keywords: Types.Array<string>
   updatedAt: Date
   createdAt: Date
+  stock:number
 }
+
 
 export type ProductDocument = ProductCore & Document
 
