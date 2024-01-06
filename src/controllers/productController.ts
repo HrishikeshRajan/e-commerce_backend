@@ -252,7 +252,8 @@ export const queryProductsBySellerId = async (
     const resultPerPage = parseInt((req.query?.limit ? req.query.limit : 10) as string)
 
     const query = { sellerId: req.user.id, ...req.query }
-    const searchEngine = new SearchEngine<ProductDocument, ProductQuery>(ProductModel, query).customSearch().filter().pager(resultPerPage, totalAvailableProducts)
+
+    const searchEngine = new SearchEngine<ProductDocument, ProductQuery>(ProductModel, query).search().filter().pager(resultPerPage, totalAvailableProducts)
     if (typeof searchEngine === 'number') {
       return next(new CustomError('No more products', StatusCodes.OK, false))
     }

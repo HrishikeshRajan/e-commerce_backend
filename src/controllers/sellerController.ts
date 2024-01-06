@@ -187,7 +187,7 @@ export const listMyShops = async (
 
         const query = { owner: req.user?.id, ...req.query }
         const resultPerPage = parseInt((req.query?.limit ? req.query.limit : 10) as string)
-        const searchEngine = new SearchEngine<ShopDocument, ShopQuery>(shopModel, query).customSearch().filter().pager(resultPerPage, totalAvailableShops)
+        const searchEngine = new SearchEngine<ShopDocument, ShopQuery>(shopModel, query).search().filter().pager(resultPerPage, totalAvailableShops)
 
 
         if (typeof searchEngine === 'number') {
