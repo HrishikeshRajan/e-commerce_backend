@@ -9,7 +9,7 @@ import type IDatabaseService from '../types/IDatabase.interfaces'
  */
 class DatabaseSingleton implements IDatabaseService {
   private static instance: DatabaseSingleton | null = null
-  private constructor () {
+  private constructor() {
   }
 
   /**
@@ -17,10 +17,12 @@ class DatabaseSingleton implements IDatabaseService {
        * @param databaseURL {string} -  database url
        * @returns - Nothing
        */
-  async connectDatabase (databaseURL: string): Promise<void> {
+  async connectDatabase(databaseURL: string): Promise<void> {
     try {
+
       mongoose.Promise = global.Promise
       await mongoose.connect(databaseURL)
+
       if (mongoose.connection.readyState === 1) {
         console.log('Connected to the database.')
       } else {
@@ -37,7 +39,7 @@ class DatabaseSingleton implements IDatabaseService {
   /**
        * @returns Singleton object
        */
-  public static getInstance (): DatabaseSingleton {
+  public static getInstance(): DatabaseSingleton {
     if (DatabaseSingleton.instance === null) {
       DatabaseSingleton.instance = new DatabaseSingleton()
     }

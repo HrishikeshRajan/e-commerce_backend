@@ -28,5 +28,10 @@ router.route('/multiples').post(isLoggedIn,Role(ROLES.SELLER), validateRequest({
 router.route('/seller/list').get(isLoggedIn,Role(ROLES.SELLER),validateRequest({query:schema.productQuerySchema}) ,product.queryProductsBySellerId)
 router.route('/seller/product/:id').get(isLoggedIn,Role(ROLES.SELLER) ,product.getProductById)
 
+//API ACCESS: user
+router.route('/list').get(validateRequest({query:schema.productQuerySchema}) ,product.queryProducts)
+router.route('/categories').get(product.getCategories)
+
+
 
 export default router

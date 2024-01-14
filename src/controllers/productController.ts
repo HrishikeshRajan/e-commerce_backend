@@ -364,6 +364,85 @@ export const queryProductsByShopId = async (
 }
 
 
+/**
+ * API ACCESS: seller
+ * Query the products
+ * @param GenericRequest 
+ * @param res 
+ * @param next 
+ * @returns void
+ */
+export const queryProducts = async (
+  req: GenericRequestWithQuery<{}, { [key: string]: string | undefined }, {}, Token>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const productRepo = new ProductRepo<ProductDocument>(ProductModel)
+    if(!req.query.category){
+      return next(new CustomError('Please select a category', StatusCodes.NOT_FOUND, false))
+    }
+    const totalAvailableProducts = await productRepo.countTotalProductsByCategory<string>(req.query.category)
+
+    const resultPerPage = 20
+    const categories = await productRepo.getCategory()
+    const query = {...req.query }
+
+    const searchEngine = new SearchEngine<ProductDocument, ProductQuery>(ProductModel, query).customSearch().filter().pager(resultPerPage, totalAvailableProducts)
+    if (typeof searchEngine === 'number') {
+      return next(new CustomError('No more products', StatusCodes.OK, false))
+    } 
+
+    //Resolving the mongoose promise
+    const products = await searchEngine.query
+    if (isEmpty(products)) {
+      return next(new CustomError('No products found that owned by your seller id', StatusCodes.NOT_FOUND, false))
+    }
+
+    const response: IResponse = {
+      res,
+      message: { products: products, page:req.query.page, itemsShowing: products?.length, totalItems: totalAvailableProducts, categories   },
+      statusCode: StatusCodes.OK,
+      success: true
+    }
+    sendHTTPResponse(response)
+  } catch (error: any) {
+    const errorObj = error as CustomError
+    next(new CustomError(errorObj.message, errorObj.code, false))
+  }
+}
+
+/**
+ * API ACCESS: User
+ * Query the products
+ * @param GenericRequest 
+ * @param res 
+ * @param next 
+ * @returns void
+ */
+export const getCategories = async (
+  req: GenericRequestWithQuery<{}, { [key: string]: string | undefined }, {}, Token>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const productRepo = new ProductRepo<ProductDocument>(ProductModel)
+    // const totalAvailableProducts = await productRepo.countTotalProductsBySellerId<string>(req.user.id)
+    const categories = await productRepo.getCategory()
+    const response: IResponse = {
+      res,
+      message: {categories   },
+      statusCode: StatusCodes.OK,
+      success: true
+    }
+    sendHTTPResponse(response)
+  } catch (error: any) {
+    const errorObj = error as CustomError
+    next(new CustomError(errorObj.message, errorObj.code, false))
+  }
+}
+
+
 
 // /**
 //  * test code

@@ -97,6 +97,17 @@ export class ProductRepo<T extends ProductDocument> {
   }
 
   /**
+   * Counts the total number of documents based on category
+   * @param {string} userId
+   * @returns {number} promise
+   */
+    async countTotalProductsByCategory<T>(category: T): Promise<number> {
+      const result = await this.ProductModel.countDocuments({ category })
+      return result
+    }
+  
+
+  /**
     * Deletes product documents from array of id's
     * @param {string[]} productsIds
     * @returns {number} promise
@@ -105,6 +116,16 @@ export class ProductRepo<T extends ProductDocument> {
     const result = await this.ProductModel.deleteMany({ _id: { $in: productsIds } })
     return result
   }
+
+
+  /**
+    * fetches all the unique category 
+    * @returns {number} promise
+    */
+    async getCategory(): Promise<any> {
+      const result = await this.ProductModel.distinct('category' )
+      return result
+    }
 
 
 
