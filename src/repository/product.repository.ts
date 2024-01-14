@@ -120,12 +120,32 @@ export class ProductRepo<T extends ProductDocument> {
 
   /**
     * fetches all the unique category 
-    * @returns {number} promise
+    * @returns  promise
     */
     async getCategory(): Promise<any> {
       const result = await this.ProductModel.distinct('category' )
       return result
     }
+
+
+  /**
+    * fetches all the unique Brands names 
+    * @returns {number} promise
+    */
+  async getBrandNames(): Promise<any> {
+    const result = await this.ProductModel.distinct('brand' )
+    return result
+  }
+
+
+  /**
+    * fetches all the unique colors 
+    * @returns promise
+    */
+  async getColors(): Promise<any> {
+    const result = await this.ProductModel.distinct('color' )
+    return result
+  }
 
 
 

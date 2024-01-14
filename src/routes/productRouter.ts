@@ -31,7 +31,7 @@ router.route('/seller/product/:id').get(isLoggedIn,Role(ROLES.SELLER) ,product.g
 //API ACCESS: user
 router.route('/list').get(validateRequest({query:schema.productQuerySchema}) ,product.queryProducts)
 router.route('/categories').get(product.getCategories)
-
+router.route('/filter_menu').get(product.getFilterOptions)
 
 
 export default router

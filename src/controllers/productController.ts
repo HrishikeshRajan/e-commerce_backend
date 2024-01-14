@@ -442,6 +442,38 @@ export const getCategories = async (
   }
 }
 
+/**
+ * API ACCESS: User
+ * Query the products
+ * @param GenericRequest 
+ * @param res 
+ * @param next 
+ * @returns void
+ */
+export const getFilterOptions = async (
+  req: GenericRequestWithQuery<{}, { [key: string]: string | undefined }, {}, Token>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const productRepo = new ProductRepo<ProductDocument>(ProductModel)
+    const brands = await productRepo.getBrandNames()
+    const colors = await productRepo.getColors()
+
+    const response: IResponse = {
+      res,
+      message: { filter:{brands,colors}   },
+      statusCode: StatusCodes.OK,
+      success: true
+    }
+    sendHTTPResponse(response)
+  } catch (error: any) {
+    const errorObj = error as CustomError
+    next(new CustomError(errorObj.message, errorObj.code, false))
+  }
+}
+
+
 
 
 // /**
