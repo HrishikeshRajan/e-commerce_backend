@@ -69,7 +69,7 @@ export const add = async (
 
     //Updates the req.body with new values
 
-    merge(req.body, { sellerId: req.user?.id }, { images: images },{isDiscontinued :Boolean(req.body.isDiscontinued) },{stock:parseInt(req.body.stock)})
+    merge(req.body, { sellerId: req.user?.id }, { images: images }, { isDiscontinued: Boolean(req.body.isDiscontinued) }, { stock: parseInt(req.body.stock) })
 
     logger.info('Creating product...')
     const product = await productRepo.create<ProductSchemaType>(req.body)
@@ -208,7 +208,7 @@ export const deleteProducts = async (
     const productRepo = new ProductRepo<ProductDocument>(ProductModel)
     logger.info(`Bulk product deletion process started`)
     const deletedProduct = await productRepo.deleteProductsByIds<string>(req.body.productsIds)
-  
+
     logger.info(`Verifying products deletion result`)
 
     if (!deletedProduct.deletedCount) {
@@ -288,7 +288,7 @@ export const queryProductsBySellerId = async (
  * @returns void
  */
 export const getProductById = async (
-  req: GenericRequest<{ id: string },{}, Token>,
+  req: GenericRequest<{ id: string }, {}, Token>,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
@@ -304,7 +304,7 @@ export const getProductById = async (
 
     const response: IResponse = {
       res,
-    message: { product: productFilter.sanitize(isProduct) },
+      message: { product: productFilter.sanitize(isProduct) },
       statusCode: StatusCodes.OK,
       success: true
     }
@@ -378,30 +378,47 @@ export const queryProducts = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+
     const productRepo = new ProductRepo<ProductDocument>(ProductModel)
-    if(!req.query.category){
+    if (!req.query.category) {
       return next(new CustomError('Please select a category', StatusCodes.NOT_FOUND, false))
     }
-    const totalAvailableProducts = await productRepo.countTotalProductsByCategory<string>(req.query.category)
 
     const resultPerPage = 20
     const categories = await productRepo.getCategory()
-    const query = {...req.query }
+    const query = { ...req.query }
+    const copyQuery = {...req.query}
+    
+    delete copyQuery.page
+    delete copyQuery.sort
+    delete copyQuery.limit
+
+
+    const totalAvailableProducts = await productRepo.countTotalProductsByQuery(copyQuery)
+
 
     const searchEngine = new SearchEngine<ProductDocument, ProductQuery>(ProductModel, query).customSearch().filter().pager(resultPerPage, totalAvailableProducts)
+
     if (typeof searchEngine === 'number') {
-      return next(new CustomError('No more products', StatusCodes.OK, false))
-    } 
+      const response: IResponse = {
+        res,
+        message: { products: [] },
+        statusCode: StatusCodes.OK,
+        success: true
+      }
+      return sendHTTPResponse(response)
+    }
 
     //Resolving the mongoose promise
     const products = await searchEngine.query
     if (isEmpty(products)) {
-      return next(new CustomError('No products found that owned by your seller id', StatusCodes.NOT_FOUND, false))
+      return next(new CustomError('No products found', StatusCodes.NOT_FOUND, false))
     }
 
+    const totalPage = Math.ceil(totalAvailableProducts / resultPerPage)
     const response: IResponse = {
       res,
-      message: { products: products, page:req.query.page, itemsShowing: products?.length, totalItems: totalAvailableProducts, categories   },
+      message: { products: products, page: req.query.page,totalPage, itemsShowing: products?.length, totalItems: totalAvailableProducts, categories },
       statusCode: StatusCodes.OK,
       success: true
     }
@@ -431,7 +448,7 @@ export const getCategories = async (
     const categories = await productRepo.getCategory()
     const response: IResponse = {
       res,
-      message: {categories   },
+      message: { categories },
       statusCode: StatusCodes.OK,
       success: true
     }
@@ -462,7 +479,7 @@ export const getFilterOptions = async (
 
     const response: IResponse = {
       res,
-      message: { filter:{brands,colors}   },
+      message: { filter: { brands, colors } },
       statusCode: StatusCodes.OK,
       success: true
     }

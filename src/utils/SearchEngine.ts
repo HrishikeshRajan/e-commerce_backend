@@ -65,7 +65,7 @@ class SearchEngine<M, Q> {
     pager(resultPerPage: number, total: number) {
         let page = this.customQuery.page ? parseInt(this.customQuery.page) : 1
         const skip = resultPerPage * (page - 1)
-
+console.log(skip,total)
         if (skip > total) {
             return -1
         }
