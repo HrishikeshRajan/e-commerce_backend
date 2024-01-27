@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { type Model, type Query  } from 'mongoose'
+import { type Model, type Query } from 'mongoose'
 import { ProductDocument, type ProductCore, DeleteResult } from '../types/product.interface'
 import { merge } from 'lodash'
 
@@ -100,20 +100,20 @@ export class ProductRepo<T extends ProductDocument> {
    * Counts the total number of documents based on category
    * @returns {number} promise
    */
-    async countTotalProductsByCategory<T>(category: T): Promise<number> {
-      const result = await this.ProductModel.countDocuments({ category })
-      return result
-    }
-  
+  async countTotalProductsByCategory<T>(category: T): Promise<number> {
+    const result = await this.ProductModel.countDocuments({ category })
+    return result
+  }
+
   /**
    * Counts the total number of documents based on category
    * @returns {number} promise
    */
-      async countTotalProductsByQuery(query: any): Promise<number> {
-        const result = await this.ProductModel.countDocuments(query)
-        return result
-      }
-    
+  async countTotalProductsByQuery(query: any): Promise<number> {
+    const result = await this.ProductModel.countDocuments(query)
+    return result
+  }
+
 
   /**
     * Deletes product documents from array of id's
@@ -130,10 +130,10 @@ export class ProductRepo<T extends ProductDocument> {
     * fetches all the unique category 
     * @returns  promise
     */
-    async getCategory(): Promise<any> {
-      const result = await this.ProductModel.distinct('category' )
-      return result
-    }
+  async getCategory(): Promise<any> {
+    const result = await this.ProductModel.distinct('category')
+    return result
+  }
 
 
   /**
@@ -141,7 +141,7 @@ export class ProductRepo<T extends ProductDocument> {
     * @returns {number} promise
     */
   async getBrandNames(): Promise<any> {
-    const result = await this.ProductModel.distinct('brand' )
+    const result = await this.ProductModel.distinct('brand')
     return result
   }
 
@@ -151,9 +151,66 @@ export class ProductRepo<T extends ProductDocument> {
     * @returns promise
     */
   async getColors(): Promise<any> {
-    const result = await this.ProductModel.distinct('color' )
+    const result = (await this.ProductModel.distinct('color')).toSorted((a, b) => a - b)
     return result
   }
+
+  /**
+    * Calculates color counts 
+    * @returns promise
+    */
+  async getColorCount(category: string): Promise<any> {
+    const result = this.ProductModel.aggregate([
+      {
+        $match: { "category": category, }
+      },
+      {
+        $group: {
+          '_id': {
+            'color': '$color',
+          },
+          'count': {
+            '$sum': 1
+          }
+        }
+      },
+      {
+        $sort: {
+          '_id.color': 1
+        }
+      }
+    ])
+    return result
+  }
+
+  /**
+  * Calculates brand counts 
+  * @returns promise
+  */
+  async getBrandCount(category: string): Promise<any> {
+    const result = this.ProductModel.aggregate([
+      {
+        $match: { "category": category, }
+      },
+      {
+        $group: {
+          '_id': {
+            'brand': '$brand',
+          },
+          'count': {
+            '$sum': 1
+          }
+        }
+      },
+      {
+        $sort: {
+          '_id.brand': 1
+        }
+      }
+    ])
+    return result
+  }
+
 
 
 

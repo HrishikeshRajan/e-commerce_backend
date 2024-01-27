@@ -1,5 +1,7 @@
 
-import { Query, FilterQuery, Model } from "mongoose";
+import { merge } from "lodash";
+import { Query, FilterQuery, Model, SortOrder } from "mongoose";
+import { getSortValue } from "./getSortValue";
 
 
 //Generic Query Type
@@ -62,10 +64,16 @@ class SearchEngine<M, Q> {
         return this;
     }
 
+    sort(){
+        if(!this.customQuery?.sort) return this   
+        const sortObj = getSortValue(this.customQuery.sort)
+        this.query = this.query?.sort(sortObj)
+        return this
+    }
+
     pager(resultPerPage: number, total: number) {
         let page = this.customQuery.page ? parseInt(this.customQuery.page) : 1
         const skip = resultPerPage * (page - 1)
-console.log(skip,total)
         if (skip > total) {
             return -1
         }

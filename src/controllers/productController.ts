@@ -26,6 +26,7 @@ import SearchEngine from '@utils/SearchEngine'
 import Logger from '@utils/LoggerFactory/LoggerFactory'
 import { convertToBase64Array } from '@utils/image.helper'
 import { ProductIdsSchemaType, ProductSchemaType } from 'types/zod/product.schemaTypes'
+import { getSortValue } from '@utils/getSortValue'
 const logger = Logger()
 
 
@@ -364,6 +365,7 @@ export const queryProductsByShopId = async (
 }
 
 
+
 /**
  * API ACCESS: seller
  * Query the products
@@ -383,22 +385,27 @@ export const queryProducts = async (
     if (!req.query.category) {
       return next(new CustomError('Please select a category', StatusCodes.NOT_FOUND, false))
     }
-
+    if (!req.query.page) {
+      req.query.page = '1'
+    }
     const resultPerPage = 20
-    const categories = await productRepo.getCategory()
     const query = { ...req.query }
-    const copyQuery = {...req.query}
-    
+
+    const copyQuery = { ...req.query }
+
     delete copyQuery.page
     delete copyQuery.sort
     delete copyQuery.limit
 
+    let copyQueryString = JSON.stringify(copyQuery)
+    copyQueryString = copyQueryString.replace(/\b(lt|lte|gt|gte)\b/g, ((val) => `$${val}`))
+    const queryObject = JSON.parse(copyQueryString)
 
-    const totalAvailableProducts = await productRepo.countTotalProductsByQuery(copyQuery)
+    const totalAvailableProducts = await productRepo.countTotalProductsByQuery(queryObject)
+    const brandsCountQuery = productRepo.getBrandCount(req.query?.category)
+    // const colorsCountQuery = productRepo.getColorCount(req.query?.category)
 
-
-    const searchEngine = new SearchEngine<ProductDocument, ProductQuery>(ProductModel, query).customSearch().filter().pager(resultPerPage, totalAvailableProducts)
-
+    const searchEngine = new SearchEngine<ProductDocument, ProductQuery>(ProductModel, query).customSearch().filter().sort().pager(resultPerPage, totalAvailableProducts)
     if (typeof searchEngine === 'number') {
       const response: IResponse = {
         res,
@@ -410,15 +417,16 @@ export const queryProducts = async (
     }
 
     //Resolving the mongoose promise
-    const products = await searchEngine.query
+    const productQuery = searchEngine.query
+    const [brandsCount,products] = await Promise.all([brandsCountQuery,productQuery])
     if (isEmpty(products)) {
       return next(new CustomError('No products found', StatusCodes.NOT_FOUND, false))
     }
 
-    const totalPage = Math.ceil(totalAvailableProducts / resultPerPage)
+    const totalPages = Math.ceil(totalAvailableProducts / resultPerPage)
     const response: IResponse = {
       res,
-      message: { products: products, page: req.query.page,totalPage, itemsShowing: products?.length, totalItems: totalAvailableProducts, categories },
+      message: { products: products, brandsCount, page: req.query.page, totalPages, itemsShowing: products?.length, totalItems: totalAvailableProducts },
       statusCode: StatusCodes.OK,
       success: true
     }
