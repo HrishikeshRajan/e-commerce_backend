@@ -8,9 +8,10 @@ import { isLoggedIn } from '../middlewares/auth'
 
 //Controllers
 import * as product from '../controllers/productController'
+import * as suggestion from '@controllers/searchSuggestionController'
 
 //Utils
-import { multerUpload, multerUploadArray } from '@utils/image.helper'
+import { multerUploadArray } from '@utils/image.helper'
 
 
 const router: Router = express.Router()
@@ -34,4 +35,6 @@ router.route('/categories').get(product.getCategories)
 router.route('/filter_menu').get(product.getFilterOptions)
 
 
+//API ACCESS: user
+router.route('/suggestions').get(suggestion.getSearchSuggestions)
 export default router

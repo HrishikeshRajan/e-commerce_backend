@@ -405,7 +405,7 @@ export const queryProducts = async (
     const brandsCountQuery = productRepo.getBrandCount(req.query?.category)
     // const colorsCountQuery = productRepo.getColorCount(req.query?.category)
 
-    const searchEngine = new SearchEngine<ProductDocument, ProductQuery>(ProductModel, query).customSearch().filter().sort().pager(resultPerPage, totalAvailableProducts)
+    const searchEngine = new SearchEngine<ProductDocument, ProductQuery>(ProductModel, query).search().filter().sort().pager(resultPerPage, totalAvailableProducts)
     if (typeof searchEngine === 'number') {
       const response: IResponse = {
         res,

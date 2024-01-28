@@ -31,7 +31,7 @@ class SearchEngine<M, Q> {
     search() {
 
         const searchWord = this.customQuery.name ? {
-            name: new RegExp("^" + this.customQuery.name, "i")
+             name: { $regex: this.customQuery.name, $options: 'i' } 
         } : {}
         this.query = this.model.find({
             ...searchWord
