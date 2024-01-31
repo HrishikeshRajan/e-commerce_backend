@@ -193,6 +193,41 @@ export const deleteProduct = async (
 
 /**
  * API ACCESS: seller
+ * Finds single document
+ * @param GenericRequest 
+ * @param res 
+ * @param next 
+ * @returns void
+ */
+export const singleProduct = async (
+  req: GenericRequest<{ id: string },{},{}>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const productRepo = new ProductRepo<ProductDocument>(ProductModel)
+
+    const deletedProduct = await productRepo.getSingleProduct<string>(req.params.id)
+
+    if (!deletedProduct) {
+      return next(new CustomError('No product found that owned by your seller id', StatusCodes.INTERNAL_SERVER_ERROR, false))
+    }
+
+    const response: IResponse = {
+      res,
+      message: { product: deletedProduct },
+      statusCode: StatusCodes.OK,
+      success: true
+    }
+    sendHTTPResponse(response)
+  } catch (error: any) {
+    const errorObj = error as CustomError
+    next(new CustomError(errorObj.message, errorObj.code, false))
+  }
+}
+
+/**
+ * API ACCESS: seller
  * Delete the products by seller and products ids
  * @param GenericRequest 
  * @param res 

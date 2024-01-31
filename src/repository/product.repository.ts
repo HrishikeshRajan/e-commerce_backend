@@ -32,6 +32,19 @@ export class ProductRepo<T extends ProductDocument> {
   }
 
   /**
+   * finds product document by id
+   * @param {string} productId 
+   * @returns plain object
+   */
+    async getSingleProduct<T>(productId: T): Promise<any> {
+      const result = await this.ProductModel.findById(productId).populate(  {
+        path: 'shopId',
+      select: '_id name logo description address owner email'});
+      return result
+    }
+  
+
+  /**
     * merges and update the document
     * @param {ProductDocument} product
     * @param {ProductCore} body
