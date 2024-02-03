@@ -30,6 +30,15 @@ export class ProductRepo<T extends ProductDocument> {
     const result = await this.ProductModel.findOne({ _id: productId, sellerId: userId });
     return result
   }
+  /**
+   * find core product
+   * @param {string} productId 
+   * @returns plain object
+   */
+    async findProductById<T extends String>(productId: T): Promise<ProductDocument | null> {
+      const result = await this.ProductModel.findById(productId);
+      return result
+    }
 
   /**
    * finds product document by id

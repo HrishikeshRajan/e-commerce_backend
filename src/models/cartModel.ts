@@ -1,60 +1,89 @@
-/**
- * Cart Entity
- *
- */
-// Model give access to instance method
-import mongoose, { type Document } from 'mongoose'
-import { type IUser } from '../types/IUser.interfaces'
-import { type CART_ITEM } from '../types/product.interface'
+import mongoose, { Types } from "mongoose";
+import { ProductCore } from "types/product.interface";
 
-// Extends Document will entends nodejs event emmitter and model properties also
-
-export interface CART {
-  products: CART_ITEM [] | null
-  totalQty: number
-  subTotal: number
-  userId: IUser['_id']
+export interface Options {
+  color: string
+  size: string
 }
-export interface ICART extends Document {
-  products: CART_ITEM []
-  totalQty: number
-  subTotal: number
-  userId: IUser['_id']
-  currencyCode: string
-  cartStatus: string
-}
+export interface CartItemCore {
+  product: any
+  qty: number
+  totalPrice: number
+  options: Options
+};
+export interface CartItemDocument extends mongoose.Document {
+  productId: string
+  qty: number
+  totalPrice: number
+  options: Options
+};
+// export type Cart = {
+//   userId: Types.ObjectId
+//   products:{ [x:string]:Item }
+//   grandTotalPrice:number
+//   grandTotalQty:number
+// };
 
-const cartSchema = new mongoose.Schema<ICART>({
-  products: [{
-    productId: { type: mongoose.Types.ObjectId, ref: 'Product' },
-    qty: Number,
-    price: Number,
-    total: Number
-  }],
-  userId: { type: mongoose.Types.ObjectId, ref: 'User' },
-  totalQty: Number,
-  subTotal: Number,
-  currencyCode: {
-    type: String,
-    default: 'INR'
+// Define schema for Cart
+const cartItemSchema = new mongoose.Schema({
+  productId: {
+    type:mongoose.Schema.Types.ObjectId,
+    ref:'Product',
+    require:true
   },
-  cartStatus: {
-    type: String,
-    enum: ['Active', 'Completed', 'Expired'],
-    default: 'Active'
+  qty: Number,
+  totalPrice: Number,
+  options: {
+    color: {
+        type:String,
+        require:true
+    },
+    size: {
+        type:String,
+        require:true
+    }
   }
-}, { timestamps: true })
+});
 
-/**
- * @description - Automatically calculates the total price based on the cart value
- */
-// cartSchema.pre('save', function (next) {
-//   const cart = this as ICART
-//   if (!this.isModified('products')) { next(); return }
-//   const total_price_sum = cart.products.reduce((accum, product) => accum + product.sub_total, 0)
-//   cart.total_price = total_price_sum
-//   cart.total_qty = cart.products.reduce((accum, product) => accum + product.qty, 0)
-//   next()
-// })
 
-export default mongoose.model<ICART>('Cart', cartSchema)
+export interface ResponseCart {
+  userId: mongoose.Types.ObjectId
+  products: {[x:string]: CartItemCore};
+  grandTotalPrice?: number;
+  grandTotalQty?: number;
+  cartId:mongoose.Types.ObjectId
+}
+export interface CartCore {
+  userId: mongoose.Types.ObjectId;
+  products: Map<string, CartItemDocument>;
+  grandTotalPrice?: number;
+  grandTotalQty?: number;
+}
+
+export interface CartDocument extends mongoose.Document {
+  userId: mongoose.Types.ObjectId;
+  products: Map<string, CartItemDocument>;
+  grandTotalPrice?: number;
+  grandTotalQty?: number;
+}
+
+
+
+const cartSchema = new mongoose.Schema<CartDocument>({
+    userId:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref:"User",
+        require:true
+    },
+  products: {
+    type: Map,
+    of: cartItemSchema,
+    default: {}
+  },
+  grandTotalPrice: Number,
+  grandTotalQty: Number
+},{timestamps:true});
+
+const CartModel = mongoose.model<CartDocument>('Cart', cartSchema);
+
+export default CartModel;

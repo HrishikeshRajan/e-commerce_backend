@@ -20,7 +20,6 @@ const logger = Logger()
  */
 export const isLoggedIn = (req: GenericRequest<{},{},UserCore>, res: Response, next: NextFunction): void => {
   try {
-
     logger.info('Validating request cookies')
     const token = (req.cookies) ? req.cookies.token : null
     if (!(token)) { 

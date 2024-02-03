@@ -1,5 +1,5 @@
 import { type Model } from 'mongoose'
-import { type ICART } from '../models/cartModel'
+import { type ICART } from '../models/cartModell'
 import { type Product, type CART_ITEM } from '../types/product.interface'
 import { type CART_MODEL } from '../types/Cart.interfaces'
 

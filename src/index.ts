@@ -9,6 +9,7 @@ import userRouter from '@routes/userRouter'
 import productRouter from '@routes/productRouter'
 import adminRouter from '@routes/adminRouter'
 import sellerRouter from '@routes/sellerRouter'
+import cartRouter from '@routes/cartRouter'
 import { errorHandler, notFound, productionErrorHandler } from './middlewares/error.handler'
 import cookieParser from 'cookie-parser'
 import cloudinaryConfig from './configs/cloudinary.config'
@@ -63,6 +64,7 @@ app.use('/api/v1/users/', userRouter)
 app.use('/api/v1/product/', productRouter)
 app.use('/api/v1/admin/', adminRouter)
 app.use('/api/v1/seller/', sellerRouter)
+app.use('/api/v1/cart/', cartRouter)
 
 // This will catch the unmatched routes and forward to error handler 
 app.use(notFound)
