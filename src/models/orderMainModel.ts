@@ -92,6 +92,7 @@ export interface OrderCore {
 export interface OrderDocument extends mongoose.Document {
   userId: mongoose.Types.ObjectId
   cartId:mongoose.Types.ObjectId
+  product:CartItemDocument
   shippingAddress:Address
   paymentDetails:PaymentDetails
   orderDetails:OrderDetails
@@ -99,7 +100,7 @@ export interface OrderDocument extends mongoose.Document {
 
 
 
-const orderSchema = new mongoose.Schema<OrderDocument>({
+const orderMainSchema = new mongoose.Schema<OrderDocument>({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
@@ -109,6 +110,9 @@ const orderSchema = new mongoose.Schema<OrderDocument>({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Cart",
     require: true
+  },
+  product:{
+
   },
   shippingAddress: {   
      fullname: {
@@ -162,6 +166,6 @@ const orderSchema = new mongoose.Schema<OrderDocument>({
   },
 }, { timestamps: true });
 
-const OrderModel = mongoose.model<OrderDocument>('Order', orderSchema);
+const OrderMainModel = mongoose.model<OrderDocument>('OrderMain', orderMainSchema);
 
-export default OrderModel;
+export default OrderMainModel;

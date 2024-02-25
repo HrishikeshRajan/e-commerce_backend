@@ -3,8 +3,15 @@ declare global {
       interface Request {
         user?:any
         cart?:any
+  
       }
     }
 }
 
+declare module 'http' {
+  interface IncomingMessage {
+      rawBody: any;
+      originalUrl?:string
+  }
+}
 export {}

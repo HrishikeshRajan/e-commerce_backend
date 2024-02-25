@@ -26,7 +26,7 @@ import { VALIDATE_REQUEST } from '../utils/request.validator'
 import { ParamsSchema, ChangePasswordSchema, ForgotPasswordSchema, LoginSchema, ParamsByIdSchema, PhotoSchema, QueryWithTokenSchema, RegisterSchema, ResetPasswordSchema, UpdateProfileSchema, UserAddressSchema } from '../types/zod/user.schemaTypes'
 import { validateRequest } from '../middlewares/userInputValidator'
 // import { addToCart, getCart, changeQty, deleteCart } from '../controllers/cartController'
-import { Checkout, paymentMethod, setShippingAddress } from '../controllers/orderController'
+// import { Checkout, paymentMethod, setShippingAddress } from '../controllers/orderController'
 
 const router = express.Router()
 
@@ -84,9 +84,9 @@ router.route('/profile-picture')
 // router.route('/cart/:id').delete(VALIDATE_REQUEST({ params: PARAMS_WITH_ID_SCHEMA }), deleteCart)
 
 // User Orders
-router.route('/orders/:cartId').post(isLoggedIn, Checkout)
-router.route('/orders/address').put(isLoggedIn, setShippingAddress)
-router.route('/orders/payment').put(isLoggedIn, paymentMethod)
+// router.route('/orders/:cartId').post(isLoggedIn, Checkout)
+// router.route('/orders/address').put(isLoggedIn, setShippingAddress)
+// router.route('/orders/payment').put(isLoggedIn, paymentMethod)
 // router.route('/orders/address/billing').put(validateRequest({ body: AddresSchema }), setBillingAddress)
 // router.route('/orders/payment').post(VALIDATE_REQUEST({ body: VALIDATE_ORDER_USER_SCHEMA }), Pay)
 

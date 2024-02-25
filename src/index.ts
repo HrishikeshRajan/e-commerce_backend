@@ -10,6 +10,7 @@ import productRouter from '@routes/productRouter'
 import adminRouter from '@routes/adminRouter'
 import sellerRouter from '@routes/sellerRouter'
 import cartRouter from '@routes/cartRouter'
+import orderRouter from '@routes/orderRouter'
 import { errorHandler, notFound, productionErrorHandler } from './middlewares/error.handler'
 import cookieParser from 'cookie-parser'
 import cloudinaryConfig from './configs/cloudinary.config'
@@ -36,7 +37,17 @@ app.use(cors({
 
 app.use(compress())
 app.use(helmet())
-app.use(express.json())
+app.use(
+  express.json({
+    verify: function (req, res, buf) {
+      if (req.originalUrl?.endsWith('/webhook')) {
+        req.rawBody = buf.toString();
+      }
+    },
+  }),
+);
+
+// app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
 app.use(session({
@@ -65,6 +76,7 @@ app.use('/api/v1/product/', productRouter)
 app.use('/api/v1/admin/', adminRouter)
 app.use('/api/v1/seller/', sellerRouter)
 app.use('/api/v1/cart/', cartRouter)
+app.use('/api/v1/orders/',orderRouter)
 
 // This will catch the unmatched routes and forward to error handler 
 app.use(notFound)

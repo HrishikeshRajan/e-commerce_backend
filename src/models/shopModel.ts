@@ -22,6 +22,7 @@ export interface ShopCore {
     created: Date
     owner: Types.ObjectId
     email:string
+    isActive:boolean
 }
 // Create a document type for ShopCore
 export type ShopDocument = ShopCore & Document
@@ -76,6 +77,10 @@ const shopSchema = new Schema<ShopDocument, Model<ShopDocument>>(
             created: {
                 type: Date,
                 default: Date.now
+            },
+            isActive:{
+                type:Boolean,
+                default:true
             }
     },
 )

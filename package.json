@@ -12,9 +12,10 @@
     "clean": "rimraf dist",
     "build": "yarn clean && ./node_modules/.bin/tsc && cp package.json ./dist/package.json",
     "start": "TS_NODE_BASEURL=./dist node -r tsconfig-paths/register dist/app.js",
-    "dev": " nodemon --watch \"src/**\" --ext \"ts,json\" --inspect=0.0.0.0 --exec \"ts-node  src/app.ts\"",
+    "dev": " nodemon --watch \"src/**\" --ext \"ts,json\" --inspect=0.0.0.0 --exec \"ts-node  src/app.ts\" ",
     "test": "jest --watch  --detectOpenHandles",
-    "test-clear": "jest --clear-cache"
+    "test-clear": "jest --clear-cache",
+    "stripe-listen":"stripe listen --forward-to http://localhost:4000"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.2",

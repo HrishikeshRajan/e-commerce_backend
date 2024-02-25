@@ -1,6 +1,6 @@
 import { type Model } from 'mongoose'
 import { type ICART } from '../models/cartModell'
-import { type IORDER, type ORDER } from '../models/orderModel'
+import { type IORDER, type ORDER } from '../models/orderModell'
 import { type Address, type IUser, type IAddress } from '../types/IUser.interfaces'
 import { type CART_ITEM } from '../types/product.interface'
 
@@ -26,10 +26,6 @@ export class OrderManagement {
       paymentMethod: '',
       paymentStatus: '',
       paymentId: '',
-      discountPercentage: 0,
-      isDiscountApplied: false,
-      priceAfterDiscount: 0,
-      savedAmount: 0,
       userId: ''
     }
   }
@@ -122,39 +118,6 @@ export class OrderManagement {
 
   getUserId (): IUser['_id'] {
     return this.order.userId
-  }
-
-  calculateDiscount (): this {
-    this.order.priceAfterDiscount = Math.floor(this.getGrandTotal() - (this.getGrandTotal() * (this.getDiscount() / 100)))
-    return this
-  }
-
-  setDiscount (percentage: number): this {
-    this.order.discountPercentage = percentage
-    this.calculateDiscount()
-    return this
-  }
-
-  getDiscount (): number {
-    return this.order.discountPercentage
-  }
-
-  setDiscountApplied (): this {
-    this.order.isDiscountApplied = true
-    return this
-  }
-
-  getIsDiscountApplied (): boolean {
-    return this.order.isDiscountApplied
-  }
-
-  calculateSavedAmount (): number {
-    return this.order.grandTotal - this.order.priceAfterDiscount
-  }
-
-  setSavedAmount (): this {
-    this.order.savedAmount = this.calculateSavedAmount()
-    return this
   }
 
   getOrder (): ORDER {

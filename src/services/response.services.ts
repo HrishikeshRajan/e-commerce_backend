@@ -37,7 +37,8 @@ export const sendHTTPWithTokenResponse = ({ res, message, statusCode, success, t
   const options: CookieOptions = {
     // expires: expiryTime,
     httpOnly: true,
-    secure: false
+    // secure: true,
+    // sameSite:'none'
   }
 
   if (expiresIn === 0) {
@@ -49,7 +50,7 @@ export const sendHTTPWithTokenResponse = ({ res, message, statusCode, success, t
     })
     res.clearCookie('refreshToken', {
       path: '/'
-    })
+    }) 
 
     res.status(statusCode).json({
       success,

@@ -177,15 +177,15 @@ export const listMyShops = async (
     next: NextFunction) => {
     try {
 
-        if (!req.query.owner) {
-            return next(new CustomError('Please select the owner', StatusCodes.BAD_REQUEST, false))
-        }
+        // if (!req.query.owner) {
+        //     return next(new CustomError('Please select the owner', StatusCodes.BAD_REQUEST, false))
+        // }
 
         const shop = new ShopRepository(shopModel)
         const totalAvailableShops = await shop.countTotalShopsBySellerId<string>(req.user?.id!)
         const productRepo = new ProductRepo<ProductDocument>(productModel)
 
-        const query = { owner: req.user?.id, ...req.query }
+        const query = { owner: req.user?.id}
         const resultPerPage = parseInt((req.query?.limit ? req.query.limit : 10) as string)
         const searchEngine = new SearchEngine<ShopDocument, ShopQuery>(shopModel, query).search().filter().pager(resultPerPage, totalAvailableShops)
 
@@ -195,7 +195,7 @@ export const listMyShops = async (
         }
 
         //Resolving the  mongoose promise
-        const shops = await searchEngine.query?.populate('owner', '_id fullname').select('name _id created email')
+        const shops = await searchEngine.query?.populate('owner', '_id fullname').select('name _id created email logo isActive')
 
         if (isEmpty(shops) || !shops) {
             return next(new CustomError('No shops found that owned by your owner Id', StatusCodes.NOT_FOUND, false))

@@ -16,7 +16,7 @@ const logger = Logger()
  * @param res
  * @param next
  * @returns callback {next}
- *
+ *  
  */
 export const isLoggedIn = (req: GenericRequest<{},{},UserCore>, res: Response, next: NextFunction): void => {
   try {

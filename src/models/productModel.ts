@@ -101,11 +101,14 @@ const productSchema = new Schema<ProductDocument, Model<ProductDocument>>(
     },
     keywords: [String],
     updatedAt: { type: Date },
-    createdAt: {
-        type: Date,
-        default: Date.now
-    }
+    // createdAt: {
+    //     type: Date,
+    //     default: Date.now
+    // }
+  },{
+    timestamps:true
   }
+
 )
 productSchema.pre<ProductDocument>(/^save$/, async function (next): Promise<void> {
   if (!this.isModified('name')) {
