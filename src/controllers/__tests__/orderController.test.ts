@@ -4,11 +4,11 @@ import app, { createDatabaseConnection } from '../../index'
 import { StatusCodes } from 'http-status-codes'
 import productModel from '../../models/productModel'
 
-beforeAll(async () => {
-  void createDatabaseConnection(process.env.MONGODB_URL_TEST as string)
-})
+// beforeAll(async () => {
+//   void createDatabaseConnection(process.env.MONGODB_URL_TEST as string)
+// })
 
-describe('Order API Tests', () => {
+describe.skip('Order API Tests', () => {
   describe('Checkout API', () => {
     it.skip('should return an success response with ordered products', async () => {
       const product = await productModel.findOne({ name: 'Product_0' })

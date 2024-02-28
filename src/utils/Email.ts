@@ -19,14 +19,14 @@ export default class Mail implements IMAIL {
     const { requestId } = await this.courier.send({
       message: {
         to: {
-          email: 'hrishikeshrajan3@gmail.com'
+          email: this.email,
         },
         template: templateId,
         data: {
           FirstName: this.firstname,
           EmailAddress: this.email,
           ConfirmationLink: this.url,
-          CompanyName: 'wizardstore'
+          CompanyName: 'wondercart'
         },
         routing: {
           method: 'single',

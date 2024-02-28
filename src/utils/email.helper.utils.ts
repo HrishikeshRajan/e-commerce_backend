@@ -13,3 +13,6 @@ export const generateUrl = (token: string, configs: LinkType): string => {
 export const clientForgotPasswordUrl = (token: string, path: string): string => {
   return 'http://localhost:5173/' + path + '/' + token
 }
+export const clientUrl = (path: string): string => {
+  return process.env.CLIENT_URL + path 
+}

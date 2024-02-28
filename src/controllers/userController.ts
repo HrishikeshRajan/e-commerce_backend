@@ -11,25 +11,20 @@ import { type IEmailFields, type LinkType } from '../types/IEmail.interfaces' //
 import { type IResponse } from '../types/IResponse.interfaces'
 import { type ICookieResponse } from '../types/Cookie.interfaces'
 import { convertToBase64 } from '../utils/image.helper'
-// import UserRespository from '../repository/user.repository'
+
 
 import EmailServices from '../services/email.services'
 import Mail from '../utils/Email'
 
 import JwtServices from '../services/jwt.services'
 import { sendHTTPResponse, sendHTTPWithTokenResponse } from '../services/response.services'
-// import UserServices from '../services/user.services'
+
 import CustomError from '../utils/CustomError'
-import { clientForgotPasswordUrl, generateUrl } from '../utils/email.helper.utils' // uncomment in production
+import { clientForgotPasswordUrl, clientUrl, generateUrl } from '../utils/email.helper.utils' // uncomment in production
 import Cloudinary from '../repository/ImageProcessing.repository'
 import JwtRepository from '../utils/Jwt.utils'
 import { ImageProcessingServices } from '../services/image.processing.services'
-import * as crypto from 'crypto';
-// import Stripe from 'stripe'
-// import Search from '../utils/search'
-import productModel from '../models/productModel'
 
-// import { StripeStrategy, PaymentStrategy } from '../utils/payment_strategy'
 import { type AddressWithAddressId, type ForgotPassword, type Login, type Register, type ResetPassword, type QueryWithToken, type UserAddress, type ID, type UpdateProfile, type Photo, ChangePassword, Params } from '../types/zod/user.schemaTypes'
 
 // eslint-disable-next-line import/no-named-default
@@ -39,55 +34,96 @@ import { StatusCodes } from 'http-status-codes'
 import { responseFilter } from '../utils/user.helper'
 
 import { Token, TypedRequest, GenericRequest } from '../types/IUser.interfaces'
-
-// const secret = process.env.STRIPE_PRIVATE_KEY as string
-// const stripe = new Stripe(secret, {
-//   apiVersion: '2022-11-15',
-// })
-
-// import { type CustomRequest } from '../types'
+import Logger from '@utils/LoggerFactory/LoggerFactory'
+const logger = Logger()
 
 const { UserRepository, UserServices } = USER
 
 const userRespository = new UserRepository()
 const userService = new UserServices()
 
+
+/**
+ * Validates the request is made by human or bot
+ * 
+ * @param {string} token 
+ * @returns {boolean}
+ */
+const checkIsHuman = async (token: string): Promise<boolean> => {
+  //  Request headers
+  const headers = new Headers();
+  headers.set('Accept', 'application/json');
+  headers.set('Content-Type', 'application/json');
+
+  // Fetch API options
+  const requestOptions: RequestInit = {
+    method: 'POST',
+    headers,
+  };
+
+  const url = `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${token}`
+  try {
+    const result = await fetch(url, requestOptions)
+    const data = await result.json()
+    console.log(data)
+    return data.success
+  } catch (error) {
+    return false
+  }
+}
+
+
 /**
  * User Register Controller
  *
  * Registers a new user with the provided fullname, email and password.
  * Sends a confirmation email to the user's registered email address
-   containing a link to confirm their email address
- *
- * @param {Request} req - HTTP Request object
- * @param {Response} res - HTTP response object
- * @param {NextFunction} next - HTTP callback
- * @param {string} req.body.fullname - User fullname.
- * @param {string} req.body.email - User email address.
- * @param {string} req.body.password - User password.
- * @returns {Promise<void>}
- * @throws {CustomError} -  The error will send as response to client
  */
 export const registerUser = async (
-  req: Request<{}, IResponse, Register, {}>,
+  req: Request,
   res: Response<IResponse, {}>,
   next: NextFunction):
   Promise<void> => {
   try {
-    const { email } = req.body
 
-    const findUser = await userService.findUser(userRespository, { email })
+    logger.info('Registration controller initiated', { email: req.body.email });
+    const { email, recaptchaToken } = req.body
+
+
+    if (process.env.NODE_ENV === 'production' && recaptchaToken) {
+      logger.info('reCaptcha validation started', { email });
+      const human = await checkIsHuman(recaptchaToken)
+      logger.info('Validating reCaptcha response', { email });
+      if ((!human)) {
+        logger.error('User is not valid', req.socket.remoteAddress)
+        logger.error('User registration failed. Please try again later.', { email });
+        next(new CustomError('User registration failed. Please try again later.', StatusCodes.BAD_REQUEST, false)); return
+      }
+      logger.info('reCaptcha validation successfull', { email });
+    }
+
+
+    logger.info('Checking database with given email', { email });
+    const findUser = await userService.findUser(userRespository, { email });
+    logger.info('Validating user initiated', { email });
+
     if ((findUser != null) && findUser.emailVerified) {
-      next(new CustomError('Email is already registered', 409, false)); return
+      logger.error(`User email: ${email} already registered, returning error response to client`);
+      next(new CustomError('Invalid Email or Password', 409, false)); return
     }
+
     if ((findUser != null) && !findUser.emailVerified) {
+      logger.info(`User email: ${email} not verified. Deleting user record.`, { email });
       await userService.findUserAndDelete(userRespository, { email })
+      logger.info(`User email: ${email} deleted successfully`, { email });
     }
 
-    const userData: Register = { ...req.body }
+    const { fullname, password } = req.body
 
+    const userData = { fullname, email, password }
+    logger.info(`Writing user email:${email} to database started`, { email });
     const user = await userService.createUser(userRespository, userData)
-
+    logger.info(`Writing user email:${email} to database successfull`, { email });
     const payload = {
       email,
       id: user._id
@@ -99,29 +135,26 @@ export const registerUser = async (
     }
 
     const jwt = new JwtRepository()
-
+    logger.info('Creating Jwt token initiated', { email });
     const token = new JwtServices().signPayload(jwt, payload, jwtConfig.secret, jwtConfig.expiresIn)
+    logger.info('Token generation successfull', { email });
 
-    const urlConfig: LinkType = {
-      host: 'localhost',
-      port: process.env.PORT_DEV as string,
-      version: 'v1',
-      route: 'users',
-      path: 'register'
-    }
-
-    const link = generateUrl(token, urlConfig)
+    const link = clientUrl(`confirm?token=${token}`)
 
     const emailFields: IEmailFields = {
       EmailAddress: user.email,
-      FirstName: user.email.split('@')[0],
+      FirstName: fullname,
       ConfirmationLink: link
     }
 
-    const mail: Mail = new Mail(process.env.COURIER__TEST_KEY as string, emailFields)
+    if (process.env.NODE_ENV === 'production') {
+      logger.info(`Mail service initiated`)
+      const mail: Mail = new Mail(process.env.COURIER__TEST_KEY as string, emailFields)
+      await new EmailServices().send_mail(mail, process.env.COURIER_CONFIRMATION_TEMPLATE_ID as string)
+      logger.info('Mail delivery to email successfull', { email });
+    }
 
-    await new EmailServices().send_mail(mail, process.env.COURIER_CONFIRMATION_TEMPLATE_ID as string)
-
+    logger.info('Sending success response back to user', { email });
     const response: IResponse = {
       res,
       message: {
@@ -132,6 +165,7 @@ export const registerUser = async (
     }
     sendHTTPResponse(response)
   } catch (error: unknown) {
+    logger.error('An error occurred', { error }); 
     next(error)
   }
 }
@@ -162,7 +196,7 @@ export const verifyMailLink = async (
     const jwt = new JwtRepository()
 
     const result = new JwtServices().verifyToken(jwt, token, jwtConfig.secret)
-    if (result.status === 'failure') { next(new CustomError('Verification link expired', StatusCodes.FORBIDDEN, false)); return }
+    if (result.status === 'failure') { next(new CustomError('Verification link has been expired', StatusCodes.FORBIDDEN, false)); return }
 
     const { email, id } = result.message.data
 
@@ -178,7 +212,7 @@ export const verifyMailLink = async (
     await userService.setEmailVerified(userRespository, user)
     const response: IResponse = {
       res,
-      message: { message: 'Your account is verified' },
+      message: { message: 'Greate! Your account has been verified!', meta: 'Now it\'s shopping time' },
       success: true,
       statusCode: StatusCodes.ACCEPTED
     }
@@ -227,7 +261,7 @@ export const loginUser = async (
       email,
       id: user._id,
       loggedIn: true,
-      role:user.role
+      role: user.role
     }
 
     const accessOptions = {
@@ -365,11 +399,15 @@ export const forgotPassword = async (
       ConfirmationLink: link
     }
 
-    // Will uncomment in production
-    const mail: Mail = new Mail(process.env.COURIER__TEST_KEY as string, emailFields)
+    if (process.env.NODE_ENV === 'production') {
+      // Will uncomment in production
+      const mail: Mail = new Mail(process.env.COURIER__TEST_KEY as string, emailFields)
 
-    // Will uncomment in production
-    const RequestId = await new EmailServices().send_mail(mail, process.env.COURIER_CONFIRMATION_TEMPLATE_ID as string)
+      // Will uncomment in production
+      const RequestId = await new EmailServices().send_mail(mail, process.env.COURIER_CONFIRMATION_TEMPLATE_ID as string)
+
+    }
+
 
     const response: IResponse = {
       res,
@@ -436,7 +474,7 @@ export const verifyForgotPassword = async (req: Request<{}, IResponse, {}, Query
  * @throws {CustomError} - The error will send as response to client
  */
 export const resetPassword = async (
-  req: GenericRequest<Params,ResetPassword, {}>,
+  req: GenericRequest<Params, ResetPassword, {}>,
   res: Response<IResponse>,
   next: NextFunction):
   Promise<void> => {
@@ -801,7 +839,7 @@ export const deleteProfilePicture = async (
   try {
 
 
-    if(!req.user) return
+    if (!req.user) return
     const { id } = req.user;
     const user = await userService.deleteProfilePicture(userRespository, id)
     if (!user) { next(new CustomError('User not found', StatusCodes.INTERNAL_SERVER_ERROR, false)); return }

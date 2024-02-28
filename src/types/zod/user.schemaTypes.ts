@@ -22,7 +22,9 @@ export const RegisterSchema = z.object({
     .string()
     .min(8, { message: 'Password must be at least 8 characters' })
     .max(100, { message: 'Password can be at most 100 characters' })
-    .regex(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+{}|:;<>,.?~]+$/, 'Password must contain at least one letter and one number')
+    .regex(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+{}|:;<>,.?~]+$/, 'Password must contain at least one letter and one number'),
+  recaptchaToken: z.string()
+    .min(3, 'fullname must be at least 2 characters').optional()
 })
 
 export const ForgotPasswordSchema = z.object({
@@ -155,7 +157,7 @@ export const ParamsByIdSchema = z.object({
     message: 'Invalid ObjectId'
   })
 })
-export const ParamsSchema = z.object({  
+export const ParamsSchema = z.object({
   id: z.string()
 })
 
@@ -186,12 +188,12 @@ export const PhotoSchema = z.object({
 })
 export type ID = z.infer<typeof ParamsByIdSchema>
 export type Login = z.infer<typeof LoginSchema>
-export type Register = z.infer<typeof LoginSchema>
+export type Register = z.infer<typeof RegisterSchema>
 export type ForgotPassword = z.infer<typeof ForgotPasswordSchema>
 export type ResetPassword = z.infer<typeof ResetPasswordSchema>
 export type ChangePassword = z.infer<typeof ChangePasswordSchema>
 export type AddressWithOrderId = z.infer<typeof AddresSchema>
-export type AddressWithAddressId = z.infer<typeof AddressSchemaWithAddressId >
+export type AddressWithAddressId = z.infer<typeof AddressSchemaWithAddressId>
 export type QueryWithToken = z.infer<typeof QueryWithTokenSchema>
 export type UserAddress = z.infer<typeof UserAddressSchema>
 export type UpdateProfile = z.infer<typeof UpdateProfileSchema>

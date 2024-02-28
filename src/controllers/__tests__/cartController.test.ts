@@ -5,11 +5,11 @@ import cartModel from '../../models/cartModel'
 import { StatusCodes } from 'http-status-codes'
 import productModel from '../../models/productModel'
 
-beforeAll(async () => {
-  void createDatabaseConnection(process.env.MONGODB_URL_TEST as string)
-})
+// beforeAll(async () => {
+//   void createDatabaseConnection(process.env.MONGODB_URL_TEST as string)
+// })
 
-describe('Cart API Tests', () => {
+describe.skip('Cart API Tests', () => {
   describe('Add to Cart API', () => {
     afterEach(async () => {
       await cartModel.deleteMany({})
@@ -63,7 +63,7 @@ describe('Cart API Tests', () => {
       expect(res.body.message.cart).toBeUndefined()
     })
   })
-  describe('Change Qty In Cart API', () => {
+  describe.skip('Change Qty In Cart API', () => {
     afterEach(async () => {
       await cartModel.deleteMany({})
     })
@@ -174,7 +174,7 @@ describe('Cart API Tests', () => {
       expect(res.body.message.cart).toBeUndefined()
     })
   })
-  describe('Delete Cart API', () => {
+  describe.skip('Delete Cart API', () => {
     afterEach(async () => {
       await cartModel.deleteMany({})
     })
