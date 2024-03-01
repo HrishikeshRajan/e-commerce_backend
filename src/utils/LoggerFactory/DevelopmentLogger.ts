@@ -12,3 +12,28 @@ export const devLogger = () => createLogger({
     ),
     transports: [new transports.Console()],
 });
+
+
+
+export const productionLogger = () => createLogger({
+    level:'info',
+    format: format.combine(
+        format.timestamp(),
+        format.printf(({ timestamp, level, message }) => {
+            return `${level}: [${timestamp}] ${message}`;
+        })
+    ),
+    transports: [
+        new transports.Console(),
+        new transports.File({filename:"error.log"})
+    ],
+});
+
+
+let logger = devLogger
+if (process.env.NODE_ENV === 'production') {
+    logger = productionLogger
+}
+
+export default logger()
+

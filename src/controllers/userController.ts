@@ -16,7 +16,7 @@ import { convertToBase64 } from '../utils/image.helper'
 import EmailServices from '../services/email.services'
 import Mail from '../utils/Email'
 
-import JwtServices from '../services/jwt.services'
+import JwtServices from '@services/jwt.services'
 import { sendHTTPResponse, sendHTTPWithTokenResponse } from '../services/response.services'
 
 import CustomError from '../utils/CustomError'
@@ -25,19 +25,16 @@ import Cloudinary from '../repository/ImageProcessing.repository'
 import JwtRepository from '../utils/Jwt.utils'
 import { ImageProcessingServices } from '../services/image.processing.services'
 
-import { type AddressWithAddressId, type ForgotPassword, type Login, type Register, type ResetPassword, type QueryWithToken, type UserAddress, type ID, type UpdateProfile, type Photo, ChangePassword, Params } from '../types/zod/user.schemaTypes'
+import { type AddressWithAddressId, type ForgotPassword, type Login, type ResetPassword, type QueryWithToken, type UserAddress, type ID, type UpdateProfile, type Photo, ChangePassword, Params } from '../types/zod/user.schemaTypes'
 
-// eslint-disable-next-line import/no-named-default
-import { default as USER } from '../exports/user'
 import _ from 'lodash'
 import { StatusCodes } from 'http-status-codes'
 import { responseFilter } from '../utils/user.helper'
 
 import { Token, TypedRequest, GenericRequest } from '../types/IUser.interfaces'
-import Logger from '@utils/LoggerFactory/LoggerFactory'
-const logger = Logger()
-
-const { UserRepository, UserServices } = USER
+import logger from '@utils/LoggerFactory/DevelopmentLogger'
+import UserRepository from '@repositories/user.repository'
+import UserServices from '@services/user.services'
 
 const userRespository = new UserRepository()
 const userService = new UserServices()
@@ -65,7 +62,6 @@ const checkIsHuman = async (token: string): Promise<boolean> => {
   try {
     const result = await fetch(url, requestOptions)
     const data = await result.json()
-    console.log(data)
     return data.success
   } catch (error) {
     return false
@@ -165,7 +161,7 @@ export const registerUser = async (
     }
     sendHTTPResponse(response)
   } catch (error: unknown) {
-    logger.error('An error occurred', { error }); 
+    logger.error('An error occurred', { error });
     next(error)
   }
 }

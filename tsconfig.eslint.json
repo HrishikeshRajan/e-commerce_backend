@@ -1,0 +1,24 @@
+/*
+Only use for development purpose
+*/
+{
+    "extends":"./tsconfig.json",
+    "compilerOptions": {
+
+        "noEmit": true,
+        "target": "ES6",
+        "lib": ["ESNext"],
+        "allowJs": true,
+        "removeComments": true,
+        "noImplicitAny": true,
+        "moduleResolution": "NodeNext",
+   
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true
+    },
+    "exclude": ["node_modules","dist","coverage"],
+    "include": [
+      // whatever paths you intend to lint
+      "src"
+    ]
+}

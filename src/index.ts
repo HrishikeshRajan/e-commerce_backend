@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 
-import './custom'
 import express, { type Express } from 'express'
 import dotenv from 'dotenv'
 
