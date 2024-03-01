@@ -25,8 +25,6 @@ import { Request, Response, NextFunction } from 'express'
 
 import Logger from '@utils/LoggerFactory/DevelopmentLogger'
 import UserServices from '@services/user.services'
-import UserRepository from '@repositories/user.repository';
-import CustomError from '@utils/CustomError';
 import { sendHTTPResponse } from '@services/response.services';
 import { IResponse } from 'types/IResponse.interfaces';
 
