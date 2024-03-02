@@ -122,19 +122,6 @@ userModel.pre<IUser>(/^save$/, async function (next): Promise<void> {
   if (!this.isModified('password')) { next(); return }
   this.password = await bcrypt.hash(this.password, 10)
 })
-// userModel.pre<IUser>(/^save$/, async function (next): Promise<void> {
-//   if (this.isModified('username')) { next(); return }
-//   function generateUsername (email: string): string {
-//     const username = email.split('@')[0]
-
-//     const randomString = Math.random().toString(36).substring(2, 8)
-
-//     const uniqueUsername = `${username}_${randomString}`
-
-//     return uniqueUsername
-//   }
-//   this.username = generateUsername(this.email)
-// })
 
 userModel.methods.verifyPassword = async function (password: string): Promise<boolean> {
   const user = this as IUser

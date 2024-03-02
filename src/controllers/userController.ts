@@ -169,13 +169,14 @@ export const registerUser = async (
 /**
  * Email Verification Controller
  *
- * Validates the confirm mail address link and make email address verified
- * @param {Request} req - HTTP Request object
- * @param {Response} res - HTTP response object
- * @param {NextFunction} next - HTTP callback
- * @param {string} req.query.token - Url that send to user registered email address
+ * Validates the token in the query and sets email verified or not
+ * 
+ * @param {Request} req 
+ * @param {Response} res
+ * @param {NextFunction}
+ * @query {string} req.query.token - User token
  * @returns {Promise<void>}
- * @throws {CustomError} - The error will send as response to client
+ * @throws {CustomError}
  */
 export const verifyMailLink = async (
   req: Request<{}, IResponse, {}, QueryWithToken, {}>,
@@ -183,29 +184,46 @@ export const verifyMailLink = async (
   next: NextFunction):
   Promise<void> => {
   try {
+    logger.info('Token verification controller received the token')
     const { token } = req.query
 
+    logger.info('Loading JWT secrets')
     const jwtConfig = {
       secret: process.env.JWT_SECRET as string
     }
 
     const jwt = new JwtRepository()
 
+    logger.info('Starting user token validation')
     const result = new JwtServices().verifyToken(jwt, token, jwtConfig.secret)
-    if (result.status === 'failure') { next(new CustomError('Verification link has been expired', StatusCodes.FORBIDDEN, false)); return }
+
+    if (result.status === 'failure') {
+      logger.error('Token has been expired. sending 401 error ')
+      return next(new CustomError('Verification link has been expired', StatusCodes.FORBIDDEN, false));
+    }
+    logger.info(`Token validation completed successfull`)
 
     const { email, id } = result.message.data
-
+    logger.info(`Checking email on database `)
     const user = await userService.findUser(userRespository, { email })
 
-    if (user === null) { next(new CustomError('user not found', StatusCodes.NOT_FOUND, false)); return }
+    if (user === null) {
+      logger.error(`No records found in database. Sending 404 error`)
+      return next(new CustomError('user not found', StatusCodes.NOT_FOUND, false));
 
-    // Each link corresponds to a document ID of a newly registered user.
-    if (!(id.toString() === user._id.toString())) {
-      next(new CustomError('Invalid token', StatusCodes.BAD_REQUEST, false)); return
     }
 
+    // Each link corresponds to a document ID of a newly registered user.
+    logger.info(`Verifying token id: ${id}`)
+    if (!(id.toString() === user._id.toString())) {
+      logger.error(`Invalid token. Sending 400 error, id: ${id}`)
+      return next(new CustomError('Invalid token', StatusCodes.BAD_REQUEST, false));
+    }
+
+    logger.info(`Setting email verified to true, id: ${id}`)
     await userService.setEmailVerified(userRespository, user)
+    logger.info(`Setting email verified flag completed successfully, id: ${id}`)
+    logger.info(`Sending response back to user, id: ${id}`)
     const response: IResponse = {
       res,
       message: { message: 'Greate! Your account has been verified!', meta: 'Now it\'s shopping time' },
@@ -216,21 +234,21 @@ export const verifyMailLink = async (
     sendHTTPResponse(response)
   } catch (error: unknown) {
     const errorObj = error as CustomError
+    logger.info(`An error occurred, message: ${errorObj.message}`)
     next(new CustomError(errorObj.message, errorObj.code, false))
   }
 }
 
 /**
  * Login Controller
- *
- *
- * @param {Request} req - HTTP Request object
- * @param {Response} res - HTTP response object
- * @param {NextFunction} next -  callback
+ * 
+ * @param {Request} req 
+ * @param {Response} res 
+ * @param {NextFunction} next 
  * @param {string} req.body.email - Registered email address of the user account
  * @param {string} req.body.password - Registered password of the user account
  * @returns {Promise<void>}
- * @throws {CustomError} -  The error will send as response to client
+ * @throws {CustomError} 
  */
 export const loginUser = async (
   req: Request<{}, ICookieResponse, Login, {}>,
@@ -239,42 +257,51 @@ export const loginUser = async (
   Promise<void> => {
   try {
     const { email, password } = req.body
+    logger.info('Login request received')
+    logger.info('Checking user database')
     const user = await userService.findUser(userRespository, { email }, true)
     if (user === null) {
-      next(new CustomError('Invalid email or password ', StatusCodes.BAD_REQUEST, false)); return
+      logger.error('Not records found. Sending 400 error')
+      return next(new CustomError('Invalid email or password ', StatusCodes.BAD_REQUEST, false));
     }
-
+    logger.info(`User records found, id: ${user._id}`)
+    logger.info(`Verifying password, id: ${user._id}`)
     const isVerified =
       await userService.verifyPassword(userRespository, user, password)
 
     if (!isVerified) {
-      next(
+      logger.error(`Password verification failed, id: ${user._id}`)
+      return next(
         new CustomError('Invalid email or password ', StatusCodes.BAD_REQUEST, false)
-      ); return
+      );
     }
 
+    logger.info(`Password verification successfull, id: ${user._id}`)
     const payload: JwtPayload = {
       email,
       id: user._id,
       loggedIn: true,
       role: user.role
     }
-
+    logger.info(`Configuring access token, id: ${user._id}`)
     const accessOptions = {
       secret: process.env.JWT_SECRET as string,
       expiresIn: process.env.ACCESS_TOKEN_EXPIRTY_DEV as string
     }
 
+    logger.info(`Configuring refresh token, id: ${user._id}`)
     const refresOptions = {
       secret: process.env.JWT_SECRET as string,
       expiresIn: process.env.REFRESH_TOKEN_EXPIRTY_DEV as string
     }
 
     const jwt = new JwtRepository()
-
+    logger.info(`Generating access token, id: ${user._id}`)
     const accessToken = new JwtServices().signPayload(jwt, payload, accessOptions.secret, accessOptions.expiresIn)
+    logger.info(`Generating refresh token, id: ${user._id}`)
     const refreshToken = new JwtServices().signPayload(jwt, payload, refresOptions.secret, refresOptions.expiresIn)
 
+    logger.info(`Setting cookie expiry, id: ${user._id}`)
     const time = parseInt(process.env.COOKIE_DEV_EXPIRY_TIME as string)
 
     const cookieConfig: ICookieResponse = {
@@ -290,10 +317,11 @@ export const loginUser = async (
       success: true,
       statusCode: StatusCodes.OK
     }
-
+    logger.info(`Sending success response, id: ${user._id}`)
     sendHTTPWithTokenResponse(cookieConfig)
   } catch (error: unknown) {
     const errorObj = error as CustomError
+    logger.error(`Login Controller error. Message: ${errorObj.message}`)
     next(new CustomError(errorObj.message, errorObj.code, false))
   }
 }
@@ -302,13 +330,12 @@ export const loginUser = async (
  * logout Controller
  *
  * The controller will clear the access token and refresh token in cookies and delete the sessions
- * to logout the user
  *
- * @param {Request} req - HTTP Request object
- * @param {Response} res - HTTP response object
- * @param {NextFunction} next - HTTP callback
+ * @param {Request} req 
+ * @param {Response} res 
+ * @param {NextFunction} next 
  * @returns {Promise<void>}
- * @throws {CustomError} - The error will send as response to client
+ * @throws {CustomError}
  */
 export const logoutUser = async (
   req: Request<{}, ICookieResponse, {}, {}>,
@@ -317,9 +344,12 @@ export const logoutUser = async (
   Promise<void> => {
   try {
     const time = 0
-
+    logger.info(`Logout request received, id: ${req.user.id}`)
+    logger.info(`Session clearing started, id: ${req.user.id}`)
     req?.session?.destroy((_err: any) => { console.log('session cleared') })
+    logger.info(`Session cleared successfully, id: ${req.user.id}`)
 
+    logger.info(`Configuring cookie fields, id: ${req.user.id}`)
     const cookieConfig: ICookieResponse = {
       res,
       token: null,
@@ -333,28 +363,27 @@ export const logoutUser = async (
       success: true,
       statusCode: StatusCodes.OK
     }
-
+    logger.info(`Sending success response, id: ${req.user.id}`)
     sendHTTPWithTokenResponse(cookieConfig)
   } catch (error: unknown) {
-    console.log(error)
     const errorObj = error as CustomError
+    logger.info(`Logout Controller error. Message: ${errorObj.message}`)
     next(new CustomError(errorObj.message, errorObj.code, false))
   }
 }
 
 /**
  * Forgot Password Controller
- * @description - Send an verification link to the submitted email id
- *
- * @param {Request} req - HTTP Request object
- * @param {Response} res - HTTP response object
- * @param {NextFunction} next - HTTP callback
- * @param {string} req.body.email - user email address
+ * 
+ * Sends an verification link to the submitted email id
+ * 
+ * @param {Request} req 
+ * @param {Response} res 
+ * @param {NextFunction} next 
+ * @param {string} req.body.email 
  * @returns {Promise<void>}
- * @throws {CustomError} - The error will send as response to client
+ * @throws {CustomError} 
  */
-
-
 export const forgotPassword = async (
   req: Request<{}, IResponse, ForgotPassword, {}>,
   res: Response<IResponse>,
@@ -420,6 +449,17 @@ export const forgotPassword = async (
   }
 }
 
+/**
+ * Forgot password token validation controller
+ * 
+ * Validates token from query
+ * @param {Request} req 
+ * @param {Response} res 
+ * @param {NextFunction} next 
+ * @param {string} req.body.email 
+ * @returns {Promise<void>}
+ * @throws {CustomError} 
+ */
 export const verifyForgotPassword = async (req: Request<{}, IResponse, {}, QueryWithToken, {}>, res: Response, next: NextFunction) => {
   try {
     const { token } = req.query
@@ -431,8 +471,8 @@ export const verifyForgotPassword = async (req: Request<{}, IResponse, {}, Query
     const result = new JwtServices().verifyToken(jwt, token, jwtConfig.secret)
 
     if (result.status === 'failure') {
-      res.redirect('http://localhost:5173/expired'); return
-    }
+      res.redirect(`${process.env.CLIENT_URL as string}/expired`); return
+    } 
 
     const { id, email } = result.message?.data;
     const user = await userService.findUser(userRespository, { email }, true)
@@ -440,7 +480,7 @@ export const verifyForgotPassword = async (req: Request<{}, IResponse, {}, Query
       next(new CustomError('User Not Found ', StatusCodes.NOT_FOUND, false)); return
     }
     if (user.forgotPasswordTokenId !== id) {
-      res.redirect('http://localhost:5173/expired'); return
+      res.redirect(`${process.env.CLIENT_URL as string}/expired`); return
     }
 
     const isToken = await userService.getResetFormToken(userRespository, email)
@@ -459,12 +499,12 @@ export const verifyForgotPassword = async (req: Request<{}, IResponse, {}, Query
 
 /**
  * Reset Password Controller
- * @description -  Resets the password
+ * Resets the password
  *
- * @param {Request} req - HTTP Request object
- * @param {Response} res - HTTP response object
- * @param {NextFunction} next - HTTP callback
- * @param {string} req.body.password - The new password
+ * @param {Request} req 
+ * @param {Response} res 
+ * @param {NextFunction} next 
+ * @param {string} req.body.password
  * @param {string} req.body.token - The token used to authenticate the user's Request
  * @returns {Promise<void>}
  * @throws {CustomError} - The error will send as response to client
@@ -499,7 +539,15 @@ export const resetPassword = async (
   }
 }
 
-
+/**
+ * Updates new password
+ * @param {Request} req 
+ * @param {Response} res 
+ * @param {NextFunction} next 
+ * @param {string} req.body.email 
+ * @returns {Promise<void>}
+ * @throws {CustomError} 
+ */
 export const changePassword = (
 
   req: TypedRequest<ChangePassword, Token>,
@@ -535,15 +583,15 @@ export const changePassword = (
 
 /**
  * Add Address Controller
- * @description - This controller is used to add user address
+ * 
+ * This controller is used to add user address
  *
- *
- * @param {Request} req - HTTP Request object
- * @param {Response} res - HTTP response object
- * @param {NextFunction} next - HTTP callback
- * @param {string} req.body.address - input address
+ * @param {Request} req 
+ * @param {Response} res 
+ * @param {NextFunction} NextFunction
+ * @param {string} req.body.address - Input address
  * @returns {Promise<void>}
- * @throws {CustomError} - The error will send as response to client
+ * @throws {CustomError} 
  */
 export const addAddress = async (
   req: TypedRequest<UserAddress, Token>,
@@ -575,7 +623,7 @@ export const addAddress = async (
 }
 
 /**
- * @description - Update the selected user address in user profile if exists
+ * Update the selected user address in user profile if exists
  *
  * @param {Request} req - HTTP Request object
  * @param {Response} res - HTTP response object
@@ -617,12 +665,14 @@ export const editAddress = async (
 /**
  * Delete Address Controller
  *
- * @param {Request} req - HTTP Request object
- * @param {Response} res - HTTP response object
- * @param {NextFunction} next - HTTP callback
+ * Delete address based on params id
+ * 
+ * @param {Request} req 
+ * @param {Response} res 
+ * @param {NextFunction} next -
  * @param {string} req.params.id - Address id
  * @returns {Promise<void>}
- * @throws {CustomError} -  The error will send as response to client
+ * @throws {CustomError} 
  */
 export const deleteAddress = async (
   req: GenericRequest<ID, {}, Token>,
@@ -655,11 +705,11 @@ export const deleteAddress = async (
 
 /**
  * Fetch user addresses
- * @param {Request} req - HTTP Request object
- * @param {Response} res - HTTP response object
- * @param {NextFunction} next - HTTP callback
+ * @param {Request} req 
+ * @param {Response} res 
+ * @param {NextFunction} next 
  * @returns {Promise<void>}
- * @throws {CustomError} -  The error will send as response to client
+ * @throws {CustomError} 
  */
 export const myAddress = async (
   req: GenericRequest<{}, {}, Token>,
@@ -684,7 +734,6 @@ export const myAddress = async (
 
     sendHTTPResponse(response)
   } catch (error: unknown) {
-    console.log(error)
     const errorObj = error as CustomError
     next(new CustomError(errorObj.message, errorObj.code, false))
   }
@@ -692,11 +741,11 @@ export const myAddress = async (
 
 /**
  * Fetch user profile
- * @param {Request} req - HTTP Request object
- * @param {Response} res - HTTP response object
- * @param {NextFunction} next - HTTP callback
+ * @param {Request} req 
+ * @param {Response} res
+ * @param {NextFunction} next
  * @returns {Promise<void>}
- * @throws {CustomError} -  The error will send as response to client
+ * @throws {CustomError} 
  */
 export const showProfile = async (
   req: GenericRequest<{}, {}, Token>,
@@ -728,11 +777,11 @@ export const showProfile = async (
 /**
  * Edit Profile Controller
  *
- * @param {Request} req - HTTP Request object
- * @param {Response} res - HTTP response object
- * @param {NextFunction} next - HTTP callback
+ * @param {Request} req 
+ * @param {Response} res 
+ * @param {NextFunction} next 
  * @returns {Promise<void>}
- * @throws {CustomError} -  The error will send as response to client
+ * @throws {CustomError} 
  */
 export const editProfile = async (
   req: GenericRequest<{}, UpdateProfile, Token>,
@@ -765,12 +814,12 @@ export const editProfile = async (
 /**
  * Upload Profile Picture Controller
  *
- * @param {Request} req - HTTP Request object
- * @param {Response} res - HTTP response object
- * @param {NextFunction} next - HTTP callback
+ * @param {Request} req 
+ * @param {Response} res 
+ * @param {NextFunction} next 
  * @param {string} req.files.photo - photo to upload
  * @returns {Promise<void>}
- * @throws {CustomError} - The error will send as response to client
+ * @throws {CustomError} 
  */
 export const uploadProfilePicture = async (
   req: GenericRequest<{}, Photo, Token>,
@@ -821,11 +870,11 @@ export const uploadProfilePicture = async (
 
 /**
  * Delete profile Picture
- * @param {Request} req - HTTP Request object
- * @param {Response} res - HTTP response object
- * @param {NextFunction} next - HTTP callback
+ * @param {Request} req 
+ * @param {Response} res 
+ * @param {NextFunction} next 
  * @returns {Promise<void>}
- * @throws {CustomError} -  The error will send as response to client
+ * @throws {CustomError} 
  */
 export const deleteProfilePicture = async (
   req: GenericRequest<{}, {}, Token>,
@@ -849,21 +898,6 @@ export const deleteProfilePicture = async (
     sendHTTPResponse(response)
   } catch (error: unknown) {
     console.log(error)
-    const errorObj = error as CustomError
-    next(new CustomError(errorObj.message, errorObj.code, false))
-  }
-}
-
-export const searchProduct = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  try {
-    // // const search = new Search(req.query, productModel.find({})).search().filter()
-    // let products = await search.method
-    // const page = parseInt(req.query.page as string)
-    // search.pager(page)
-    // products = await search.method.clone()
-    // sendHTTPResponse({ res, message: { products }, statusCode: StatusCodes.OK, success: true })
-  } catch (error: unknown) {
-    console.error(error)
     const errorObj = error as CustomError
     next(new CustomError(errorObj.message, errorObj.code, false))
   }
