@@ -4,7 +4,8 @@ const Countries = ['India'] as const
 const Gender = ['Male', 'Female', 'Unisex'] as const
 export const LoginSchema = z.object({
   email: z.string().min(4),
-  password: z.string()
+  password: z.string(),
+  recaptchaToken: z.string().optional()
 })
 
 export const RegisterSchema = z.object({
@@ -23,15 +24,15 @@ export const RegisterSchema = z.object({
     .min(8, { message: 'Password must be at least 8 characters' })
     .max(100, { message: 'Password can be at most 100 characters' })
     .regex(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+{}|:;<>,.?~]+$/, 'Password must contain at least one letter and one number'),
-  recaptchaToken: z.string()
-    .min(3, 'fullname must be at least 2 characters').optional()
+  recaptchaToken: z.string().optional()
 })
 
 export const ForgotPasswordSchema = z.object({
   email: z
     .string()
     .min(4)
-    .email()
+    .email(),
+    recaptchaToken: z.string().optional()
 })
 
 export const ResetPasswordSchema = z.object({
@@ -39,7 +40,9 @@ export const ResetPasswordSchema = z.object({
     .string()
     .min(4, { message: 'Password must be at least 8 characters' })
     .max(100, { message: 'Password can be at most 100 characters' })
-    .regex(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+{}|:;<>,.?~]+$/, 'Password must contain at least one letter and one number')
+    .regex(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+{}|:;<>,.?~]+$/, 'Password must contain at least one letter and one number'),
+    token: z
+    .string()
 })
 
 export const ChangePasswordSchema = z.object({

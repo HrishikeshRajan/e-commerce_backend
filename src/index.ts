@@ -22,6 +22,7 @@ import helmet from 'helmet'
 import cors from 'cors'
 import morgan from 'morgan'
 
+
 import 'module-alias/register'
 dotenv.config()
 dotenv.config({ path: '.env.test' })
@@ -68,6 +69,7 @@ app.use(deserializeUser)
 // app.set('view engine', 'handlebars')
 // app.set('views', './src/views')
 // app.use(express.static(path.join(__dirname, '/src/public')))
+
 
 // Route API
 app.use('/api/v1/users/', userRouter)

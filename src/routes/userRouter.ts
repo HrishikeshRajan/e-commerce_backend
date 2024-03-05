@@ -16,15 +16,25 @@ import {
   showProfile,
   uploadProfilePicture,
   verifyForgotPassword,
-  verifyMailLink
+  verifyMailLink,
+  readUser
 } from '../controllers/userController'
 import { disallowLoggedInUsers, isLoggedIn } from '../middlewares/auth'
 import { multerUpload } from '../utils/image.helper'
+import { rateLimit } from 'express-rate-limit'
 
-import { ADD_TO_CART_SCHEMA, CART_QTY_SCHEMA, PARAMS_WITH_ID_SCHEMA } from '../types/zod/cart.schemaTypes'
-import { VALIDATE_REQUEST } from '../utils/request.validator'
 import { ParamsSchema, ChangePasswordSchema, ForgotPasswordSchema, LoginSchema, ParamsByIdSchema, PhotoSchema, QueryWithTokenSchema, RegisterSchema, ResetPasswordSchema, UpdateProfileSchema, UserAddressSchema } from '../types/zod/user.schemaTypes'
 import { validateRequest } from '../middlewares/userInputValidator'
+/**
+ * Limits number of requests
+ */
+const limiter = rateLimit({
+	windowMs: 15 * 60 * 1000,
+	limit: 5, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
+	standardHeaders: 'draft-7',
+	legacyHeaders: false, 
+  statusCode:429
+})
 
 
 const router = express.Router()
@@ -39,16 +49,19 @@ router.route('/verify')
 router.route('/login')
   .post(disallowLoggedInUsers, validateRequest({ body: LoginSchema }), loginUser)
 
+router.route('/read')
+  .get(isLoggedIn, readUser)
+
 router.route('/signout').get(isLoggedIn, logoutUser)
 
 router.route('/forgot')
-  .post(disallowLoggedInUsers, validateRequest({ body: ForgotPasswordSchema }), forgotPassword)
+  .post(limiter ,disallowLoggedInUsers, validateRequest({ body: ForgotPasswordSchema }), forgotPassword)
 
-router.route('/forgot/verifz')
+router.route('/forgot/verify')
   .get(disallowLoggedInUsers, verifyForgotPassword)
 
-router.route('/forgot/password/:id')
-  .put(disallowLoggedInUsers,validateRequest({params: ParamsSchema}) ,validateRequest({ body: ResetPasswordSchema }), resetPassword)
+router.route('/forgot/reset')
+  .put(disallowLoggedInUsers ,validateRequest({ body: ResetPasswordSchema }), resetPassword)
 
 router.route('/change/password')
   .put(isLoggedIn, validateRequest({ body: ChangePasswordSchema }), changePassword)

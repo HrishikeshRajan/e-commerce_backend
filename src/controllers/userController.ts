@@ -27,18 +27,18 @@ import { ImageProcessingServices } from '../services/image.processing.services'
 
 import { type AddressWithAddressId, type ForgotPassword, type Login, type ResetPassword, type QueryWithToken, type UserAddress, type ID, type UpdateProfile, type Photo, ChangePassword, Params } from '../types/zod/user.schemaTypes'
 
-import _ from 'lodash'
+import _  from 'lodash'
 import { StatusCodes } from 'http-status-codes'
-import { responseFilter } from '../utils/user.helper'
+import { responseFilter, userFilter } from '../utils/user.helper'
 
-import { Token, TypedRequest, GenericRequest } from '../types/IUser.interfaces'
+import { Token, TypedRequest, GenericRequest, UserWithId, UserCore } from '../types/IUser.interfaces'
 import logger from '@utils/LoggerFactory/DevelopmentLogger'
 import UserRepository from '@repositories/user.repository'
 import UserServices from '@services/user.services'
-
+import NodeCache from 'node-cache'
+const cache = new NodeCache()
 const userRespository = new UserRepository()
 const userService = new UserServices()
-
 
 /**
  * Validates the request is made by human or bot
@@ -256,8 +256,22 @@ export const loginUser = async (
   next: NextFunction):
   Promise<void> => {
   try {
-    const { email, password } = req.body
     logger.info('Login request received')
+    const { email, password, recaptchaToken } = req.body
+
+    if (process.env.NODE_ENV === 'production' && recaptchaToken) {
+      logger.info('reCaptcha validation started', { email });
+      const human = await checkIsHuman(recaptchaToken)
+      logger.info('Validating reCaptcha response', { email });
+      if ((!human)) {
+        logger.error('User is not valid', req.socket.remoteAddress)
+        logger.error('User registration failed. Please try again later.', { email });
+        next(new CustomError('User registration failed. Please try again later.', StatusCodes.BAD_REQUEST, false)); return
+      }
+      logger.info('reCaptcha validation successfull', { email });
+    }
+
+ 
     logger.info('Checking user database')
     const user = await userService.findUser(userRespository, { email }, true)
     if (user === null) {
@@ -304,12 +318,14 @@ export const loginUser = async (
     logger.info(`Setting cookie expiry, id: ${user._id}`)
     const time = parseInt(process.env.COOKIE_DEV_EXPIRY_TIME as string)
 
+    const userDetails = responseFilter(user.toObject())
+    cache.set(`${user._id}`, userDetails, 5)
     const cookieConfig: ICookieResponse = {
       res,
       token: accessToken,
       message: {
         refreshToken,
-        user: responseFilter(user.toObject())
+        userDetails,
       },
       cookie: {
         expires: time
@@ -319,6 +335,37 @@ export const loginUser = async (
     }
     logger.info(`Sending success response, id: ${user._id}`)
     sendHTTPWithTokenResponse(cookieConfig)
+  } catch (error: unknown) {
+    const errorObj = error as CustomError
+    logger.error(`Login Controller error. Message: ${errorObj.message}`)
+    next(new CustomError(errorObj.message, errorObj.code, false))
+  }
+}
+
+//Cache Aside
+export const readUser = async (
+  req: Request<{}, {}, Login, {}>,
+  res: Response<{}, {}>,
+  next: NextFunction):
+  Promise<void> => {
+  try {
+
+    let user: UserCore;
+    if (cache.get(req.user.id)) {
+      user = cache.get(req.user.id)!
+    } else {
+      const userDetails = await userService.findUser(userRespository, { _id: req.user.id })
+      user = userFilter(userDetails?.toObject()!)
+      cache.set(req.user.id, user)
+    }
+    const response: IResponse = {
+      res,
+      message: { user, authenticated: true },
+      success: true,
+      statusCode: StatusCodes.OK
+    }
+
+    sendHTTPResponse(response)
   } catch (error: unknown) {
     const errorObj = error as CustomError
     logger.error(`Login Controller error. Message: ${errorObj.message}`)
@@ -350,6 +397,7 @@ export const logoutUser = async (
     logger.info(`Session cleared successfully, id: ${req.user.id}`)
 
     logger.info(`Configuring cookie fields, id: ${req.user.id}`)
+    cache.del(req.user.id)
     const cookieConfig: ICookieResponse = {
       res,
       token: null,
@@ -390,7 +438,20 @@ export const forgotPassword = async (
   next: NextFunction):
   Promise<void> => {
   try {
-    const { email } = req.body
+    const { email, recaptchaToken } = req.body
+
+    if (process.env.NODE_ENV === 'production' && recaptchaToken) {
+      logger.info('reCaptcha validation started', { email });
+      const human = await checkIsHuman(recaptchaToken)
+      logger.info('Validating reCaptcha response', { email });
+      if ((!human)) {
+        logger.error('User is not valid', req.socket.remoteAddress)
+        logger.error('User registration failed. Please try again later.', { email });
+        next(new CustomError('User registration failed. Please try again later.', StatusCodes.BAD_REQUEST, false)); return
+      }
+      logger.info('reCaptcha validation successfull', { email });
+    }
+
 
     const user = await userService.addForgotPasswordTokenID(userRespository, { email })
 
@@ -409,15 +470,16 @@ export const forgotPassword = async (
 
     const token = new JwtServices().signPayload(jwt, payload, jwtConfig.secret, jwtConfig.expiresIn)
 
-    const urlConfig: LinkType = {
-      host: 'localhost',
-      port: process.env.PORT_DEV as string,
-      version: 'v1',
-      route: 'users',
-      path: 'forgot/password'
-    }
-
-    const link = generateUrl(token, urlConfig)
+    // const urlConfig: LinkType = {
+    //   host: 'localhost',
+    //   port: process.env.PORT_DEV as string,
+    //   version: 'v1',
+    //   route: 'users',
+    //   path: `forgot/verify?token=${token}`
+    // }
+    // const link = clientUrl(`forgotConfirm?forgotToken=${token}`)
+    // const link = generateUrl(token, urlConfig)
+    const link = `http://localhost:4000/api/v1/users/forgot/verify?token=${token}`
     const emailFields: IEmailFields = {
       EmailAddress: user.email,
       FirstName: user.username,
@@ -429,7 +491,7 @@ export const forgotPassword = async (
       const mail: Mail = new Mail(process.env.COURIER__TEST_KEY as string, emailFields)
 
       // Will uncomment in production
-      const RequestId = await new EmailServices().send_mail(mail, process.env.COURIER_CONFIRMATION_TEMPLATE_ID as string)
+      const RequestId = await new EmailServices().send_mail(mail, 'N6Q2M0HNYY47ADP5DT5C1ECTGY4A' as string)
 
     }
 
@@ -465,14 +527,16 @@ export const verifyForgotPassword = async (req: Request<{}, IResponse, {}, Query
     const { token } = req.query
 
     const jwtConfig = {
-      secret: process.env.JWT_SECRET as string
+      secret: process.env.JWT_SECRET as string,
+      expiresIn: process.env.FORGOT_PASSWORD_LINK_EXPIRY as string
     }
     const jwt = new JwtRepository()
     const result = new JwtServices().verifyToken(jwt, token, jwtConfig.secret)
 
     if (result.status === 'failure') {
-      res.redirect(`${process.env.CLIENT_URL as string}/expired`); return
-    } 
+      res.redirect(`${process.env.CLIENT_URL as string}expired`); return
+      // return next(new CustomError('Verification link has been expired', StatusCodes.FORBIDDEN, false));
+    }
 
     const { id, email } = result.message?.data;
     const user = await userService.findUser(userRespository, { email }, true)
@@ -480,7 +544,8 @@ export const verifyForgotPassword = async (req: Request<{}, IResponse, {}, Query
       next(new CustomError('User Not Found ', StatusCodes.NOT_FOUND, false)); return
     }
     if (user.forgotPasswordTokenId !== id) {
-      res.redirect(`${process.env.CLIENT_URL as string}/expired`); return
+      // return next(new CustomError('Verification link has been expired', StatusCodes.FORBIDDEN, false));
+      res.redirect(`${process.env.CLIENT_URL as string}expired`); return
     }
 
     const isToken = await userService.getResetFormToken(userRespository, email)
@@ -489,7 +554,23 @@ export const verifyForgotPassword = async (req: Request<{}, IResponse, {}, Query
     user.forgotPasswordTokenId = ''
     user.forgotPasswordTokenExpiry = ''
     await user.save({ validateBeforeSave: false })
-    res.redirect(process.env.FRONTEND_RESET_PASSWORD_URL as string + '/' + isToken)
+    const response: IResponse = {
+      res,
+      message: { message: 'Token verified' },
+      success: true,
+      statusCode: StatusCodes.ACCEPTED
+    }
+    // sendHTTPResponse(response)
+    const userDetails = await userService.addForgotPasswordTokenID(userRespository, { email })
+    const payload = {
+      email,
+      id: userDetails?.forgotPasswordTokenId
+    }
+
+
+    const resetFormToken = new JwtServices().signPayload(jwt, payload, jwtConfig.secret, jwtConfig.expiresIn)
+
+    res.redirect(process.env.FRONTEND_RESET_PASSWORD_URL as string + '?token=' + resetFormToken)
 
   } catch (error: unknown) {
     const errorObj = error as CustomError
@@ -510,19 +591,35 @@ export const verifyForgotPassword = async (req: Request<{}, IResponse, {}, Query
  * @throws {CustomError} - The error will send as response to client
  */
 export const resetPassword = async (
-  req: GenericRequest<Params, ResetPassword, {}>,
+  req: Request,
   res: Response<IResponse>,
   next: NextFunction):
   Promise<void> => {
   try {
-    const { password } = req.body
+    const { password, token } = req.body
 
-    const { id } = req.params
+    const jwtConfig = {
+      secret: process.env.JWT_SECRET as string
+    }
+    const jwt = new JwtRepository()
+    const result = new JwtServices().verifyToken(jwt, token as string, jwtConfig.secret)
 
-    const user = await userService.getForgotPasswordToken(userRespository, id)
-    if (user === null) { next(new CustomError('Token Expired', StatusCodes.UNAUTHORIZED, false)); return }
+    if (result.status === 'failure') {
+      return next(new CustomError('Verification link has been expired', StatusCodes.FORBIDDEN, false));
+
+    }
+
+    const { id, email } = result.message?.data;
+    const user = await userService.findUser(userRespository, { email })
+    if (user === null) {
+      next(new CustomError('User Not Found ', StatusCodes.NOT_FOUND, false)); return
+    }
+    if (user.forgotPasswordTokenId !== id) {
+      return next(new CustomError('Verification link has been expired', StatusCodes.FORBIDDEN, false));
+    }
 
     user.password = password
+    user.directModifiedPaths()
     await user.save()
 
     const response: IResponse = {
