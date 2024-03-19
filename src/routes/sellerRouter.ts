@@ -3,6 +3,8 @@ import express, { type Router } from 'express'
 import { isLoggedIn } from '@middlewares/auth'
 import * as seller from '@controllers/sellerController'
 import * as category from '@controllers/categoryController'
+import * as flashsale from '@controllers/salesController'
+import * as promo from '@controllers/promoController'
 import { Role } from '@middlewares/roles'
 import { multerUpload } from '@utils/image.helper'
 const router: Router = express.Router()
@@ -27,6 +29,15 @@ router.route('/category').post(isLoggedIn,multerUpload,Role(ROLES.SELLER),catego
 router.route('/category/:catId').put(isLoggedIn,multerUpload,Role(ROLES.SELLER),category.update)
 router.route('/category/:catId').delete(isLoggedIn,Role(ROLES.SELLER),category.deleteCategory)
 router.route('/categories').get(category.getAll)
+
+//Flah sale
+router.route('/flashsale').post(isLoggedIn,multerUpload,Role(ROLES.SELLER),flashsale.create)
+router.route('/flashsale').get(flashsale.get)
+router.route('/flashsale/checkout/:saleId').post(isLoggedIn,flashsale.moveToCart)
+
+
+//Promo
+router.route('/promo').post(isLoggedIn,multerUpload,Role(ROLES.SELLER),promo.create)
 
 router.param('id',seller.injectUser)
 router.param('shopId',seller.injectShop)

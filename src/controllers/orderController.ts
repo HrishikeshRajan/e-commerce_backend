@@ -13,6 +13,7 @@ import Stripe from 'stripe'
 import { PipelineStage, Types } from 'mongoose'
 import { SortMap } from '@utils/sort.helper'
 import { getMatchPipleLine } from '@utils/pipelines.search'
+import productModel from '@models/productModel'
 
 dotenv.config()
 
@@ -36,18 +37,18 @@ export const create = async (
   Promise<void> => {
   try {
 
-
     const cart = await CartModel.findById(req.params.cartId)
 
 
     if (!cart) { next(new CustomError(getReasonPhrase(StatusCodes.NOT_FOUND), StatusCodes.NOT_FOUND, false)); return }
     const orderObj: OrderCore = {
-      userId: cart.userId,
+      userId: req.user.id,
       cartId: cart._id,
       orderDetails: {
         status: 'PENDING',
-        fullfiled: 'Date.now()'
-      }
+        fullfiled: new Date(Date.now()).toDateString()
+      },
+      shippingAddress: req.body.shippingAddress
     }
 
 
@@ -118,6 +119,8 @@ export const getSingleOrder = async (
   next: NextFunction):
   Promise<void> => {
   try {
+
+
     const orderDoc = await OrderModel.findById(req.params.orderId).select('-__v -createdAt -updatedAt').populate('userId', 'fullname _id').populate('cartId', '-__v -_id -userId -createdAt -updatedAt')
     if (!orderDoc) return
     const order = orderDoc.toObject({ flattenMaps: true })
@@ -150,11 +153,11 @@ export const paymentIntent = async (
   Promise<void> => {
   try {
 
-
     const { paymentMethodTypes, currency, cartId, orderId } = req.body;
 
-    const userCart = await CartModel.findById(cartId)
+    const userCart = await CartModel.findById(cartId).populate('products.$*product')
     if (!userCart) return
+
     const paymentIntent = await stripe.paymentIntents.create({
       amount: userCart?.grandTotalPrice! * 100,
       currency: currency,
@@ -292,18 +295,191 @@ export const List = async (
   try {
     const userId = req.user.id;
 
-    const userOrders = await OrderModel.find({
-      userId: userId
-    }).populate<{ cartId: any }>({
-      path: 'cartId',
-      populate: {
-        path: 'products.$*.productId'
+    const userOrders = await OrderModel.aggregate([{
+      '$match': {
+        'userId': new Types.ObjectId(req.user.id as string)
       }
+    },
+    {
+      '$lookup': {
+        'from': 'carts',
+        'localField': 'cartId',
+        'foreignField': '_id',
+        'as': 'cart'
+      }
+    }, {
+      '$group': {
+        '_id': {
+          'orders': '$cart.products',
+          'cartId': '$cartId',
+          'shippingAddress': '$shippingAddress',
+          'orderDate': '$createdAt',
+          'paymentDetails': '$paymentDetails',
+          'customerId': '$userId'
+        }
+      }
+    }, {
+      '$unwind': {
+        'path': '$_id'
+      }
+    }, {
+      '$unwind': {
+        'path': '$_id.orders'
+      }
+    }, {
+      '$addFields': {
+        'orders': {
+          '$map': {
+            'input': {
+              '$objectToArray': '$_id.orders'
+            },
+            'as': 'item',
+            'in': {
+              'k': '$$item.k',
+              'v': {
+                '$mergeObjects': [
+                  '$$item.v', {
+                    'cartId': '$_id.cartId'
+                  }, {
+                    'shippingAddress': '$_id.shippingAddress'
+                  }, {
+                    'orderDate': '$_id.orderDate'
+                  }, {
+                    'paymentDetails': '$_id.paymentDetails'
+                  }, {
+                    'customerId': '$_id.customerId'
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }, {
+      '$project': {
+        '_id': 0
+      }
+    }, {
+      '$project': {
+        'ordersArray': {
+          '$map': {
+            'input': '$orders',
+            'as': 'product',
+            'in': {
+              'productId': '$$product.k',
+              'cartItem': '$$product.v'
+            }
+          }
+        }
+      }
+    }, {
+      '$project': {
+        '_id': 0,
+        'orders': {
+          '$map': {
+            'input': '$ordersArray',
+            'as': 'product',
+            'in': '$$product.cartItem'
+          }
+        }
+      }
+    }, {
+      '$unwind': {
+        'path': '$orders'
+      }
+    }, {
+      '$lookup': {
+        'from': 'products',
+        'localField': 'orders.product',
+        'foreignField': '_id',
+        'as': 'orders.product'
+      }
+    }, {
+      '$set': {
+        'orders.product': {
+          '$arrayElemAt': [
+            '$orders.product', 0
+          ]
+        }
+      }
+    }, {
+      '$lookup': {
+        'from': 'users',
+        'localField': 'orders.customerId',
+        'foreignField': '_id',
+        'as': 'orders.customerId'
+      }
+    }, {
+      '$set': {
+        'orders.customerId': {
+          '$arrayElemAt': [
+            '$orders.customerId', 0
+          ]
+        }
+      }
+    }, {
+      '$project': {
+        'orders.customerId.password': 0,
+        'orders.customerId.role': 0,
+        'orders.customerId.emailVerified': 0,
+        'orders.customerId.forgotPasswordTokenId': 0,
+        'orders.customerId.forgotpasswordTokenVerfied': 0,
+        'orders.customerId.forgotPasswordTokenExpiry': 0,
+        'orders.customerId.isPrimeUser': 0,
+        'orders.customerId.seller': 0,
+        'orders.customerId.address': 0,
+        'orders.customerId.unVerifiedUserExpires': 0,
+        'orders.customerId.createdAt': 0,
+        'orders.customerId.updatedAt': 0,
+        'orders.customerId.__v': 0
+      }
+    }, {
+      '$set': {
+        'order': '$orders'
+      }
+    }, {
+      '$set': {
+        'order.product.productId': '$order.product._id',
+        'order.orderId': '$order._id'
+      }
+    }, {
+      '$project': {
+        'orders': 0,
+        'order.productId': 0,
+        'order.product.reviews': 0,
+        'order.product._id': 0,
+        'order.product.__v': 0,
+        'order.product.createdAt': 0,
+        'order.product.updatedAt': 0,
+        'order._id': 0
+      }
+    }, {
+      '$facet': {
+        'orders': [
+          {
+            '$skip': 0
+          }, {
+            '$limit': 20
+          }
+        ]
+      }
+    },
+    {
+      '$project': {
+        'orders': '$orders.order'
+      }
+    },
+    {
+      '$sort': {
+        'orderDate': -1
+      }
+    }
+    ])
 
-    }).sort({ 'updatedAt': -1 })
+    // const userOrders = 
 
     if (!userOrders) return
-    sendHTTPResponse({ res, message: { orders: userOrders }, statusCode: 200, success: true })
+    sendHTTPResponse({ res, message: { orders: userOrders[0].orders }, statusCode: 200, success: true })
 
   } catch (error: unknown) {
     const errorObj = error as CustomError
@@ -327,7 +503,7 @@ export const cancelOrder = async (req: Request, res: Response, next: NextFunctio
     const userId = req.user.id;
     const cartId = req.params.cartId
     const productId = req.params.productId
-    const userOrders = await CartModel.findById(cartId).populate({ path: 'products.$*.productId' })
+    const userOrders = await CartModel.findById(cartId).populate({ path: 'products.$*.product' })
 
     if (!userOrders) return
 
@@ -465,15 +641,15 @@ export const ListByShop = async (
     }, {
       '$lookup': {
         'from': 'products',
-        'localField': 'orders.productId',
+        'localField': 'orders.product',
         'foreignField': '_id',
-        'as': 'orders.productId'
+        'as': 'orders.product'
       }
     }, {
       '$set': {
-        'orders.productId': {
+        'orders.product': {
           '$arrayElemAt': [
-            '$orders.productId', 0
+            '$orders.product', 0
           ]
         }
       }
@@ -497,7 +673,9 @@ export const ListByShop = async (
         'orders.customerId.password': 0,
         'orders.customerId.role': 0,
         'orders.customerId.emailVerified': 0,
+        'orders.customerId.forgotPasswordTokenId': 0,
         'orders.customerId.forgotpasswordTokenVerfied': 0,
+        'orders.customerId.forgotPasswordTokenExpiry': 0,
         'orders.customerId.isPrimeUser': 0,
         'orders.customerId.seller': 0,
         'orders.customerId.address': 0,
@@ -510,16 +688,12 @@ export const ListByShop = async (
 
     {
       '$match': {
-        'orders.productId.shopId': new Types.ObjectId(req.query.shopId as string)
+        'orders.product.shopId': new Types.ObjectId(req.query.shopId as string)
       }
     },
     {
       '$set': {
         'order': '$orders'
-      }
-    }, {
-      '$set': {
-        'order.product': '$order.productId'
       }
     }, {
       '$set': {
@@ -567,14 +741,14 @@ export const ListByShop = async (
     if (req.query.search) {
       if (req.query.search) {
         const key = req.query.search as string
-        pipeline = getMatchPipleLine(key.split(":")[0],key.split(":")[1])
+        pipeline = getMatchPipleLine(key.split(":")[0], key.split(":")[1])
       }
 
-      if(pipeline) {
-      const copyPipeLine = pipelineGeneral.pop()
+      if (pipeline) {
+        const copyPipeLine = pipelineGeneral.pop()
 
-      pipelineGeneral[pipelineGeneral.length - 1] = pipeline
-      pipelineGeneral.push(copyPipeLine!)
+        pipelineGeneral[pipelineGeneral.length - 1] = pipeline
+        pipelineGeneral.push(copyPipeLine!)
       }
     }
 
@@ -769,7 +943,7 @@ export const updateOrderStatus = async (req: Request, res: Response, next: NextF
     const statuscode: Code = req.params.code as unknown as Code
     const cartId = req.params.cartId
     const productId = req.params.productId
-    const userOrders = await CartModel.findById(cartId).populate({ path: 'products.$*.productId' })
+    const userOrders = await CartModel.findById(cartId).populate({ path: 'products.$*.product' })
 
     if (!userOrders) return
 

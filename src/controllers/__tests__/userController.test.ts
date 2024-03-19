@@ -23,7 +23,7 @@ import { expect, jest, test } from '@jest/globals';
 import * as controller from '../userController'
 import { Request, Response, NextFunction } from 'express'
 
-import Logger from '@utils/LoggerFactory/DevelopmentLogger'
+import Logger from '@utils/LoggerFactory/Logger'
 import UserServices from '@services/user.services'
 import { sendHTTPResponse } from '@services/response.services';
 import { IResponse } from 'types/IResponse.interfaces';

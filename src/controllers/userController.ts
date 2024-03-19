@@ -22,17 +22,17 @@ import { sendHTTPResponse, sendHTTPWithTokenResponse } from '../services/respons
 import CustomError from '../utils/CustomError'
 import { clientForgotPasswordUrl, clientUrl, generateUrl } from '../utils/email.helper.utils' // uncomment in production
 import Cloudinary from '../repository/ImageProcessing.repository'
-import JwtRepository from '../utils/Jwt.utils'
+import JwtRepository, { isJwtValidationSuccess } from '../utils/Jwt.utils'
 import { ImageProcessingServices } from '../services/image.processing.services'
 
 import { type AddressWithAddressId, type ForgotPassword, type Login, type ResetPassword, type QueryWithToken, type UserAddress, type ID, type UpdateProfile, type Photo, ChangePassword, Params } from '../types/zod/user.schemaTypes'
 
-import _  from 'lodash'
+import _ from 'lodash'
 import { StatusCodes } from 'http-status-codes'
 import { responseFilter, userFilter } from '../utils/user.helper'
 
 import { Token, TypedRequest, GenericRequest, UserWithId, UserCore } from '../types/IUser.interfaces'
-import logger from '@utils/LoggerFactory/DevelopmentLogger'
+import logger from '@utils/LoggerFactory/Logger'
 import UserRepository from '@repositories/user.repository'
 import UserServices from '@services/user.services'
 import NodeCache from 'node-cache'
@@ -197,7 +197,7 @@ export const verifyMailLink = async (
     logger.info('Starting user token validation')
     const result = new JwtServices().verifyToken(jwt, token, jwtConfig.secret)
 
-    if (result.status === 'failure') {
+    if (!isJwtValidationSuccess(result)) {
       logger.error('Token has been expired. sending 401 error ')
       return next(new CustomError('Verification link has been expired', StatusCodes.FORBIDDEN, false));
     }
@@ -271,7 +271,7 @@ export const loginUser = async (
       logger.info('reCaptcha validation successfull', { email });
     }
 
- 
+
     logger.info('Checking user database')
     const user = await userService.findUser(userRespository, { email }, true)
     if (user === null) {
@@ -533,9 +533,8 @@ export const verifyForgotPassword = async (req: Request<{}, IResponse, {}, Query
     const jwt = new JwtRepository()
     const result = new JwtServices().verifyToken(jwt, token, jwtConfig.secret)
 
-    if (result.status === 'failure') {
+    if (!isJwtValidationSuccess(result)) {
       res.redirect(`${process.env.CLIENT_URL as string}expired`); return
-      // return next(new CustomError('Verification link has been expired', StatusCodes.FORBIDDEN, false));
     }
 
     const { id, email } = result.message?.data;
@@ -544,7 +543,6 @@ export const verifyForgotPassword = async (req: Request<{}, IResponse, {}, Query
       next(new CustomError('User Not Found ', StatusCodes.NOT_FOUND, false)); return
     }
     if (user.forgotPasswordTokenId !== id) {
-      // return next(new CustomError('Verification link has been expired', StatusCodes.FORBIDDEN, false));
       res.redirect(`${process.env.CLIENT_URL as string}expired`); return
     }
 
@@ -560,7 +558,6 @@ export const verifyForgotPassword = async (req: Request<{}, IResponse, {}, Query
       success: true,
       statusCode: StatusCodes.ACCEPTED
     }
-    // sendHTTPResponse(response)
     const userDetails = await userService.addForgotPasswordTokenID(userRespository, { email })
     const payload = {
       email,
@@ -604,12 +601,12 @@ export const resetPassword = async (
     const jwt = new JwtRepository()
     const result = new JwtServices().verifyToken(jwt, token as string, jwtConfig.secret)
 
-    if (result.status === 'failure') {
+    if (!isJwtValidationSuccess(result)) {
       return next(new CustomError('Verification link has been expired', StatusCodes.FORBIDDEN, false));
 
     }
 
-    const { id, email } = result.message?.data;
+    const { id, email } = result.message.data;
     const user = await userService.findUser(userRespository, { email })
     if (user === null) {
       next(new CustomError('User Not Found ', StatusCodes.NOT_FOUND, false)); return
@@ -908,6 +905,10 @@ export const editProfile = async (
   }
 }
 
+
+
+
+
 /**
  * Upload Profile Picture Controller
  *
@@ -993,6 +994,33 @@ export const deleteProfilePicture = async (
       statusCode: StatusCodes.OK
     }
     sendHTTPResponse(response)
+  } catch (error: unknown) {
+    console.log(error)
+    const errorObj = error as CustomError
+    next(new CustomError(errorObj.message, errorObj.code, false))
+  }
+}
+
+export const isUserLoggedInStatus = async (
+  req: Request<{}, {}, Token>,
+  res: Response<IResponse>,
+  next: NextFunction):
+  Promise<void> => {
+  try {
+
+
+    if (!req.cookies.token) {
+      return next(new CustomError('User not found', StatusCodes.BAD_REQUEST, false));
+    }
+
+    const response: IResponse = {
+      res,
+      message: { user: 'LoggedIn' },
+      success: true,
+      statusCode: StatusCodes.OK
+    }
+    return sendHTTPResponse(response)
+
   } catch (error: unknown) {
     console.log(error)
     const errorObj = error as CustomError

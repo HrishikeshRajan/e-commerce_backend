@@ -1,5 +1,6 @@
 import { type JwtPayload } from 'jsonwebtoken'
 import { type IJWT } from '../types/IJwt.interfaces'
+import { JwtValidationResponse } from '@utils/Jwt.utils'
 
 /* eslint-disable class-methods-use-this */
 class JwtServices {
@@ -24,7 +25,7 @@ class JwtServices {
       * @returns {JwtPayload} - The object that encrypted - email, userId
       * @returns {string} - The newly created jwt token is returned.
       */
-  verifyToken (jwt: IJWT, payload: string, SECRET: string): JwtPayload {
+  verifyToken (jwt: IJWT, payload: string, SECRET: string): JwtValidationResponse {
     return jwt.verify(payload, SECRET)
   }
 

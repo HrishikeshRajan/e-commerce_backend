@@ -10,7 +10,7 @@ import adminRouter from '@routes/adminRouter'
 import sellerRouter from '@routes/sellerRouter'
 import cartRouter from '@routes/cartRouter'
 import orderRouter from '@routes/orderRouter'
-import { errorHandler, notFound, productionErrorHandler } from './middlewares/error.handler'
+import { errorHandler, errorHandlerV2, notFound, productionErrorHandler } from './middlewares/error.handler'
 import cookieParser from 'cookie-parser'
 import cloudinaryConfig from './configs/cloudinary.config'
 import session from 'express-session'
@@ -95,6 +95,6 @@ if(process.env.NODE_ENV === 'production'){
   app.use(productionErrorHandler)
 }
 
-app.use(errorHandler)
-
+// app.use(errorHandler)
+app.use(errorHandlerV2)
 export default app

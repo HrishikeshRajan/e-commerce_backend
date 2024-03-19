@@ -1,12 +1,25 @@
 import { type NextFunction, type Request, type Response } from 'express'
 import { ZodError } from 'zod'
-import { sendHTTPResponse } from '../services/response.services'
+import { sendHTTPErrorResponse, sendHTTPResponse } from '../services/response.services'
+import CustomError from '@utils/CustomError';
 
+/* v1 */
 export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction): void => {
   if (err instanceof ZodError) {
     sendHTTPResponse({ res, message: { error: err.errors }, statusCode: 422, success: false }); return
   }
   sendHTTPResponse({ res, message: { error: err.message ?? 'Server Internal Error' }, statusCode: err.code ?? 500, success: err.success ?? false })
+}
+
+/* v2 */
+export const errorHandlerV2 = (err: unknown, req: Request, res: Response, next: NextFunction): void => {
+  if (err instanceof ZodError) {
+    sendHTTPErrorResponse({ res, error: err.errors , statusCode: 422, success: false }); return
+  }
+  if(err  instanceof CustomError){
+    sendHTTPErrorResponse({ res, error: err.message || 'Server Internal Error' , statusCode: err.code ?? 500, success: false })
+  }
+
 }
 
 export const productionErrorHandler = (err: any, req: Request, res: Response, next: NextFunction): void => {

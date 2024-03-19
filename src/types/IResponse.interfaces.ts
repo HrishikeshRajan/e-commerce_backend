@@ -6,3 +6,10 @@ export interface IResponse {
   message: Record<string, any>
 
 }
+
+export interface ErrorResponse {
+  res: Response
+  success: boolean
+  statusCode: number
+  error:Record<string,any> | string
+}

@@ -3,11 +3,11 @@ import { type Request, type Response, type NextFunction } from 'express'
 import CustomError from '../utils/CustomError'
 
 import JwtServices from '../services/jwt.services'
-import JWT from '@utils/Jwt.utils'
+import JWT, { isJwtValidationSuccess } from '@utils/Jwt.utils'
 import { GenericRequest, Token, UserCore } from 'types/IUser.interfaces'
 import { merge } from 'lodash'
-import Logger from '@utils/LoggerFactory/LoggerFactory'
-const logger = Logger()
+import logger from '@utils/LoggerFactory/Logger'
+
 
 /**
  * Ensures that the user is logged in for accessing the protected routes.
@@ -33,7 +33,7 @@ export const isLoggedIn = (req: GenericRequest<{},{},UserCore>, res: Response, n
 
     const jwt = new JWT()
     const decodedObj = new JwtServices().verifyToken(jwt, token, jwtConfig.secret)
-    if (decodedObj.status === 'failure' && decodedObj.code === 403) {
+    if (!isJwtValidationSuccess(decodedObj)) {
       logger.error('Token verification failed. Please Login')
       next(new CustomError('Please Login', 401, false)); return
     }

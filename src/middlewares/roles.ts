@@ -3,8 +3,8 @@ import { type Request, type Response, type NextFunction } from 'express'
 import { StatusCodes } from 'http-status-codes'
 import { isEmpty } from 'lodash'
 import { GenericRequest, Token } from 'types/IUser.interfaces'
-import Logger from '@utils/LoggerFactory/LoggerFactory'
-const logger = Logger()
+import logger from '@utils/LoggerFactory/Logger'
+
 
 
 /**

@@ -1,6 +1,6 @@
 import { type CookieOptions } from 'express'
 import { type ICookieResponse } from '../types/Cookie.interfaces'
-import { type IResponse } from '../types/IResponse.interfaces'
+import { ErrorResponse, type IResponse } from '../types/IResponse.interfaces'
 
 /**
  *
@@ -19,6 +19,22 @@ export const sendHTTPResponse = ({ res, message, statusCode, success }: IRespons
   })
 }
 
+/*
+* @param res {Response}
+* @param message {string}
+* @param statusCode {number}
+* @param success {boolean}
+* @returns {void}
+*/
+export const sendHTTPErrorResponse = ({ res, error, statusCode, success = false }: ErrorResponse): void => {
+ res.status(statusCode).json({
+   success,
+   statusCode,
+   error
+
+ })
+}
+
 /**
  *
  * @param res {Response}
@@ -33,9 +49,15 @@ export const sendHTTPWithTokenResponse = ({ res, message, statusCode, success, t
   const expiresIn = parseInt(cookie?.expires as string)
   // 23 hrs
   // set secure:true for production
-  // const expiryTime = new Date(Date.now() + expiresIn)
+  const expiryTime = new Date(Date.now() + expiresIn)
   const options: CookieOptions = {
-    // expires: expiryTime,
+    maxAge: expiresIn, // 10minutes
+    httpOnly: true,
+    // secure: true,
+    // sameSite:'none'
+  }
+  const accessOptions: CookieOptions = {
+    maxAge: 86400, // 1 day
     httpOnly: true,
     // secure: true,
     // sameSite:'none'
@@ -61,7 +83,7 @@ export const sendHTTPWithTokenResponse = ({ res, message, statusCode, success, t
     return
   }
 
-  res.cookie('refreshToken', message.refreshToken, options)
+  res.cookie('refreshToken', message?.refreshToken, accessOptions)
 
   res.status(statusCode).cookie('token', token, options).json({
     success,

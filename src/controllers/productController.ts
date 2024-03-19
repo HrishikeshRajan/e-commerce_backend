@@ -23,11 +23,12 @@ import { isEmpty, merge } from 'lodash'
 import { productFilter } from '@utils/product.helper'
 import CustomError from '@utils/CustomError'
 import SearchEngine from '@utils/SearchEngine'
-import Logger from '@utils/LoggerFactory/LoggerFactory'
+import logger from '@utils/LoggerFactory/Logger'
 import { convertToBase64Array } from '@utils/image.helper'
 import { ProductIdsSchemaType, ProductSchemaType } from 'types/zod/product.schemaTypes'
 import { getSortValue } from '@utils/getSortValue'
-const logger = Logger()
+import PromoModel from '@models/promoModel'
+import FlashSale from '@models/flashSale.model'
 
 
 
@@ -200,22 +201,41 @@ export const deleteProduct = async (
  * @returns void
  */
 export const singleProduct = async (
-  req: GenericRequest<{ id: string },{},{}>,
+  req: GenericRequest<{ id: string }, {}, {}>,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
     const productRepo = new ProductRepo<ProductDocument>(ProductModel)
+    const signleProduct = await productRepo.getSingleProduct<string>(req.params.id)
 
-    const deletedProduct = await productRepo.getSingleProduct<string>(req.params.id)
-
-    if (!deletedProduct) {
+    if (!singleProduct) {
       return next(new CustomError('No product found that owned by your seller id', StatusCodes.INTERNAL_SERVER_ERROR, false))
     }
 
+    const promo = await PromoModel.findOne({ 'products': req.params.id })
+    const flashsale = await FlashSale.findOne({ 'product': req.params.id })
+    type ProductResponse = {
+      product: ProductDocument,
+      offers?: Record<any, any>
+    }
+    const responseObject: ProductResponse = {
+      product: signleProduct
+    }
+    responseObject.offers = {};
+    if (promo) {
+      if (promo.method === 'COUPON') {
+        responseObject.offers.coupon = promo.toObject()
+      } else if (promo.method === 'VOUCHER') {
+        responseObject.offers.voucher = promo.toObject()
+      }
+    }
+    if (flashsale) {
+      responseObject.offers.flashsale = flashsale.toObject()
+    }
     const response: IResponse = {
       res,
-      message: { product: deletedProduct },
+      message: responseObject,
       statusCode: StatusCodes.OK,
       success: true
     }
@@ -453,7 +473,7 @@ export const queryProducts = async (
 
     //Resolving the mongoose promise
     const productQuery = searchEngine.query
-    const [brandsCount,products] = await Promise.all([brandsCountQuery,productQuery])
+    const [brandsCount, products] = await Promise.all([brandsCountQuery, productQuery])
     if (isEmpty(products)) {
       return next(new CustomError('No products found', StatusCodes.NOT_FOUND, false))
     }

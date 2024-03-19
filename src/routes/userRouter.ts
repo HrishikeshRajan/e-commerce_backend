@@ -17,7 +17,8 @@ import {
   uploadProfilePicture,
   verifyForgotPassword,
   verifyMailLink,
-  readUser
+  readUser,
+  isUserLoggedInStatus
 } from '../controllers/userController'
 import { disallowLoggedInUsers, isLoggedIn } from '../middlewares/auth'
 import { multerUpload } from '../utils/image.helper'
@@ -88,5 +89,10 @@ router.route('/profile-picture')
 
 router.route('/profile-picture')
   .delete(isLoggedIn, deleteProfilePicture)
+
+
+//Is loggedIn 
+router.route('/authStatus')
+  .get(isUserLoggedInStatus)
 
 export default router

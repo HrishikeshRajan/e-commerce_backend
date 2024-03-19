@@ -3,7 +3,7 @@ import { ProductCore } from "types/product.interface";
 
 
 export interface CartItemCore {
-  productId: mongoose.Types.ObjectId
+  product: mongoose.Types.ObjectId
   qty: number
   options: Options
   totalPrice: number
@@ -12,6 +12,10 @@ export interface CartItemCore {
   orderStatus: ORDER_STATUS
   gstInPercentage: number
   taxAmount: number
+  discount?: {
+    discountSourceId: mongoose.Types.ObjectId
+    source: string
+  }
 };
 
 
@@ -35,9 +39,9 @@ export interface PopulatedCartItem {
 
 export interface CartCore {
   userId: mongoose.Types.ObjectId;
-  products: Map<string, CartItemDocument>;
-  grandTotalPrice?: number;
-  grandTotalQty?: number;
+  products: Record<string, CartItemCore>;
+  grandTotalPrice: number;
+  grandTotalQty: number;
 }
 
 export interface Options {
@@ -62,16 +66,19 @@ export enum NumToStatusMap {
 }
 
 export interface CartItemDocument extends mongoose.Document {
-  productId: mongoose.Types.ObjectId
+  product: mongoose.Types.ObjectId
   qty: number
   options: Options
   totalPrice: number
   totalPriceBeforeTax: number
   totalPriceAfterTax: number
-  totalPriceAfterTaxString: string
   orderStatus: ORDER_STATUS
   gstInPercentage: number
   taxAmount: number
+  discount?: {
+    discountSourceId: mongoose.Types.ObjectId
+    source: string
+  }
 };
 
 
@@ -79,7 +86,6 @@ export interface CartDocument extends mongoose.Document {
   userId: mongoose.Types.ObjectId;
   products: Map<string, CartItemDocument>;
   grandTotalPrice: number;
-  grandTotalPriceString: String;
   grandTotalQty: number;
   createdAt?: string;
   updatedAt?: string
@@ -87,7 +93,7 @@ export interface CartDocument extends mongoose.Document {
 
 // Define schema for Cart
 const cartItemSchema = new mongoose.Schema<CartItemDocument>({
-  productId: {
+  product: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Product',
     require: true
@@ -116,7 +122,17 @@ const cartItemSchema = new mongoose.Schema<CartItemDocument>({
   taxAmount: Number,
   totalPriceBeforeTax: Number,
   totalPriceAfterTax: Number,
-  totalPriceAfterTaxString: String,
+  discount: {
+    discountSourceId: {
+      type: mongoose.Schema.Types.ObjectId,
+      refPath: 'source',
+    },
+    source: {
+      type: String,
+      enum: ['FlashSale']
+    }
+
+  }
 });
 
 //Cart have multiple products
@@ -132,7 +148,6 @@ const cartSchema = new mongoose.Schema<CartDocument, Model<CartDocument>>({
     default: {}
   },
   grandTotalPrice: Number,
-  grandTotalPriceString: String,
   grandTotalQty: Number
 }, { timestamps: true });
 
