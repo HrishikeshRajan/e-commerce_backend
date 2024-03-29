@@ -1,5 +1,5 @@
 
-import CartModel, { CartCore, CartItemCore, CartItemDocument, ORDER_STATUS } from "@models/cartModel"
+import CartModel, { CartCore, CartDocument, CartItemCore, CartItemDocument, ORDER_STATUS } from "@models/cartModel"
 import CustomError from "@utils/CustomError"
 import { Request, Response, NextFunction } from "express"
 import ProductModel from '@models/productModel'
@@ -13,6 +13,9 @@ import mongoose from "mongoose"
 import { CartPrice } from "@utils/price.util"
 import FlashSale, { SalesStatus } from "@models/flashSale.model"
 import { getTax } from "@utils/tax.util"
+import PromoModel, { PromoDocument } from "@models/promoModel"
+import { AppliedPromo, Promo } from "types/CouponManagement"
+import { IUser } from "types/IUser.interfaces"
 
 const findTotalPrice = async (productId: string, qty: number, productRepo: ProductRepo<ProductDocument>) => {
     const product = await productRepo.findProductById(productId)
@@ -60,14 +63,186 @@ const getPricePerQuantity = async (productId: string, qty: number,) => {
 const totalQty = (products: Record<string, CartItemCore>): number => {
     return Object.values(products).reduce((totalQty, item) => totalQty + item.qty, 0);
 }
-const getGrandTotal = (products: Record<string, CartItemCore>) => {
-    const productsArray = Object.values(products)
+// const getGrandTotal = (products: Record<string, CartItemCore>) => {
+//     const productsArray = Object.values(products)
+//     let total = 0;
+//     for (let item of productsArray) {
+//         total = currency(total).add(item.totalPriceAfterTax).value
+//     }
+//     return total.toFixed();
+// }
+
+export const getGrandTotal = (products: Record<string, CartItemCore>) => {
+    const productsArray = Object.values(products);
     let total = 0;
-    for (let item of productsArray) {
-        total = currency(total).add(item.totalPriceAfterTax).value
+    for (const item of productsArray) {
+      if (item.appliedOffer?.couponId) {
+        total = currency(total).add(item.appliedOffer.discountedPriceAftTax).value;
+      } else {
+        total = currency(total).add(item.totalPriceAfterTax).value;
+      }
     }
     return total.toFixed();
+  };
+export type PromoArgsSuccess = {
+    cartItem: CartItemDocument;
+    couponIndex: number
+};
+
+// export function findCartItemsByCode(codeToFind: string, cartItems: CartItemDocument[]) {
+//     if (!cartItems.length) return null;
+//     const arr: PromoArgsSuccess[] = [];
+//     for (let i = 0; i < cartItems.length; i += 1) {
+//         const cartItem = cartItems[i];
+//         const couponIndex = cartItem.offers.coupons.findIndex((coupon) => coupon.code === codeToFind);
+//         if (couponIndex !== -1) {
+//             const result: PromoArgsSuccess = { cartItem, couponIndex };
+//             arr.push(result);
+//         }
+//     }
+//     return arr;
+// }
+
+export function isNull<T>(response: T | null): response is null {
+    return response === null;
 }
+
+export function isPromoCodeAssignedToProduct(item: any, promo: Promo) {
+    return promo.tags.products && promo.tags.products.indexOf(item.productId) < 0
+}
+export function isCouponActivated(promo: Promo) {
+    const currentDate = new Date();
+    const startDate = new Date(promo.startTime);
+    return (currentDate > startDate);
+}
+
+export function isCouponExpired(promo: Promo) {
+    const currentDate = new Date();
+    const endDate = new Date(promo.endTime);
+    return currentDate > endDate;
+}
+
+export function isCouponAtUsageLimit(promo: Promo) {
+    return (Number(promo.maxUsage) < 1);
+}
+
+export function isMinimumAmountPresentInCart(promo: Promo, usercart: CartCore) {
+    return (usercart.grandTotalPrice > promo.minAmountInCart);
+}
+export type Percentage = {
+    type: 'PERCENTAGE',
+    originalAmount: number,
+    discountPercentage: number,
+    discountedPrice: number,
+    tax: number,
+    discountedPriceAftTax: number,
+    yourSavings: number
+    couponId: string
+    productId?: string
+    promoCode: string
+};
+export type Flat = {
+    type: 'FLAT',
+    originalAmount: number,
+    discountFixedAmount: number,
+    discountedPrice: number,
+    tax: number
+    discountedPriceAftTax: number,
+    yourSavings: number
+    couponId: string
+    productId?: string
+    promoCode: string
+};
+/**
+ * 
+ * Discount calculation API
+ * 
+ * 
+ */
+
+export function getFixedDiscountAmount(promo: Promo) {
+    if (promo.type === 'FLAT') {
+        return promo.discountAmount;
+    }
+    return -1;
+}
+export function computeDiscountAmount(originalPrice: number, amountToDiscount: number) {
+    return currency(originalPrice).subtract(amountToDiscount).value;
+}
+export function computeTax(totalPriceBeforeTax: number, gstInPercentage: number) {
+    const tax = currency(totalPriceBeforeTax).multiply(gstInPercentage).divide(100);
+    return tax.value;
+}
+
+export function getProductId(cartItem: CartItemCore) {
+    return cartItem.product;
+}
+
+export function getUserId(userStore: IUser) {
+    return userStore._id;
+}
+
+export function computeSavings(cartItem: CartItemCore, promo: Promo) {
+    const discountPercentage = promo.discountPercentage || 100;
+    const savings = (cartItem.totalPrice / 100) * discountPercentage;
+    return savings;
+}
+
+export function getDiscountPercentage(promo: Promo) {
+    if (promo.type === 'PERCENTAGE') {
+        return promo.discountPercentage;
+    }
+    return null;
+}
+
+export function applyPercentageDiscount(cartItem: CartItemCore, promo: Promo, gstInPercentage: number) {
+    let promoObject: Percentage;
+    if (promo.type === 'PERCENTAGE') {
+        const savings = computeSavings(cartItem, promo);
+        promoObject = {
+            type: 'PERCENTAGE',
+            originalAmount: cartItem.totalPrice,
+            discountPercentage: getDiscountPercentage(promo) ?? 0,
+            discountedPrice: computeDiscountAmount(cartItem.totalPrice, savings),
+            tax: computeTax(computeDiscountAmount(cartItem.totalPrice, getFixedDiscountAmount(promo) ?? 0), gstInPercentage),
+            discountedPriceAftTax: computeDiscountAmount(cartItem.totalPrice, savings) + computeTax(computeDiscountAmount(cartItem.totalPrice, savings), gstInPercentage),
+            yourSavings: cartItem.totalPrice - computeDiscountAmount(cartItem.totalPrice, savings),
+            couponId: promo._id,
+            promoCode: promo.code,
+            productId: String(getProductId(cartItem)),
+
+        };
+        return promoObject;
+    }
+    return undefined
+}
+
+
+export function applyFlatDiscount(cartItem: CartItemCore, promo: Promo, gstInPercentage: number) {
+    console.log(getProductId(cartItem), cartItem)
+    let promoObject: Flat;
+    if (promo.type === 'FLAT') {
+        promoObject = {
+            type: 'FLAT',
+            originalAmount: cartItem.totalPrice,
+            discountFixedAmount: getFixedDiscountAmount(promo) ?? 0,
+            discountedPrice: computeDiscountAmount(cartItem.totalPrice, getFixedDiscountAmount(promo) ?? 0),
+            tax: computeTax(computeDiscountAmount(cartItem.totalPrice, getFixedDiscountAmount(promo) ?? 0), gstInPercentage),
+            discountedPriceAftTax: computeDiscountAmount(cartItem.totalPrice, getFixedDiscountAmount(promo) ?? 0) + computeTax(computeDiscountAmount(cartItem.totalPrice, getFixedDiscountAmount(promo) ?? 0), gstInPercentage),
+            yourSavings: getFixedDiscountAmount(promo) ?? 0,
+            couponId: promo._id,
+            productId: String(getProductId(cartItem)),
+            promoCode: promo.code,
+        };
+        return promoObject;
+    }
+    return undefined
+}
+
+export function isPromoApplied(cartItem: CartItemCore & { appliedOffer: AppliedPromo }) {
+    return cartItem.appliedOffer !== undefined;
+}
+
 
 export const add = async (
     req: Request,
@@ -77,6 +252,7 @@ export const add = async (
     try {
 
         const cartItems = req.body
+
         const cart: CartCore = {
             userId: new mongoose.Types.ObjectId(req.user.id),
             products: {},
@@ -89,11 +265,10 @@ export const add = async (
             const cartItem = item
             const calculatePricePerQuantity = await getPricePerQuantity(cartItem.productId, cartItem.qty)
             const product = await ProductModel.findById(cartItem.productId).select({ stock: 1, name: 1 })
-            if (!product) { next(new CustomError(getReasonPhrase(StatusCodes.NOT_FOUND), StatusCodes.NOT_FOUND, false)); return }
+            if (!product) { next(new CustomError(getReasonPhrase(` Product: ${cartItem.productId} ${StatusCodes.NOT_FOUND}`), StatusCodes.NOT_FOUND, false)); return }
             if (product.stock < cartItem.qty) {
                 return next(new CustomError(`${product.name} is OUT OF STOCK`, StatusCodes.NOT_FOUND, false))
             }
-
 
             const totalPrice = Number(calculatePricePerQuantity[0].totalPrice)
 
@@ -109,18 +284,98 @@ export const add = async (
                 totalPriceBeforeTax: price.getInitialPrice(),
                 totalPriceAfterTax: price.getMRP(),
             }
-
             cart.products[item.productId] = orderItem
             product.stock -= Number(cartItem.qty)
             product.modifiedPaths()
             await product.save()
-
         }
-
         cart.grandTotalQty = totalQty(cart.products)
         cart.grandTotalPrice = Number(getGrandTotal(cart.products))
 
+
+
+        const uniqProducts = new Set<string>();
+        for (let item of cartItems) {
+            if (item.promoCode) {
+                const promo = await PromoModel.findOne<PromoDocument | null>({ code: item.promoCode })
+
+                if (isNull<Promo>(promo)) {
+                    return next(new CustomError('This coupon is not applicable', StatusCodes.NOT_FOUND, false));
+                }
+
+                if (isPromoCodeAssignedToProduct(item, promo)) {
+                    return next(new CustomError('This coupon is not applicable to any product', StatusCodes.NOT_FOUND, false));
+                }
+
+
+                if (!isCouponActivated(promo)) {
+                    return next(new CustomError('Promo code is not activated ', StatusCodes.NOT_FOUND, false));
+                }
+
+
+                if (isCouponExpired(promo)) {
+                    return next(new CustomError('Promo Code is expired ', StatusCodes.NOT_FOUND, false))
+                }
+
+                if (isCouponAtUsageLimit(promo)) {
+                    return next(new CustomError('Global coupon limit exceed', StatusCodes.NOT_FOUND, false));
+                }
+
+                if (!isMinimumAmountPresentInCart(promo, cart)) {
+                    return next(new CustomError(`Unable to apply. Cart Should contain minimum ${promo.minAmountInCart}}`, StatusCodes.NOT_FOUND, false));
+                }
+
+                //user already used
+                const hasCouponBeenRedeemed = promo.usedBy.find(user => user.userId.toString() === req.user.id.toString())
+
+                if (hasCouponBeenRedeemed && (hasCouponBeenRedeemed.count > promo.maxUsagePerUser)) {
+                    return next(new CustomError('Your coupon reached maximum', StatusCodes.NOT_FOUND, false));
+                }
+
+
+                //Now rework the offer apply
+
+                let cartItem = cart.products[item.productId] as CartItemCore & { appliedOffer: AppliedPromo }
+
+                if (promo.type === 'FLAT') {
+                    const promoObject = applyFlatDiscount(cartItem, promo, gstInPercentage);
+                    if (!isPromoApplied(cartItem)) {
+                        if (promoObject) {
+                            cartItem.appliedOffer = promoObject
+                        }
+                    }
+                }
+
+                if (promo.type === 'PERCENTAGE') {
+                    const promoObject = applyFlatDiscount(cartItem, promo, gstInPercentage);
+                    if (!isPromoApplied(cartItem)) {
+                        if (promoObject) {
+                            cartItem.appliedOffer = promoObject
+                        }
+                    }
+                }
+
+                cart.products[item.productId] = cartItem
+
+                let usedUserIndex = promo.usedBy.findIndex((user) => user.userId.toString() === req.user.id.toString())
+
+                if (usedUserIndex < 0) {
+                    promo.usedBy.push({ count: 1, userId: req.user.id })
+                } else {
+                    promo.usedBy[usedUserIndex].count += 1
+                    promo.usedBy[usedUserIndex].userId = req.user.id
+                }
+                promo.modifiedPaths()
+                await promo.save()
+
+            }
+            cart.grandTotalQty = totalQty(cart.products)
+            cart.grandTotalPrice = Number(getGrandTotal(cart.products))
+        }
+
+        // update userId to userID
         const mycart = (await (await CartModel.create(cart)).populate('products.$*.product')).toObject({ flattenMaps: true })
+
         const cartId = mycart._id
         delete mycart._id
         delete mycart.__v
@@ -220,10 +475,10 @@ export const setFlashSaleStatus = async (
 ) => {
     try {
 
-        const statusmap:Record<string,string> = {
+        const statusmap: Record<string, string> = {
             'a': SalesStatus.ACTIVE,
             'p': SalesStatus.PENDING,
-            'e' : SalesStatus.EXPIRED
+            'e': SalesStatus.EXPIRED
         }
 
         const cartItems = req.body

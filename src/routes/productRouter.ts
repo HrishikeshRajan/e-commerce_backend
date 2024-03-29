@@ -37,6 +37,7 @@ router.route('/list').get(product.queryProducts)
 router.route('/categories').get(product.getCategories)
 router.route('/filter_menu').get(product.getFilterOptions)
 
+router.route('/search').get(product.searchProducts)
 
 //API ACCESS: user
 router.route('/suggestions').get(suggestion.getSearchSuggestions)

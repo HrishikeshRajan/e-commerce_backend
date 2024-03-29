@@ -1,54 +1,50 @@
 import mongoose, { Schema, Document, Types } from 'mongoose';
+import { Promo, Status } from 'types/CouponManagement';
 
 // Define the interface representing the Mongoose document
-interface PromoDocument extends Document {
-    offername: string;
-    banner:string
-    type: 'PERCENTAGE' | 'FLAT';
-    method: 'COUPON' | 'VOUCHER';
-    startDate: string;
-    endDate: string;
-    startTime: string;
-    endTime: string;
-    code: string;
-    discountPercentage: number;
-    maxUsage: number;
-    usedBy: string[];
-    discountAmount: number;
-    categories: string[]
-    products: string[]
-    status:string
-}
-
 // Define the Mongoose schema for the Promo document
+
+export interface PromoDocument extends Promo { }
 const PromoSchema: Schema<PromoDocument> = new Schema({
     offername: { type: String, required: true },
-    banner : {type: String},
+    banner: { secure_url: { type: String } },
     type: { type: String, enum: ['PERCENTAGE', 'FLAT'], required: true },
     method: { type: String, enum: ['COUPON', 'VOUCHER'], required: true },
-    startDate: { type: String, required: true },
-    endDate: { type: String, required: true },
     startTime: { type: String, required: true },
     endTime: { type: String, required: true },
     code: { type: String, trim: true, unique: true },
-    discountPercentage: { type: Number, required:true },
+    discountPercentage: { type: Number },
     maxUsage: { type: Number, required: true },
-    usedBy: [{ type: Types.ObjectId, ref:'User' }],
-    discountAmount: { type: Number  },
-    categories:[
-        { type: Types.ObjectId, ref:'Category'}
-    ],
-    products:[
-        {
-            type: Types.ObjectId,
-            ref: 'product'
-        }
-    ],
+    usedBy: [{
+        userId:{type: Types.ObjectId, ref: 'User'},
+        count: { type: Number }
+    }],
+    discountAmount: { type: Number },
+    minAmountInCart: { type: Number },
+    maxUsagePerUser: {type: Number},
+    tags: {
+        categories: [
+            { type: Types.ObjectId, ref: 'Category' }
+        ],
+        products: [
+            {
+                type: Types.ObjectId,
+                ref: 'product'
+            }
+        ],
+        users: [
+            {
+                type: Types.ObjectId,
+                ref: 'User'
+            }
+        ],
+    },
+
     status: {
-        type:String,
+        type: String,
         trim: true,
-        enum:['Active','Expired', 'Deactivated'],
-        default:'Active'
+        enum: [Status.PENDING, Status.ACTIVE, Status.EXPIRED],
+        default: Status.PENDING
     }
 });
 

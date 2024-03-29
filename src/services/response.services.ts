@@ -35,6 +35,7 @@ export const sendHTTPErrorResponse = ({ res, error, statusCode, success = false 
  })
 }
 
+
 /**
  *
  * @param res {Response}
@@ -51,13 +52,13 @@ export const sendHTTPWithTokenResponse = ({ res, message, statusCode, success, t
   // set secure:true for production
   const expiryTime = new Date(Date.now() + expiresIn)
   const options: CookieOptions = {
-    maxAge: expiresIn, // 10minutes
+    maxAge:  24 * 60 * 60 * 1000, // 10minutes
     httpOnly: true,
     // secure: true,
     // sameSite:'none'
   }
   const accessOptions: CookieOptions = {
-    maxAge: 86400, // 1 day
+    maxAge: 2 * 24 * 60 * 60 * 1000, // 1 day
     httpOnly: true,
     // secure: true,
     // sameSite:'none'

@@ -327,12 +327,12 @@ export const loginUser = async (
         refreshToken,
         userDetails,
       },
+      statusCode:200,
       cookie: {
         expires: time
       },
       success: true,
-      statusCode: StatusCodes.OK
-    }
+     }
     logger.info(`Sending success response, id: ${user._id}`)
     sendHTTPWithTokenResponse(cookieConfig)
   } catch (error: unknown) {

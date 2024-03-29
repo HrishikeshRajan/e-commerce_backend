@@ -16,6 +16,7 @@ export interface CartItemCore {
     discountSourceId: mongoose.Types.ObjectId
     source: string
   }
+  appliedOffer?:AppliedOffer
 };
 
 
@@ -78,7 +79,8 @@ export interface CartItemDocument extends mongoose.Document {
   discount?: {
     discountSourceId: mongoose.Types.ObjectId
     source: string
-  }
+  },
+  appliedOffer?:AppliedOffer
 };
 
 
@@ -90,6 +92,19 @@ export interface CartDocument extends mongoose.Document {
   createdAt?: string;
   updatedAt?: string
 }
+
+export type AppliedOffer = {
+  type:'FLAT' | 'PERCENTAGE'
+  originalAmount:number
+  discountFixedAmount: number
+  discountedPrice:number
+  tax:number
+  discountedPriceAftTax:number
+  yourSavings:number
+  couponId:string
+  productId?:string
+  promoCode: string
+};
 
 // Define schema for Cart
 const cartItemSchema = new mongoose.Schema<CartItemDocument>({
@@ -132,6 +147,47 @@ const cartItemSchema = new mongoose.Schema<CartItemDocument>({
       enum: ['FlashSale']
     }
 
+  },
+  appliedOffer:{
+    type: {
+      type: String,
+      enum: ['FLAT', 'PERCENTAGE'],
+    
+    },
+    originalAmount: {
+      type: Number,
+
+    },
+    discountFixedAmount: {
+      type: Number,
+
+    },
+    discountedPrice: {
+      type: Number,
+
+    },
+    tax: {
+      type: Number,
+
+    },
+    discountedPriceAftTax: {
+      type: Number,
+
+    },
+    yourSavings: {
+      type: Number,
+
+    },
+    couponId: {
+      type: String,
+
+    },
+    productId: {
+      type: String
+    },
+    promoCode: {
+      type: String,
+    }
   }
 });
 

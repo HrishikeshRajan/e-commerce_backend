@@ -29,6 +29,7 @@ import { ProductIdsSchemaType, ProductSchemaType } from 'types/zod/product.schem
 import { getSortValue } from '@utils/getSortValue'
 import PromoModel from '@models/promoModel'
 import FlashSale from '@models/flashSale.model'
+import { Types } from 'mongoose'
 
 
 
@@ -213,8 +214,21 @@ export const singleProduct = async (
       return next(new CustomError('No product found that owned by your seller id', StatusCodes.INTERNAL_SERVER_ERROR, false))
     }
 
-    const promo = await PromoModel.findOne({ 'products': req.params.id })
-    const flashsale = await FlashSale.findOne({ 'product': req.params.id })
+    const currentDate = new Date()
+    const flashsale = await FlashSale.findOne({
+      product: req.params.id,
+      endTime: { $gt: currentDate }
+    })
+
+      const promos = await PromoModel.find({
+        'tags.products': new Types.ObjectId(req.params.id),
+        method:'COUPON',
+        endTime: { $gt: currentDate.toJSON() },
+        startTime: { $lt: currentDate.toJSON() }
+      })
+
+      console.log(promos, req.params.id)
+
     type ProductResponse = {
       product: ProductDocument,
       offers?: Record<any, any>
@@ -223,12 +237,9 @@ export const singleProduct = async (
       product: signleProduct
     }
     responseObject.offers = {};
-    if (promo) {
-      if (promo.method === 'COUPON') {
-        responseObject.offers.coupon = promo.toObject()
-      } else if (promo.method === 'VOUCHER') {
-        responseObject.offers.voucher = promo.toObject()
-      }
+
+    if (promos) {
+      responseObject.offers.coupons = promos
     }
     if (flashsale) {
       responseObject.offers.flashsale = flashsale.toObject()
@@ -553,6 +564,65 @@ export const getFilterOptions = async (
   }
 }
 
+
+export const searchProducts = async (
+  req: GenericRequestWithQuery<{}, { [key: string]: string | undefined }, {}, Token>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+
+    const productRepo = new ProductRepo<ProductDocument>(ProductModel)
+
+    if (!req.query.page) {
+      req.query.page = '1'
+    }
+    const resultPerPage = 20
+    const query = { ...req.query }
+
+    const copyQuery = { ...req.query }
+
+    delete copyQuery.page
+    delete copyQuery.sort
+    delete copyQuery.limit
+
+    let copyQueryString = JSON.stringify(copyQuery)
+    copyQueryString = copyQueryString.replace(/\b(lt|lte|gt|gte)\b/g, ((val) => `$${val}`))
+    const queryObject = JSON.parse(copyQueryString)
+
+    const totalAvailableProducts = await productRepo.countTotalProductsByQuery(queryObject)
+
+    const searchEngine = new SearchEngine<ProductDocument, ProductQuery>(ProductModel, query).search().filter().sort().pager(resultPerPage, totalAvailableProducts)
+    
+    if (typeof searchEngine === 'number') {
+      const response: IResponse = {
+        res,
+        message: { products: [] },
+        statusCode: StatusCodes.OK,
+        success: true
+      }
+      return sendHTTPResponse(response)
+    }
+
+    //Resolving the mongoose promise
+    const productQuery = searchEngine.query
+    const products = await productQuery
+    if (isEmpty(products)) {
+      return next(new CustomError('No products found', StatusCodes.NOT_FOUND, false))
+    }
+    const totalPages = Math.ceil(totalAvailableProducts / resultPerPage)
+    const response: IResponse = {
+      res,
+      message: { products: products, page: req.query.page, totalPages, itemsShowing: products?.length, totalItems: totalAvailableProducts },
+      statusCode: StatusCodes.OK,
+      success: true
+    }
+    sendHTTPResponse(response)
+  } catch (error: any) {
+    const errorObj = error as CustomError
+    next(new CustomError(errorObj.message, errorObj.code, false))
+  }
+}
 
 
 
