@@ -217,14 +217,15 @@ export const singleProduct = async (
     const currentDate = new Date()
     const flashsale = await FlashSale.findOne({
       product: req.params.id,
-      endTime: { $gt: currentDate }
+      endTime: { $gt: currentDate },
+      status:'Active'
     })
 
       const promos = await PromoModel.find({
         'tags.products': new Types.ObjectId(req.params.id),
         method:'COUPON',
-        endTime: { $gt: currentDate.toJSON() },
-        startTime: { $lt: currentDate.toJSON() }
+        endTime: { $gt: currentDate },
+        startTime: { $lt: currentDate }
       })
 
       console.log(promos, req.params.id)
@@ -242,7 +243,7 @@ export const singleProduct = async (
       responseObject.offers.coupons = promos
     }
     if (flashsale) {
-      responseObject.offers.flashsale = flashsale.toObject()
+      responseObject.offers.flashsale = flashsale
     }
     const response: IResponse = {
       res,

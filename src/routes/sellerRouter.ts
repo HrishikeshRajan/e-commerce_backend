@@ -39,7 +39,9 @@ router.route('/flashsale/checkout/:saleId').post(isLoggedIn,flashsale.moveToCart
 //Promo
 router.route('/promo').post(isLoggedIn,multerUpload,Role(ROLES.SELLER),promo.create)
 router.route('/promo').get(isLoggedIn, promo.get)
-
+router.route('/promo/all').get(promo.getAllPromos)
+// router.route('/promo/user/all').get(promo.getAllMyPromos)
+router.route('/promo/status').put(isLoggedIn, promo.updatePromoStatus)
 router.param('id',seller.injectUser)
 router.param('shopId',seller.injectShop)
 export default router

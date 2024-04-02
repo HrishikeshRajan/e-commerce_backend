@@ -14,6 +14,8 @@ router.route('/cancel/carts/:cartId/products/:productId').put(isLoggedIn, orderC
 router.route('/status/:code/carts/:cartId/products/:productId').put(isLoggedIn, orderController.updateOrderStatus)
 
 
+router.route('/success/all').get(isLoggedIn, orderController.myPurchases)
+
 
  
 export default router

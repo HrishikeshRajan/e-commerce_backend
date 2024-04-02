@@ -1,16 +1,19 @@
-import { NextFunction } from "express";
-import mongoose, { Types } from "mongoose";
+
+import mongoose, { Types , Document} from "mongoose";
+import { Method } from "types/Offer";
 
 
-interface FlashSaleDocument extends Document {
+export interface FlashSaleDocument extends Document {
     name: string;
-    category: 'flash_sale';
+    method: Method;
+    type: 'PERCENTAGE' | 'FLAT';
     banner: {
         secure_url: string;
     };
     startTime: Date;
     endTime: Date;
     discountPercentage?: number;
+    discountAmount?:number;
     priceAfterDiscount?: number;
     product: Types.ObjectId;
     totalQuantityToSell: number;
@@ -22,13 +25,14 @@ interface FlashSaleDocument extends Document {
     status: string;
     createdAt: Date;
     shop?: Types.ObjectId;
+    position: 'TOP' | 'MIDDLE' | 'BOTTOM'
 }
 
 
-export const enum SalesStatus  {
- PENDING ='Pending',
- ACTIVE = 'Active',
- EXPIRED = 'Expired'
+export const enum SalesStatus {
+    PENDING = 'PENDING',
+    ACTIVE = 'ACTIVE',
+    EXPIRED = 'EXPIRED'
 
 }
 const flashSaleSchema = new mongoose.Schema<FlashSaleDocument>({
@@ -37,10 +41,16 @@ const flashSaleSchema = new mongoose.Schema<FlashSaleDocument>({
         trim: true,
         required: true
     },
-    category: {
-        type:String,
-        enum:['flash_sale']
+    method: {
+        type: String,
+        enum: ['COUPON' , 'VOUCHER' , 'FLASHSALE' , 'CLEARENCE_SALE'],
+        default: 'FLASHSALE'
     },
+    type: {
+        type: String,
+        enum: ['PERCENTAGE', 'FLAT', 'FREESHIPPING'],
+    },
+
     banner: {
         secure_url: String
     },
@@ -55,8 +65,11 @@ const flashSaleSchema = new mongoose.Schema<FlashSaleDocument>({
     discountPercentage: {
         type: Number,
     },
+    discountAmount: {
+        type: Number,
+    },
     priceAfterDiscount: {
-         type: Number,
+        type: Number,
     },
     product: {
         type: mongoose.Schema.Types.ObjectId,
@@ -67,9 +80,9 @@ const flashSaleSchema = new mongoose.Schema<FlashSaleDocument>({
         type: Number,
         default: 1
     },
-    currentStock:{
+    currentStock: {
         type: Number,
-        default: 0 
+        default: 0
     },
     users: {
         maxUsersCount: {
@@ -79,30 +92,35 @@ const flashSaleSchema = new mongoose.Schema<FlashSaleDocument>({
         },
         usedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
     },
-    status:{
-        type:String,
-        enum:[SalesStatus.PENDING, SalesStatus.ACTIVE, SalesStatus.EXPIRED],
-        default:SalesStatus.PENDING
+    status: {
+        type: String,
+        enum: [SalesStatus.PENDING, SalesStatus.ACTIVE, SalesStatus.EXPIRED],
+        default: SalesStatus.PENDING
     },
     createdAt: {
         type: Date,
         default: Date.now
     },
-    shop:{
+    shop: {
         type: Types.ObjectId,
-        ref:'shop'
+        ref: 'shop'
+    },
+    position: {
+        type: String,
+        enum: ['TOP', 'MIDDLE', 'BOTTOM'],
+        default: 'TOP'
     }
 });
-flashSaleSchema.pre(/^save$/, async function(next) {
+flashSaleSchema.pre(/^save$/, async function (next) {
     const flash = this as unknown as FlashSaleDocument
-    let current =  new Date()
-    if (current > flash.startTime && current < flash.endTime ) {
+    let current = new Date()
+    if (current > flash.startTime && current < flash.endTime) {
         flash.status = SalesStatus.ACTIVE;
     }
     next();
 });
 
-flashSaleSchema.pre(/^save$/, async function(next) {
+flashSaleSchema.pre(/^save$/, async function (next) {
     const flash = this as unknown as FlashSaleDocument
     if (flash.currentStock <= 0) {
         flash.status = SalesStatus.EXPIRED;

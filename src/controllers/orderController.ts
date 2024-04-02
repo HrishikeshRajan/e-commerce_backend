@@ -14,6 +14,7 @@ import { PipelineStage, Types } from 'mongoose'
 import { SortMap } from '@utils/sort.helper'
 import { getMatchPipleLine } from '@utils/pipelines.search'
 import productModel from '@models/productModel'
+import { ProductCore, ProductDocument } from 'types/product.interface'
 
 dotenv.config()
 
@@ -120,7 +121,6 @@ export const getSingleOrder = async (
   Promise<void> => {
   try {
 
-
     const orderDoc = await OrderModel.findById(req.params.orderId).select('-__v -createdAt -updatedAt').populate('userId', 'fullname _id').populate('cartId', '-__v -_id -userId -createdAt -updatedAt')
     if (!orderDoc) return
     const order = orderDoc.toObject({ flattenMaps: true })
@@ -163,7 +163,8 @@ export const paymentIntent = async (
       currency: currency,
       payment_method_types: [paymentMethodTypes],
       metadata: {
-        orderId: orderId
+        orderId: orderId,
+        cartId: cartId
       },
     });
 
@@ -218,12 +219,18 @@ export const StripeWebHook = async (req: Request, res: Response<IResponse>, next
 
   if (eventType === 'payment_intent.succeeded') {
     const orderId = data.object.metadata.orderId
+    const cartId = data.object.metadata.cartId
     await OrderModel.findByIdAndUpdate(orderId, {
       $set: { // Use $set operator to update specific fields
         'paymentDetails.status': 'SUCCESS',
         'paymentDetails.paidAmount': Math.floor(data.object.amount_received / 100),
         'paymentDetails.paymentId': data.object.id,
-        'orderDetails.status': 'INITIATED'
+        'orderDetails.status': 'INITIATED',
+      }
+    })
+    await CartModel.findByIdAndUpdate(cartId,{
+      '$set':{
+        'status': 'Expired'
       }
     })
     console.log('💰 Payment captured!');
@@ -480,6 +487,42 @@ export const List = async (
 
     if (!userOrders) return
     sendHTTPResponse({ res, message: { orders: userOrders[0].orders }, statusCode: 200, success: true })
+
+  } catch (error: unknown) {
+    const errorObj = error as CustomError
+    console.log('rrror', error)
+    next(new CustomError(errorObj.message, errorObj.code, false))
+  }
+}
+
+export const myPurchases = async (
+  req: Request,
+  res: Response<IResponse>,
+  next: NextFunction):
+  Promise<void> => {
+  try {
+    const userId = req.user.id;
+    
+    const carts = await CartModel.find({status:'Expired'}).populate({ path: 'products.$*.product' }).lean()
+    let ids:string[] = []
+
+    for(let item of carts){
+       ids = [...ids, ...Object.keys(item.products)]
+
+    }
+
+    const products:ProductDocument[] = []
+    const uniqIds = new Set<string>(ids)
+    for(let id of uniqIds){
+
+       const product = await productModel.findById(id)
+       if(product){
+        products.push(product)
+       }
+    }
+
+
+    sendHTTPResponse({ res, message: { orders: products }, statusCode: 200, success: true })
 
   } catch (error: unknown) {
     const errorObj = error as CustomError
@@ -939,6 +982,7 @@ export const ListByShop = async (
 
 export const updateOrderStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+
     type Code = "N" | "P" | "C" | "D" | "S"
     const statuscode: Code = req.params.code as unknown as Code
     const cartId = req.params.cartId

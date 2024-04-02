@@ -51,7 +51,6 @@ export const isLoggedIn = (req: GenericRequest<{},{},UserCore>, res: Response, n
     logger.error(`Error in isLoggedIn middleware: ${errorObj.message} statusCode:${errorObj.code}`)
     next(new CustomError(errorObj.message, errorObj.code, false)); return
   }
-  console.log('yes moing', req.body, req.file)
   next()
 }
 

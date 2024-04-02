@@ -6,6 +6,7 @@ import { isLoggedIn } from "@middlewares/auth"
 const router = express.Router()
 router.route('/').get(isLoggedIn,cartController.get)
 router.route('/ids').get(isLoggedIn,cartController.getCartAndUserIds)
+router.route('/latest').get(isLoggedIn,cartController.getLatestCartByUserId)
 router.route('/').post(isLoggedIn, cartController.add)
 router.route('/flash').post(isLoggedIn, cartController.addFlashCart)
 router.route('/flash/status/:flashsaleId').put(isLoggedIn, cartController.setFlashSaleStatus)

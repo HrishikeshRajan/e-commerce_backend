@@ -1,3 +1,4 @@
+import { Flat, Percentage } from "@controllers/cartController";
 import mongoose, { Model, Types } from "mongoose";
 import { ProductCore } from "types/product.interface";
 
@@ -16,7 +17,7 @@ export interface CartItemCore {
     discountSourceId: mongoose.Types.ObjectId
     source: string
   }
-  appliedOffer?:AppliedOffer
+  appliedOffer?:Percentage | Flat
 };
 
 
@@ -58,6 +59,11 @@ export enum ORDER_STATUS {
   DELIVERED = 'Delivered'
 }
 
+export enum CART_STATUS {
+ ACTIVE ='Active',
+ EXPIRED = 'Expired'
+}
+
 export enum NumToStatusMap {
   "N" = ORDER_STATUS.NOT_PROCESSED,
   "P" = ORDER_STATUS.PROCESSING,
@@ -80,7 +86,7 @@ export interface CartItemDocument extends mongoose.Document {
     discountSourceId: mongoose.Types.ObjectId
     source: string
   },
-  appliedOffer?:AppliedOffer
+  appliedOffer?:Percentage | Flat
 };
 
 
@@ -90,13 +96,15 @@ export interface CartDocument extends mongoose.Document {
   grandTotalPrice: number;
   grandTotalQty: number;
   createdAt?: string;
-  updatedAt?: string
+  updatedAt?: string;
+  status:CART_STATUS.ACTIVE | CART_STATUS.EXPIRED
 }
 
 export type AppliedOffer = {
   type:'FLAT' | 'PERCENTAGE'
   originalAmount:number
-  discountFixedAmount: number
+  discountFixedAmount?: number
+  discountPercentage?: number
   discountedPrice:number
   tax:number
   discountedPriceAftTax:number
@@ -162,6 +170,10 @@ const cartItemSchema = new mongoose.Schema<CartItemDocument>({
       type: Number,
 
     },
+    discountPercentage: {
+      type: Number,
+
+    },
     discountedPrice: {
       type: Number,
 
@@ -188,7 +200,8 @@ const cartItemSchema = new mongoose.Schema<CartItemDocument>({
     promoCode: {
       type: String,
     }
-  }
+  },
+
 });
 
 //Cart have multiple products
@@ -204,9 +217,18 @@ const cartSchema = new mongoose.Schema<CartDocument, Model<CartDocument>>({
     default: {}
   },
   grandTotalPrice: Number,
-  grandTotalQty: Number
+  grandTotalQty: Number,
+  status:{
+    type: String,
+    enum:[CART_STATUS.ACTIVE, CART_STATUS.EXPIRED],
+    default: CART_STATUS.ACTIVE
+  }
 }, { timestamps: true });
 
 const CartModel = mongoose.model<CartDocument>('Cart', cartSchema);
-
+cartSchema.post('save', function(doc) {
+  if(Object.values(this.products).length < 1){
+    
+  }
+});
 export default CartModel;

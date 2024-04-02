@@ -2,9 +2,9 @@ import { Document } from "mongoose"
 
 
 export const enum Status {
-    PENDING = 'Pending',
-    ACTIVE = 'Active',
-    EXPIRED = 'Expired'
+    PENDING = 'PENDING',
+    ACTIVE = 'ACTIVE',
+    EXPIRED = 'EXPIRED'
 
 }
 
@@ -38,8 +38,7 @@ export const enum Method {
     }
 
 
-export interface CouponType extends Promo {
-    type: 'PERCENTAGE' | 'FLAT'
+export interface Coupon extends Promo {
     method: 'COUPON'
 }
 
@@ -51,7 +50,7 @@ export interface Voucher extends Promo {
 export type AppliedPromo = {
     type:'FLAT' | 'PERCENTAGE',
     originalAmount:number,
-    discountFixedAmount: number,
+    discountFixedAmount?: number,
     discountedPrice:number,
     tax:number
     discountedPriceAftTax:number,
@@ -59,4 +58,5 @@ export type AppliedPromo = {
     couponId:string
     productId?:string
     promoCode: string
+    discountPercentage?: number
   };

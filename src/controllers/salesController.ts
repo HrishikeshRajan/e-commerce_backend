@@ -38,6 +38,10 @@ export const create = async (
     Promise<void> => {
     try {
 
+        console.log(req.body)
+        // const secure_url = await handleImageUpload(req)
+        // const url = (await secure_url).secure_url
+        // console.log(url)
         logger.info(`Flash sale create controller initiated. user: ${req.user.id}`);
 
         // const secure_url = await handleImageUpload(req)
@@ -48,19 +52,30 @@ export const create = async (
         const product = await productModel.findById(req.body.product, '_id price stock')
         if (!product) {
             return next(new CustomError('No product found', StatusCodes.NOT_FOUND, false))
-          }
+        }
 
-        if(product.stock < req.body.totalQuantityToSell){
+        if (product.stock < req.body.totalQuantityToSell) {
             return next(new CustomError('Not enough stock', StatusCodes.NOT_FOUND, false))
         }
 
-        const savings = (product.price / 100) * req.body.discountPercentage
-        const gstInPercentage = 12
-        const tax = currency(product.price).multiply(gstInPercentage).divide(100)
-        const priceAfterDiscount = currency(product.price).subtract(savings).add(tax.value)
-        const discounted = { priceAfterDiscount }
-        merge(req.body, discounted)
+        req.body.currentStock = req.body.totalQuantityToSell
+
+        // if(req.body.type === 'PERCENTAGE'){
+
+        // }
+        // if(req.body.type === 'FLAT') {}
+
+        //     const savings = (product.price / 100) * req.body.discountPercentage
+        //     const gstInPercentage = 12
+        //     const tax = currency(product.price).multiply(gstInPercentage).divide(100)
+        //     const priceAfterDiscount = currency(product.price).subtract(savings).add(tax.value).value
+        //     const discounted = { priceAfterDiscount }
+        //     merge(req.body, discounted)
+        //   console.log(req.body)
+
         const flashsale = await FlashSale.create(req.body)
+
+
         product.stock -= req.body.totalQuantityToSell
         product.modifiedPaths()
         await product.save()
@@ -75,10 +90,12 @@ export const create = async (
         }
         sendHTTPResponse(response)
     } catch (error: unknown) {
+        console.log(error)
         logger.error('An error occurred', { error });
         next(error)
     }
 }
+//Flash sale type issue, not showing in client side
 
 export const get = async (
     req: Request,
@@ -90,14 +107,14 @@ export const get = async (
         logger.info(`Flash sale create controller initiated`);
 
 
-        const sale = await FlashSale.find({}).populate<{product:ProductDocument}>('product','-__v -createdAt -updatedAt').sort({ 'createdAt': -1 })
+        const sale = await FlashSale.find({}).sort({ _id: -1 })
         const response: IResponse = {
             res,
             message: {
-                sale:sale[0]
+                sale: sale[0]
             },
             success: true,
-            statusCode: StatusCodes. OK
+            statusCode: StatusCodes.OK
         }
         sendHTTPResponse(response)
     } catch (error: unknown) {
@@ -130,7 +147,7 @@ export const moveToCart = async (
             grandTotalPrice: sale.priceAfterDiscount! + tax.value,
             grandTotalQty: 1,
             grandTotalPriceString: '1000',
-            products:{}
+            products: {}
         }
         const orderItem: CartItemCore = {
             product: new Types.ObjectId(sale?.product._id),
@@ -154,7 +171,7 @@ export const moveToCart = async (
         console.log(req.body)
         const cart = await CartModel.create(cartObject)
         sale.users?.usedBy.push(req.user.id)
-         sale.modifiedPaths()
+        sale.modifiedPaths()
         await sale.save()
         const response: IResponse = {
             res,
