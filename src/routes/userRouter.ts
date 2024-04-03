@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import express ,{Express} from 'express'
+import express, { Express } from 'express'
 import {
   addAddress,
   changePassword,
@@ -26,23 +26,29 @@ import { rateLimit } from 'express-rate-limit'
 
 import { ParamsSchema, ChangePasswordSchema, ForgotPasswordSchema, LoginSchema, ParamsByIdSchema, PhotoSchema, QueryWithTokenSchema, RegisterSchema, ResetPasswordSchema, UpdateProfileSchema, UserAddressSchema } from '../types/zod/user.schemaTypes'
 import { validateRequest } from '../middlewares/userInputValidator'
+import CustomError from '@utils/CustomError'
 /**
  * Limits number of requests
  */
 const limiter = rateLimit({
-	windowMs: 15 * 60 * 1000,
-	limit: 5, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
-	standardHeaders: 'draft-7',
-	legacyHeaders: false, 
-  statusCode:429
+  windowMs: 15 * 60 * 1000,
+  limit: 3, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  statusCode: 429,
+  handler: (req, res, next, options) => {
+    next(new CustomError(options.message, options.statusCode, false))
+  }
+
 })
+
 
 
 const router = express.Router()
 
 // Auth API
 router.route('/register')
-  .post(disallowLoggedInUsers, validateRequest({ body: RegisterSchema }), registerUser)
+  .post(disallowLoggedInUsers, limiter, validateRequest({ body: RegisterSchema }), registerUser)
 
 router.route('/verify')
   .get(disallowLoggedInUsers, validateRequest({ query: QueryWithTokenSchema }), verifyMailLink)
@@ -56,13 +62,13 @@ router.route('/read')
 router.route('/signout').get(isLoggedIn, logoutUser)
 
 router.route('/forgot')
-  .post(limiter ,disallowLoggedInUsers, validateRequest({ body: ForgotPasswordSchema }), forgotPassword)
+  .post(limiter, disallowLoggedInUsers, validateRequest({ body: ForgotPasswordSchema }), forgotPassword)
 
 router.route('/forgot/verify')
-  .get(disallowLoggedInUsers, verifyForgotPassword)
+  .get(limiter,disallowLoggedInUsers, verifyForgotPassword)
 
 router.route('/forgot/reset')
-  .put(disallowLoggedInUsers ,validateRequest({ body: ResetPasswordSchema }), resetPassword)
+  .put(limiter, disallowLoggedInUsers, validateRequest({ body: ResetPasswordSchema }), resetPassword)
 
 router.route('/change/password')
   .put(isLoggedIn, validateRequest({ body: ChangePasswordSchema }), changePassword)
