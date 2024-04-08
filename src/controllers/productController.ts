@@ -30,6 +30,7 @@ import { getSortValue } from '@utils/getSortValue'
 import PromoModel from '@models/promoModel'
 import FlashSale from '@models/flashSale.model'
 import { Types } from 'mongoose'
+import ProductServices from '@services/product.services'
 
 
 
@@ -208,7 +209,7 @@ export const singleProduct = async (
 ): Promise<void> => {
   try {
     const productRepo = new ProductRepo<ProductDocument>(ProductModel)
-    const signleProduct = await productRepo.getSingleProduct<string>(req.params.id)
+    const singleProduct = await productRepo.getSingleProduct<string>(req.params.id)
 
     if (!singleProduct) {
       return next(new CustomError('No product found that owned by your seller id', StatusCodes.INTERNAL_SERVER_ERROR, false))
@@ -228,14 +229,14 @@ export const singleProduct = async (
         startTime: { $lt: currentDate }
       })
 
-      console.log(promos, req.params.id)
+
 
     type ProductResponse = {
       product: ProductDocument,
       offers?: Record<any, any>
     }
     const responseObject: ProductResponse = {
-      product: signleProduct
+      product: singleProduct
     }
     responseObject.offers = {};
 
@@ -449,8 +450,9 @@ export const queryProducts = async (
   try {
 
     const productRepo = new ProductRepo<ProductDocument>(ProductModel)
-    if (!req.query.category) {
-      return next(new CustomError('Please select a category', StatusCodes.NOT_FOUND, false))
+    if (req.query.category) {
+   
+
     }
     if (!req.query.page) {
       req.query.page = '1'
@@ -469,7 +471,7 @@ export const queryProducts = async (
     const queryObject = JSON.parse(copyQueryString)
 
     const totalAvailableProducts = await productRepo.countTotalProductsByQuery(queryObject)
-    const brandsCountQuery = productRepo.getBrandCount(req.query?.category)
+    // const brandsCountQuery = productRepo.getBrandCount(req.query?.category )
     // const colorsCountQuery = productRepo.getColorCount(req.query?.category)
 
     const searchEngine = new SearchEngine<ProductDocument, ProductQuery>(ProductModel, query).search().filter().sort().pager(resultPerPage, totalAvailableProducts)
@@ -485,7 +487,7 @@ export const queryProducts = async (
 
     //Resolving the mongoose promise
     const productQuery = searchEngine.query
-    const [brandsCount, products] = await Promise.all([brandsCountQuery, productQuery])
+    const [products] = await Promise.all([productQuery])
     if (isEmpty(products)) {
       return next(new CustomError('No products found', StatusCodes.NOT_FOUND, false))
     }
@@ -493,7 +495,7 @@ export const queryProducts = async (
     const totalPages = Math.ceil(totalAvailableProducts / resultPerPage)
     const response: IResponse = {
       res,
-      message: { products: products, brandsCount, page: req.query.page, totalPages, itemsShowing: products?.length, totalItems: totalAvailableProducts },
+      message: { products: products, brandsCount:0, page: req.query.page, totalPages, itemsShowing: products?.length, totalItems: totalAvailableProducts },
       statusCode: StatusCodes.OK,
       success: true
     }
@@ -609,7 +611,13 @@ export const searchProducts = async (
     const productQuery = searchEngine.query
     const products = await productQuery
     if (isEmpty(products)) {
-      return next(new CustomError('No products found', StatusCodes.NOT_FOUND, false))
+      const response: IResponse = {
+        res,
+        message: { products:[], page: req.query.page, totalPages : 0, itemsShowing: products?.length, totalItems: totalAvailableProducts },
+        statusCode: StatusCodes.OK,
+        success: false
+      }
+     return sendHTTPResponse(response)
     }
     const totalPages = Math.ceil(totalAvailableProducts / resultPerPage)
     const response: IResponse = {
@@ -624,7 +632,6 @@ export const searchProducts = async (
     next(new CustomError(errorObj.message, errorObj.code, false))
   }
 }
-
 
 
 // /**

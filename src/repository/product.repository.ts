@@ -1,10 +1,25 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { type Model, type Query } from 'mongoose'
-import { ProductDocument, type ProductCore, DeleteResult } from '../types/product.interface'
+import {
+  type ProductDocument,
+  type ProductCore,
+  type DeleteResult,
+  type ShopPopulated,
+  type BrandCount,
+  type ColorCount,
+  type ProductNameCount
+} from '../types/product.interface';
+
 import { merge } from 'lodash'
+import { type IProduct } from 'types/IProduct.interface'
 
+/**
+ * Author : Hrishikesh Rajan
+ * 
+ * Lower Level class that depend on IProduct
+ */
 
-export class ProductRepo<T extends ProductDocument> {
+export class ProductRepo<T extends ProductDocument> implements IProduct {
   private readonly ProductModel: Model<T>
 
   constructor(model: Model<T>) {
@@ -35,23 +50,25 @@ export class ProductRepo<T extends ProductDocument> {
    * @param {string} productId 
    * @returns plain object
    */
-    async findProductById<T extends String>(productId: T): Promise<ProductDocument | null> {
-      const result = await this.ProductModel.findById(productId);
-      return result
-    }
+  async findProductById(productId: string): Promise<ProductDocument | null> {
+    const result = await this.ProductModel.findById(productId);
+    return result
+  }
 
   /**
    * finds product document by id
    * @param {string} productId 
    * @returns plain object
    */
-    async getSingleProduct<T>(productId: T): Promise<any> {
-      const result = await this.ProductModel.findById(productId).populate(  {
-        path: 'shopId',
-      select: '_id name logo description address owner email'});
-      return result
-    }
-  
+
+  async getSingleProduct<T>(productId: T): Promise<ProductDocument | null> {
+    const result = await this.ProductModel.findById<ProductDocument>(productId).populate<{ shopId: Partial<ShopPopulated> }>({
+      path: 'shopId',
+      select: '_id name logo description address owner email'
+    });
+    return result
+  }
+
 
   /**
     * merges and update the document
@@ -152,7 +169,7 @@ export class ProductRepo<T extends ProductDocument> {
     * fetches all the unique category 
     * @returns  promise
     */
-  async getCategory(): Promise<any> {
+  async getCategory(): Promise<Array<string>> {
     const result = await this.ProductModel.distinct('category')
     return result
   }
@@ -162,8 +179,8 @@ export class ProductRepo<T extends ProductDocument> {
     * fetches all the unique Brands names 
     * @returns {number} promise
     */
-  async getBrandNames(): Promise<any> {
-    const result = await this.ProductModel.distinct('brand')
+  async getBrandNames(): Promise<Array<string>> {
+    const result: Array<string> = await this.ProductModel.distinct('brand')
     return result
   }
 
@@ -172,7 +189,7 @@ export class ProductRepo<T extends ProductDocument> {
     * fetches all the unique colors 
     * @returns promise
     */
-  async getColors(): Promise<any> {
+  async getColors(): Promise<Array<string>> {
     const result = (await this.ProductModel.distinct('color')).toSorted((a, b) => a - b)
     return result
   }
@@ -181,7 +198,7 @@ export class ProductRepo<T extends ProductDocument> {
     * Calculates color counts 
     * @returns promise
     */
-  async getColorCount(category: string): Promise<any> {
+  async getColorCount(category: string): Promise<Array<ColorCount>> {
     const result = this.ProductModel.aggregate([
       {
         $match: { "category": category, }
@@ -209,7 +226,7 @@ export class ProductRepo<T extends ProductDocument> {
   * Calculates brand counts 
   * @returns promise
   */
-  async getBrandCount(category: string): Promise<any> {
+  async getBrandCount(category: string): Promise<Array<BrandCount>> {
     const result = this.ProductModel.aggregate([
       {
         $match: { "category": category, }
@@ -233,7 +250,24 @@ export class ProductRepo<T extends ProductDocument> {
     return result
   }
 
-
+  async getUniqueProductNames(): Promise<Array<ProductNameCount>> {
+    let result: Array<ProductNameCount> = await this.ProductModel.aggregate([
+      {
+        $group: {
+          _id: "$name",
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          name: "$_id",
+          count: 1
+        }
+      }
+    ]);
+    return result
+  }
 
 
 }

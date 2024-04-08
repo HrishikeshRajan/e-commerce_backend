@@ -1,14 +1,32 @@
-import { type IReview, type ITEM, type Product } from './product.interface'
+import { Query as MQuery } from 'mongoose';
+import { BrandCount, ColorCount, DeleteResult, ProductCore, ProductDocument, ProductNameCount, type IReview, type ITEM, type Product } from './product.interface'
 import { Query,  ParamsDictionary } from 'express-serve-static-core';
+
+/**
+ * Defines a common interface that is utilized by both the ProductRepository
+ *  and ProductService classes.
+ */
 export interface IProduct {
-  createProduct: (product: Product) => Promise<any>
-  deleteProduct: (productId: string) => Promise<string | undefined>
-  editProduct: (productData: Product) => Promise<string | undefined>
-  findProductById: (productId: string) => Promise<Product | null>
-  addReview: (data: IReview, productId: string, userId: string) => Promise<void>
-  deleteReview: (productId: string, userId: string) => Promise<void>
-  editReview: (data: IReview, productId: string, userId: string) => Promise<void>
-  reduceStock: (products: ITEM[]) => Promise<void>
+  create: <T>(product: T) => Promise<ProductDocument>;
+  getProductById: <T extends String>(productId: T, userId: T) => Promise<ProductDocument | null>;
+  findProductById: (productId: string) => Promise<ProductDocument | null>;
+  getSingleProduct: <T>(productId: T) => Promise<ProductDocument | null> ;
+  updateProduct: <T extends ProductDocument, P extends ProductCore>(product: T, body: P) => Promise<ProductDocument>;
+  deleteProductById: <T extends String>(productId: T, userId: T) => Promise<any | null>;
+  queryProductsBySellerId: <T extends String>(userId: T) => MQuery<ProductDocument[] | null, ProductDocument, {}, ProductDocument>;
+  queryProductsByShopId: <T, D extends String>(shopId: D, userId: T) => MQuery<ProductDocument[] | null, ProductDocument, {}, ProductDocument>;
+  countTotalProductsBySellerId: <T extends String>(userId: T) => Promise<number>;
+  countTotalProductsByShopId : <T, D extends String>(userId: T, shopId: D) => Promise<number>;
+  countTotalProductsByCategory: <T>(category: T) => Promise<number>;
+  countTotalProductsByQuery: (query: any) => Promise<number> ;
+  deleteProductsByIds: <I>(productsIds: I[]) => Promise<DeleteResult>;
+  getCategory: () => Promise<Array<string>> ;
+  getBrandNames: () => Promise<Array<string>>;
+  getColors: () => Promise<Array<string>>;
+  getColorCount: (category: string) => Promise<Array<ColorCount>>;
+  getBrandCount: (category: string) => Promise<Array<BrandCount>>;
+  getUniqueProductNames: () => Promise<Array<ProductNameCount>>;
+  
 }
 
 export interface GenericRequestWithQuery<P extends ParamsDictionary,Q extends Query,B,L> extends Express.Request {

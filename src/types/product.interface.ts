@@ -12,14 +12,22 @@ interface Image {
   url: string
   secure_url: string
 }
-
+export type ShopPopulated = {
+  _id: string;
+  name: string;
+  logo: string;
+  description: string;
+  address: string;
+  owner: string;
+  email: string;
+};
 export interface DeleteResult {
-  n?: number; 
+  n?: number;
   ok?: number;
   deletedCount: number;
 }
 export interface ProductCore {
-  _id:Types.ObjectId
+  _id: Types.ObjectId
   name: string
   price: number
   currencyCode: currencyCode
@@ -31,7 +39,7 @@ export interface ProductCore {
   ratings: number
   numberOfReviews: number
   sellerId: Types.ObjectId
-  shopId: Types.ObjectId
+  shopId: Types.ObjectId | Partial<ShopPopulated>
   reviews: Types.DocumentArray<Review>
   sizes: Types.Array<string>
   color: string
@@ -40,7 +48,7 @@ export interface ProductCore {
   keywords: Types.Array<string>
   updatedAt: Date
   createdAt: Date
-  stock:number
+  stock: number
 }
 
 
@@ -77,7 +85,7 @@ export interface UploadedFile {
   size: number
 }
 export interface Review {
-  _id:Types.ObjectId
+  _id: Types.ObjectId
   title: string
   description: string
   star: number
@@ -106,3 +114,26 @@ export interface CART_ITEM {
   total: number
 
 };
+
+
+/**
+ * Latest Types
+ */
+
+export interface BrandCount {
+  _id: {
+    brand: string;
+  };
+  count: number;
+}
+export interface ColorCount {
+  _id: {
+    color: string;
+  };
+  count: number;
+}
+
+export interface ProductNameCount {
+  name: string
+  count: number;
+}
