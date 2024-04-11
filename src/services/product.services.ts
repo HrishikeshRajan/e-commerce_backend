@@ -1,3 +1,4 @@
+import { FilterQuery } from 'mongoose';
 import { type IProduct } from '../types/IProduct.interface'
 import { ProductCore, ProductDocument, type IReview, type ITEM, type Product } from '../types/product.interface'
 
@@ -78,13 +79,13 @@ import { ProductCore, ProductDocument, type IReview, type ITEM, type Product } f
     }
   
     // Get product brand names
-    async getBrandNames(repository: IProduct) {
-      return await repository.getBrandNames();
+    async getBrandNames(repository: IProduct,query:FilterQuery<{category:string}>) {
+      return await repository.getBrandNames(query);
     }
   
     // Get product colors
-    async getColors(repository: IProduct) {
-      return await repository.getColors();
+    async getColors(repository: IProduct, query:FilterQuery<{category:string}>) {
+      return await repository.getColors(query);
     }
   
     // Get color count

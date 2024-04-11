@@ -35,7 +35,7 @@ router.route('/seller/product/:id').get(isLoggedIn,Role(ROLES.SELLER) ,product.g
 //API ACCESS: user
 router.route('/list').get(product.queryProducts)
 router.route('/categories').get(product.getCategories)
-router.route('/filter_menu').get(product.getFilterOptions)
+router.route('/filter').get(product.getFilterOptions)
 
 router.route('/search').get(product.searchProducts)
 

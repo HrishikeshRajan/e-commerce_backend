@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { type Model, type Query } from 'mongoose'
+import { FilterQuery, type Model, type Query } from 'mongoose'
 import {
   type ProductDocument,
   type ProductCore,
@@ -179,8 +179,8 @@ export class ProductRepo<T extends ProductDocument> implements IProduct {
     * fetches all the unique Brands names 
     * @returns {number} promise
     */
-  async getBrandNames(): Promise<Array<string>> {
-    const result: Array<string> = await this.ProductModel.distinct('brand')
+  async getBrandNames(query:FilterQuery<{category:string}>): Promise<Array<string>> {
+    const result: Array<string> = await this.ProductModel.distinct('brand',query || {})
     return result
   }
 
@@ -189,8 +189,8 @@ export class ProductRepo<T extends ProductDocument> implements IProduct {
     * fetches all the unique colors 
     * @returns promise
     */
-  async getColors(): Promise<Array<string>> {
-    const result = (await this.ProductModel.distinct('color')).toSorted((a, b) => a - b)
+  async getColors(query:FilterQuery<{category:string}>): Promise<Array<string>> {
+    const result = await this.ProductModel.distinct('color',query || {})
     return result
   }
 

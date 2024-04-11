@@ -19,7 +19,7 @@ import ProductModel from '@models/productModel'
 
 //utils
 import { StatusCodes } from 'http-status-codes'
-import { isEmpty, merge } from 'lodash'
+import { isEmpty, merge, uniqueId, values } from 'lodash'
 import { productFilter } from '@utils/product.helper'
 import CustomError from '@utils/CustomError'
 import SearchEngine from '@utils/SearchEngine'
@@ -29,8 +29,9 @@ import { ProductIdsSchemaType, ProductSchemaType } from 'types/zod/product.schem
 import { getSortValue } from '@utils/getSortValue'
 import PromoModel from '@models/promoModel'
 import FlashSale from '@models/flashSale.model'
-import { Types } from 'mongoose'
+import { FilterQuery, Types } from 'mongoose'
 import ProductServices from '@services/product.services'
+import { getFromCache, setToCache } from '@utils/Cache'
 
 
 
@@ -219,15 +220,15 @@ export const singleProduct = async (
     const flashsale = await FlashSale.findOne({
       product: req.params.id,
       endTime: { $gt: currentDate },
-      status:'Active'
+      status: 'Active'
     })
 
-      const promos = await PromoModel.find({
-        'tags.products': new Types.ObjectId(req.params.id),
-        method:'COUPON',
-        endTime: { $gt: currentDate },
-        startTime: { $lt: currentDate }
-      })
+    const promos = await PromoModel.find({
+      'tags.products': new Types.ObjectId(req.params.id),
+      method: 'COUPON',
+      endTime: { $gt: currentDate },
+      startTime: { $lt: currentDate }
+    })
 
 
 
@@ -436,11 +437,7 @@ export const queryProductsByShopId = async (
 
 /**
  * API ACCESS: seller
- * Query the products
- * @param GenericRequest 
- * @param res 
- * @param next 
- * @returns void
+ * Query the products based on category
  */
 export const queryProducts = async (
   req: GenericRequestWithQuery<{}, { [key: string]: string | undefined }, {}, Token>,
@@ -450,10 +447,8 @@ export const queryProducts = async (
   try {
 
     const productRepo = new ProductRepo<ProductDocument>(ProductModel)
-    if (req.query.category) {
-   
+    const productServices = new ProductServices()
 
-    }
     if (!req.query.page) {
       req.query.page = '1'
     }
@@ -470,10 +465,8 @@ export const queryProducts = async (
     copyQueryString = copyQueryString.replace(/\b(lt|lte|gt|gte)\b/g, ((val) => `$${val}`))
     const queryObject = JSON.parse(copyQueryString)
 
-    const totalAvailableProducts = await productRepo.countTotalProductsByQuery(queryObject)
-    // const brandsCountQuery = productRepo.getBrandCount(req.query?.category )
-    // const colorsCountQuery = productRepo.getColorCount(req.query?.category)
-
+    const totalAvailableProducts = await productServices.countTotalProductsByQuery(productRepo, queryObject)
+ 
     const searchEngine = new SearchEngine<ProductDocument, ProductQuery>(ProductModel, query).search().filter().sort().pager(resultPerPage, totalAvailableProducts)
     if (typeof searchEngine === 'number') {
       const response: IResponse = {
@@ -495,7 +488,7 @@ export const queryProducts = async (
     const totalPages = Math.ceil(totalAvailableProducts / resultPerPage)
     const response: IResponse = {
       res,
-      message: { products: products, brandsCount:0, page: req.query.page, totalPages, itemsShowing: products?.length, totalItems: totalAvailableProducts },
+      message: { products: products, brandsCount: [], page: req.query.page, totalPages, itemsShowing: products?.length, totalItems: totalAvailableProducts },
       statusCode: StatusCodes.OK,
       success: true
     }
@@ -508,7 +501,7 @@ export const queryProducts = async (
 
 /**
  * API ACCESS: User
- * Query the products
+ * Send category strings
  * @param GenericRequest 
  * @param res 
  * @param next 
@@ -521,11 +514,96 @@ export const getCategories = async (
 ): Promise<void> => {
   try {
     const productRepo = new ProductRepo<ProductDocument>(ProductModel)
-    // const totalAvailableProducts = await productRepo.countTotalProductsBySellerId<string>(req.user.id)
-    const categories = await productRepo.getCategory()
+    const productService = new ProductServices()
+
+    const cachedData = getFromCache('category')
+    //Early return
+    if (cachedData) {
+      const response: IResponse = {
+        res,
+        message: { categories: cachedData },
+        statusCode: StatusCodes.OK,
+        success: true
+      }
+      return sendHTTPResponse(response)
+    }
+    const categories = await productService.getCategory(productRepo)
+    setToCache('category', categories, 300)
     const response: IResponse = {
       res,
       message: { categories },
+      statusCode: StatusCodes.OK,
+      success: true
+    }
+    sendHTTPResponse(response)
+  } catch (error) {
+    const errorObj = error as CustomError
+    next(new CustomError(errorObj.message, errorObj.code, false))
+  }
+}
+
+/**
+ * API ACCESS: User
+ * Send filter options
+ * @param GenericRequest 
+ * @param res 
+ * @param next 
+ * @returns void
+ */
+export const getFilterOptions = async (
+  req: GenericRequestWithQuery<{}, { category: string }, {}, {}>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const productRepo = new ProductRepo<ProductDocument>(ProductModel)
+    const productService = new ProductServices()
+
+
+
+    const query = req.query as FilterQuery<{ category: string }>
+
+    const brands = await productService.getBrandNames(productRepo, query)
+    const updateWithBrandState = brands.map((val, index) => ({
+      id: index + 1,
+      name: val,
+      checked: false,
+    }));
+
+    const colors = await productService.getColors(productRepo, query)
+    const updateWithColorState = colors.map((val, index) => ({
+      id: index + 1,
+      name: val,
+      checked: false,
+    }));
+
+
+     type FilterValues = { name: string, id: number, checked: boolean };
+     type FilterBoxItem = {
+      id: string;
+      title: string;
+      values: Array<FilterValues>
+      key: string
+    };
+
+    const optionsKey = [{title:'brands', key:'brand', values:updateWithBrandState},{title:'colors',key:'color', values:updateWithColorState}]
+     const responseData:Array<FilterBoxItem> = []
+
+     
+      for(let op of optionsKey){
+        const option:FilterBoxItem = {
+          id: uniqueId('cat'),
+          title: op.title,
+          values: op.values ,
+          key: op.key
+        }
+        responseData.push(option)
+      }
+
+
+    const response: IResponse = {
+      res,
+      message: { filters: responseData },
       statusCode: StatusCodes.OK,
       success: true
     }
@@ -537,37 +615,8 @@ export const getCategories = async (
 }
 
 /**
- * API ACCESS: User
- * Query the products
- * @param GenericRequest 
- * @param res 
- * @param next 
- * @returns void
+ * handles a general search on products
  */
-export const getFilterOptions = async (
-  req: GenericRequestWithQuery<{}, { [key: string]: string | undefined }, {}, Token>,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    const productRepo = new ProductRepo<ProductDocument>(ProductModel)
-    const brands = await productRepo.getBrandNames()
-    const colors = await productRepo.getColors()
-
-    const response: IResponse = {
-      res,
-      message: { filter: { brands, colors } },
-      statusCode: StatusCodes.OK,
-      success: true
-    }
-    sendHTTPResponse(response)
-  } catch (error: any) {
-    const errorObj = error as CustomError
-    next(new CustomError(errorObj.message, errorObj.code, false))
-  }
-}
-
-
 export const searchProducts = async (
   req: GenericRequestWithQuery<{}, { [key: string]: string | undefined }, {}, Token>,
   res: Response,
@@ -596,7 +645,7 @@ export const searchProducts = async (
     const totalAvailableProducts = await productRepo.countTotalProductsByQuery(queryObject)
 
     const searchEngine = new SearchEngine<ProductDocument, ProductQuery>(ProductModel, query).search().filter().sort().pager(resultPerPage, totalAvailableProducts)
-    
+
     if (typeof searchEngine === 'number') {
       const response: IResponse = {
         res,
@@ -613,11 +662,11 @@ export const searchProducts = async (
     if (isEmpty(products)) {
       const response: IResponse = {
         res,
-        message: { products:[], page: req.query.page, totalPages : 0, itemsShowing: products?.length, totalItems: totalAvailableProducts },
+        message: { products: [], page: req.query.page, totalPages: 0, itemsShowing: products?.length, totalItems: totalAvailableProducts },
         statusCode: StatusCodes.OK,
         success: false
       }
-     return sendHTTPResponse(response)
+      return sendHTTPResponse(response)
     }
     const totalPages = Math.ceil(totalAvailableProducts / resultPerPage)
     const response: IResponse = {

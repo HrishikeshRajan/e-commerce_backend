@@ -44,7 +44,6 @@ export const getSearchSuggestions = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-
     const productRepo = new ProductRepo(ProductModel)
     const productService = new ProductServices()
     let items = await getItems(productRepo, productService)

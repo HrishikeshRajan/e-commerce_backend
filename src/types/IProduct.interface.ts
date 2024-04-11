@@ -1,4 +1,4 @@
-import { Query as MQuery } from 'mongoose';
+import { FilterQuery, Query as MQuery } from 'mongoose';
 import { BrandCount, ColorCount, DeleteResult, ProductCore, ProductDocument, ProductNameCount, type IReview, type ITEM, type Product } from './product.interface'
 import { Query,  ParamsDictionary } from 'express-serve-static-core';
 
@@ -21,8 +21,8 @@ export interface IProduct {
   countTotalProductsByQuery: (query: any) => Promise<number> ;
   deleteProductsByIds: <I>(productsIds: I[]) => Promise<DeleteResult>;
   getCategory: () => Promise<Array<string>> ;
-  getBrandNames: () => Promise<Array<string>>;
-  getColors: () => Promise<Array<string>>;
+  getBrandNames: (query:FilterQuery<{category:string}>) => Promise<Array<string>>;
+  getColors: (query:FilterQuery<{category:string}>) => Promise<Array<string>>;
   getColorCount: (category: string) => Promise<Array<ColorCount>>;
   getBrandCount: (category: string) => Promise<Array<BrandCount>>;
   getUniqueProductNames: () => Promise<Array<ProductNameCount>>;
