@@ -8,6 +8,7 @@ import { UploadApiResponse, UploadApiOptions } from "cloudinary"
 import { Request, Response, NextFunction } from "express"
 import { StatusCodes } from "http-status-codes"
 import { merge } from "lodash"
+import { STATES } from "mongoose"
 import { Method, Status } from "types/CouponManagement"
 import { IResponse } from "types/IResponse.interfaces"
 const handleImageUpload = async (req: Request): Promise<UploadApiResponse> => {
@@ -32,12 +33,12 @@ export const create = async (
         const secure_url = await handleImageUpload(req)
         const url = (await secure_url).secure_url
 
-        req.body.status = req.body.status
+        req.body.status = String(req.body.status).toUpperCase()
         merge(req.body, { banner: { secure_url: url } })
 
         merge(req.body, { tags: JSON.parse(req.body.tags) })
-        merge(req.body,{startTime : new Date(req.body.startTime)})
-        merge(req.body,{endTime : new Date(req.body.endTime)})
+        merge(req.body, { startTime: new Date(req.body.startTime) })
+        merge(req.body, { endTime: new Date(req.body.endTime) })
 
         const result = await PromoModel.create(req.body)
 
@@ -96,7 +97,7 @@ export const getAllPromos = async (
     Promise<void> => {
     try {
 
-        const result = await PromoModel.find({status: 'ACTIVE'})
+        const result = await PromoModel.find({ status: 'ACTIVE' })
 
         const response: IResponse = {
             message: { promos: result, totalPages: result.length },
@@ -122,11 +123,11 @@ export const updatePromoStatus = async (
 
         const promo = await PromoModel.findById(req.query.promoId)
         if (!promo) throw new Error('No promo found')
-        promo.status = String(req.query.status) ?? 'Pending'
+        promo.status = String(req.query.status).toUpperCase() ?? Status.PENDING
         promo?.modifiedPaths()
-      const s =  await promo.save()
+        const result = (await promo.save()).toObject()
         const response: IResponse = {
-            message: {s },
+            message: { promo: {status:result.status, promoId:result._id} },
             success: true,
             statusCode: StatusCodes.OK,
             res
