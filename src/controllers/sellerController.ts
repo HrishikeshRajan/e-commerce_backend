@@ -3,7 +3,8 @@ import { type NextFunction, type Response } from "express"
 import userService from '@services/user.services'
 import { sendHTTPResponse } from "@services/response.services"
 import UserRepository from "@repositories/user.repository"
-import ShopRepository from "@repositories/shop.repository"
+import SellerRepository from "@repositories/seller.repository"
+import SellerServices from "@services/SellerSerivces"
 import shopModel, { ShopCore, ShopDocument } from "@models/shopModel"
 import { shopFilter } from "@utils/shop.helper"
 import { userFilter } from "@utils/user.helper"
@@ -27,6 +28,8 @@ import { ProductRepo } from "@repositories/product.repository"
 import { ProductDocument } from "types/product.interface"
 import productModel from "@models/productModel"
 import { ShopsIds } from "types/zod/shop.schemaTypes"
+import UserServices from "@services/user.services"
+
 
 /**
  * Update the user document seller property 
@@ -41,18 +44,17 @@ export const update = async (
     next: NextFunction): Promise<void> => {
     try {
         const userRepo = new UserRepository()
-        // const service = new userService()
+        const userService = new UserServices()
         if (!req.user) {
             return next(new CustomError('user property not found in req object ', StatusCodes.NOT_FOUND, false));
         }
-        const updatedUser = await userRepo.setSeller(req.user.id)
+        const updatedUser = await userService.setSeller(userRepo, req.user.id)
         if (!updatedUser) {
             return next(new CustomError('User not found in database', StatusCodes.NOT_FOUND, false));
         }
         sendHTTPResponse({ res, message: { message: userFilter(updatedUser) }, statusCode: StatusCodes.OK, success: true })
 
     } catch (error) {
-        console.log(error)
         const errorObj = error as CustomError;
         next(new CustomError(errorObj.message, errorObj.code, false))
     }
@@ -89,7 +91,8 @@ export const createShop = async (
             secure_url: imageUrls.secure_url,
             url: imageUrls.url
         }
-        const shop = new ShopRepository(shopModel)
+        const sellerRepo = new SellerRepository(shopModel)
+        const sellerService = new SellerServices()
 
         if (!req.user) {
             return next(new CustomError('user property not found in req object ', StatusCodes.NOT_FOUND, false));
@@ -97,7 +100,7 @@ export const createShop = async (
 
         merge(req.body, { owner: req.user?.id }, { logo: logoUrls })
 
-        const isShop = await shop.create<ShopDocument>(req.body)
+        const isShop = await sellerService.create(sellerRepo, req.body)
 
         sendHTTPResponse({ res, message: { message: isShop }, statusCode: StatusCodes.OK, success: true })
 
@@ -123,8 +126,9 @@ export const deleteShop = async (
             return next(new CustomError('shop object is not present in req object', StatusCodes.INTERNAL_SERVER_ERROR, false))
 
         }
-        const shop = new ShopRepository(shopModel)
-        const isDeleted = await shop.delete<Types.ObjectId>(req.shop._id)
+        const sellerRepo = new SellerRepository(shopModel)
+        const sellerService = new SellerServices()
+        const isDeleted = await sellerService.delete(sellerRepo, req.shop._id)
 
         if (isEmpty(isDeleted) || !isDeleted) {
             return next(new CustomError('Delete method returns null', StatusCodes.INTERNAL_SERVER_ERROR, false))
@@ -150,9 +154,9 @@ export const deleteShops = async (
     next: NextFunction) => {
     try {
 
-
-        const shop = new ShopRepository(shopModel)
-        const isShopsDeleted = await shop.deleteShopsByIds<string[]>(req.body.shopsIds)
+        const sellerRepo = new SellerRepository(shopModel)
+        const sellerService = new SellerServices()
+        const isShopsDeleted = await sellerService.deleteShopsByIds(sellerRepo, req.body.shopsIds)
 
         if (!isShopsDeleted.deletedCount) {
             return next(new CustomError('No product found that owned by your seller id', StatusCodes.INTERNAL_SERVER_ERROR, false))
@@ -181,8 +185,10 @@ export const listMyShops = async (
         //     return next(new CustomError('Please select the owner', StatusCodes.BAD_REQUEST, false))
         // }
 
-        const shop = new ShopRepository(shopModel)
-        const totalAvailableShops = await shop.countTotalShopsBySellerId<string>(req.user?.id!)
+        const sellerRepo = new SellerRepository(shopModel)
+        const sellerService = new SellerServices()
+
+        const totalAvailableShops = await sellerService.countTotalShopsBySellerId(sellerRepo, req.user?.id!)
         const productRepo = new ProductRepo<ProductDocument>(productModel)
 
         const query = { owner: req.user?.id}
@@ -228,11 +234,6 @@ export const getShopById = async (
     res: Response<IResponse>,
     next: NextFunction) => {
     try {
-        // const shop = new ShopRepository(shopModel)
-        // const shopDocuments = await shop.findById<string>(req.params?.id as string)
-        // if (!shopDocuments) {
-        //     return next(new CustomError('Now shop not found for given userid', StatusCodes.NOT_FOUND, false))
-        // }
         sendHTTPResponse({ res, message: { shop: get(req, 'shop') }, statusCode: StatusCodes.OK, success: true })
 
     } catch (error) {
@@ -277,8 +278,10 @@ export const editShop = async (
             merge(req.body, { logo: logoUrls })
         }
 
-        const shop = new ShopRepository(shopModel)
-        const shopDocument = await shop.editById<Types.ObjectId, ShopCore>(req.shop?._id, req.body)
+        const sellerRepo = new SellerRepository(shopModel)
+        const sellerService = new SellerServices()
+
+        const shopDocument = await sellerService.editById(sellerRepo, req.shop?._id, req.body)
         if (!shopDocument) {
             return next(new CustomError('Shop not found by give shopId', StatusCodes.NOT_FOUND, false))
         }
@@ -337,9 +340,11 @@ export const injectShop = async (
     next: NextFunction,
     id: string): Promise<void> => {
 
-    const shopRepo = new ShopRepository(shopModel)
+
+    const sellerRepo = new SellerRepository(shopModel)
+    const sellerService = new SellerServices()
     //mongoose shop document
-    const shopDocument = await shopRepo.findById<string>(id);
+    const shopDocument = await sellerService.findById(sellerRepo, id);
     if (!shopDocument) {
         return next(new CustomError('Shop not found', StatusCodes.NOT_FOUND, false))
     }

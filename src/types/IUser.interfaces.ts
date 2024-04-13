@@ -87,7 +87,7 @@ export interface IUserRepository {
   findAllUsers: () => Promise<Query<UserWithId[] | null, UserWithId>>
   deleteUser: (key: FilterQuery<UserParam>) => Promise<UserWithId>
   addAddress: (address: IAddress, userId: FilterQuery<string>) => Promise<Query<UserWithId | null, UserWithId>>
-
+  setSeller(userId: string): Promise<UserCore | null> 
 
   resetPassword: (email: FilterQuery<string>, password: string) => Promise<UserWithId | null>
   addForgotTokenId: (email: FilterQuery<string>) => Promise<UserWithId | null>

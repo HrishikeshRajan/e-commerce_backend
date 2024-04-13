@@ -122,6 +122,9 @@ class UserServices {
   async getForgotPasswordToken(userRepoObject: IUserRepository, id: string): Promise<any> {
     await userRepoObject.getForgotPasswordToken(id)
   }
+  async setSeller(userRepoObject:IUserRepository, userId:string){
+    return userRepoObject.setSeller(userId)
+  }
 }
 
 export default UserServices
