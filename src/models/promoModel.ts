@@ -17,6 +17,7 @@ const PromoSchema: Schema<PromoDocument> = new Schema({
     maxUsage: { type: Number, required: true },
     usedBy: [{
         userId:{type: Types.ObjectId, ref: 'User'},
+        products:[String],
         count: { type: Number }
     }],
     discountAmount: { type: Number },

@@ -24,7 +24,7 @@ export const enum Method {
         code: string
         discountPercentage?: number
         maxUsage: Number
-        usedBy: [{ userId: string, count: number }]
+        usedBy: [{ userId: string, count: number, products:string[] }]
         discountAmount?: number
         minAmountInCart: number
         tags: {

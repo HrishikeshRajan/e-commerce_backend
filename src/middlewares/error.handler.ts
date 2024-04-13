@@ -23,7 +23,8 @@ export const errorHandlerV2 = (err: unknown, req: Request, res: Response, next: 
   if (err instanceof Error) {
     return sendHTTPErrorResponse({ res, error: err.message || 'Server Internal Error', statusCode: 500, success: false })
   }
-
+  return sendHTTPErrorResponse({ res, error: 'Server Internal Error', statusCode: 500, success: false })
+  
 }
 
 export const productionErrorHandler = (err: any, req: Request, res: Response, next: NextFunction): void => {

@@ -32,6 +32,7 @@ import FlashSale from '@models/flashSale.model'
 import { FilterQuery, Types } from 'mongoose'
 import ProductServices from '@services/product.services'
 import { getFromCache, setToCache } from '@utils/Cache'
+import { Status } from 'types/CouponManagement'
 
 
 
@@ -226,8 +227,7 @@ export const singleProduct = async (
     const promos = await PromoModel.find({
       'tags.products': new Types.ObjectId(req.params.id),
       method: 'COUPON',
-      endTime: { $gt: currentDate },
-      startTime: { $lt: currentDate }
+      'status': Status.ACTIVE
     })
 
 
