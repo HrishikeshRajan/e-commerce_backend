@@ -10,7 +10,7 @@
   },
   "scripts": {
     "clean": "rimraf dist",
-    "build": "tsc",
+    "build": "tsc", 
     "start": "TS_NODE_BASEURL=./dist node -r tsconfig-paths/register dist/app.js",
     "dev": " nodemon --watch \"src/**\" --ext \"ts,json\" --inspect=0.0.0.0 --exec \"ts-node  src/app.ts\" ",
     "test": "jest --watch  --detectOpenHandles",

@@ -91,9 +91,9 @@ export const createDatabaseConnection = async (url: string): Promise<void> => {
 /* 
   Here we handle production error
 */
-if(process.env.NODE_ENV === 'production'){
-  app.use(productionErrorHandler)
-}
+// if(process.env.NODE_ENV === 'production'){
+//   app.use(errorHandlerV2)
+// }
 
 // app.use(errorHandler)
 app.use(errorHandlerV2)
