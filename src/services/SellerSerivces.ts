@@ -8,8 +8,8 @@ import { ISeller } from "types/ISeller.interface";
 class SellerServices {
 
 
-    create(repo: ISeller, shop: ShopCore) {
-        return repo.create(shop);
+    createShop(repo: ISeller, shop: ShopCore) {
+        return repo.createShop(shop);
     }
 
     delete(repo: ISeller, shopId: string) {

@@ -173,7 +173,6 @@ export const paymentIntent = async (
 
   } catch (error: unknown) {
     const errorObj = error as CustomError
-    console.log('rrror', error)
     next(new CustomError(errorObj.message, errorObj.code, false))
   }
 }
@@ -970,8 +969,11 @@ export const ListByShop = async (
     )
 
     if (!orders) return
-    const TotalPages = Math.round(totalOrders[0].totalOrders / resultPerPage) - 1
-    sendHTTPResponse({ res, message: { orders: orderArray, resultsShowing: orderArray.length, page, TotalPages }, statusCode: 200, success: true })
+    let pages = 1
+    if(totalOrders[0].totalOrders > resultPerPage ){
+      pages = Math.round(totalOrders[0].totalOrders / resultPerPage) - 1
+    }
+    sendHTTPResponse({ res, message: { orders: orderArray, resultsShowing: orderArray.length, page, totalOrders:pages }, statusCode: 200, success: true })
 
   } catch (error: unknown) {
     const errorObj = error as CustomError

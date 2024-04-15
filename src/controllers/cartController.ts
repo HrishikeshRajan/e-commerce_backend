@@ -166,7 +166,7 @@ export function getFixedDiscountAmount(promo: OfferParams) {
     return -1;
 }
 export function computeDiscountAmount(originalPrice: number, amountToDiscount: number) {
-    return currency(originalPrice).subtract(amountToDiscount).value;
+    return Math.round(currency(originalPrice).subtract(amountToDiscount).value);
 }
 export function computeTax(totalPriceBeforeTax: number, gstInPercentage: number) {
     const tax = currency(totalPriceBeforeTax).multiply(gstInPercentage).divide(100);
@@ -200,6 +200,7 @@ const isFlashsale = (offer: OfferParams): offer is FlashSaleDocument => {
 export function calculatePercentageDiscount(cartItem: CartItemCore, promo: OfferParams, gstInPercentage: number): Percentage | null {
     if (promo.type === 'PERCENTAGE') {
         if (isFlashsale(promo)) {
+            console.log(promo)
             const savings = computeAmountToDeduct(cartItem, promo);
             const promoObject: Omit<Percentage, 'promoCode'> = {
                 type: promo.type,
@@ -507,7 +508,7 @@ export const add = async (
         merge(mycart, { cartId })
 
         // console.log('k')
-        sendHTTPResponse({ res, message: { mycart }, statusCode: StatusCodes.CREATED, success: true })
+        sendHTTPResponse({ res, message: {ids: { cartId:cartId, userId:req.user.id }}, statusCode: StatusCodes.CREATED, success: true })
     } catch (error: unknown) {
         const errorObj = error as CustomError
         next(new CustomError(errorObj.message, errorObj.code, false))

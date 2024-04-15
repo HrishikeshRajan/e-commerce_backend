@@ -38,15 +38,12 @@ export const create = async (
     Promise<void> => {
     try {
 
-        console.log(req.body)
-        // const secure_url = await handleImageUpload(req)
-        // const url = (await secure_url).secure_url
-        // console.log(url)
+        const secure_url = await handleImageUpload(req)
+        const url = (await secure_url).secure_url
         logger.info(`Flash sale create controller initiated. user: ${req.user.id}`);
 
-        // const secure_url = await handleImageUpload(req)
-        // req.body.banner.secure_url = (await secure_url).secure_url
-        merge(req.body, { banner: { secure_url: 'https://res.cloudinary.com/dxv2tmvfw/image/upload/v1710495002/offers/s0zqyfnstdyeeaojhelq.png' } })
+
+        merge(req.body, { banner: { secure_url: url } })
         merge(req.body, { users: { maxUsersCount: 10 } })
 
         const product = await productModel.findById(req.body.product, '_id price stock')
@@ -60,18 +57,6 @@ export const create = async (
 
         req.body.currentStock = req.body.totalQuantityToSell
 
-        // if(req.body.type === 'PERCENTAGE'){
-
-        // }
-        // if(req.body.type === 'FLAT') {}
-
-        //     const savings = (product.price / 100) * req.body.discountPercentage
-        //     const gstInPercentage = 12
-        //     const tax = currency(product.price).multiply(gstInPercentage).divide(100)
-        //     const priceAfterDiscount = currency(product.price).subtract(savings).add(tax.value).value
-        //     const discounted = { priceAfterDiscount }
-        //     merge(req.body, discounted)
-        //   console.log(req.body)
 
         const flashsale = await FlashSale.create(req.body)
 

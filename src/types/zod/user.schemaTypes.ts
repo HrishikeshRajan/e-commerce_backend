@@ -72,7 +72,7 @@ export const AddresSchema = z.object({
   homeAddress: z.string().min(3),
   state: z.string().min(2),
   postalCode: z.number(),
-  phoneNo: z.number().min(1),
+  phoneNo: z.string().min(1),
   country: z.string()
 })
 
@@ -112,10 +112,10 @@ export const AddressSchemaWithAddressId = z.object({
   phoneNo: z.string({
     invalid_type_error: 'Phone number must be a string'
   }).refine((phoneNo) => {
-    if (phoneNo.length > 0) {
-      return /^[6-9]\d{9}$/.test(phoneNo)
+    if (/^[6-9]\d{9}$/.test(phoneNo)) {
+      return true
     }
-    return true
+    return false
   }, { message: 'Please provide a valid mobile number' })
     .optional(),
   country: z.enum(Countries).optional()

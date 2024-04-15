@@ -1010,12 +1010,12 @@ export const isUserLoggedInStatus = async (
 
 
     if (!req.cookies.token) {
-      return next(new CustomError('User not found', StatusCodes.BAD_REQUEST, false));
+      return next(new CustomError('loggedOut', StatusCodes.UNAUTHORIZED, false));
     }
 
     const response: IResponse = {
       res,
-      message: { user: 'LoggedIn' },
+      message: { user: 'loggedIn' },
       success: true,
       statusCode: StatusCodes.OK
     }

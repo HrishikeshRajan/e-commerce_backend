@@ -162,6 +162,11 @@ const cartItemSchema = new mongoose.Schema<CartItemDocument>({
       enum: ['FLAT', 'PERCENTAGE'],
     
     },
+    method: {
+      type: String,
+      enum: ['COUPON', 'VOUCHER', 'FLASHSALE', 'FREE_SHIPPING'],
+    
+    },
     originalAmount: {
       type: Number,
 

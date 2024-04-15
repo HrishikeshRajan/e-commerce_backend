@@ -99,6 +99,6 @@ router.route('/profile-picture')
 
 //Is loggedIn 
 router.route('/authStatus')
-  .get(isUserLoggedInStatus)
+  .get(isLoggedIn,isUserLoggedInStatus)
 
 export default router

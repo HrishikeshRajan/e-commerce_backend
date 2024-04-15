@@ -16,7 +16,7 @@ class SellerRepository implements ISeller {
    * @param shop - Shop data to create.
    * @returns Promise resolving to the created shop document as a plain JavaScript object.
    */
-  async create(shop: ShopCore): Promise<ShopDocument> {
+  async createShop(shop: ShopCore): Promise<ShopDocument> {
     return (await this.shop.create(shop)).toObject()
   }
 
@@ -71,9 +71,9 @@ class SellerRepository implements ISeller {
    * @param ownerId - ID of the shop owner.
    * @returns Query object for filtering shops by owner ID (may be empty if no shops found).
    */
-  findShopsByOwnerId(ownerId: string): Query<ShopDocument[] | null, ShopDocument, {}, {}> {
-    const shop = this.shop.find({ owner: ownerId })
-    return shop ?? null
+ async findShopsByOwnerId(ownerId: string): Promise<ShopDocument[] | null >  {
+    const shops = await this.shop.find({ owner: ownerId })
+    return shops
   }
 
   /**
