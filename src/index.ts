@@ -70,7 +70,7 @@ app.use(deserializeUser)
 // app.set('views', './src/views')
 // app.use(express.static(path.join(__dirname, '/src/public')))
 
-
+app.enable('trust proxy');
 // Route API
 app.use('/api/v1/users/', userRouter)
 app.use('/api/v1/product/', productRouter)
