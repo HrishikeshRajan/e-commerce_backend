@@ -144,11 +144,11 @@ export const registerUser = async (
     }
 
     // if (process.env.NODE_ENV !== 'development') {
-      logger.info(`Mail service initiated`)
-      const mail: Mail = new Mail(process.env.COURIER__TEST_KEY as string, emailFields)
-   const result =   await new EmailServices().send_mail(mail, process.env.COURIER_CONFIRMATION_TEMPLATE_ID as string)
-   console.log(result)
-   logger.info('Mail delivered to email successfully', { email });
+    logger.info(`Mail service initiated`)
+    const mail: Mail = new Mail(process.env.COURIER__TEST_KEY as string, emailFields)
+    const result = await new EmailServices().send_mail(mail, process.env.COURIER_CONFIRMATION_TEMPLATE_ID as string)
+    console.log(result)
+    logger.info('Mail delivered to email successfully', { email });
     // }
 
     logger.info('Sending success response back to user', { email });
@@ -329,12 +329,12 @@ export const loginUser = async (
         refreshToken,
         userDetails,
       },
-      statusCode:200,
+      statusCode: 200,
       cookie: {
         expires: time
       },
       success: true,
-     }
+    }
     logger.info(`Sending success response, id: ${user._id}`)
     sendHTTPWithTokenResponse(cookieConfig)
   } catch (error: unknown) {
@@ -441,7 +441,7 @@ export const forgotPassword = async (
   Promise<void> => {
   try {
     const { email, recaptchaToken } = req.body
-
+    logger.info('forgot token request initiated')
     if (process.env.NODE_ENV === 'production' && recaptchaToken) {
       logger.info('reCaptcha validation started', { email });
       const human = await checkIsHuman(recaptchaToken)
@@ -457,7 +457,11 @@ export const forgotPassword = async (
 
     const user = await userService.addForgotPasswordTokenID(userRespository, { email })
 
-    if (user == null) { next(new CustomError('Not Found', StatusCodes.NOT_FOUND, false)); return }
+    if (user == null) {
+      logger.error('User not found')
+      next(new CustomError('Not Found', StatusCodes.NOT_FOUND, false));
+      return
+    }
 
     const payload = {
       email,
@@ -467,42 +471,32 @@ export const forgotPassword = async (
       secret: process.env.JWT_SECRET as string,
       expiresIn: process.env.FORGOT_PASSWORD_LINK_EXPIRY as string
     }
-
+    logger.info('Creating jwt token')
     const jwt = new JwtRepository()
 
     const token = new JwtServices().signPayload(jwt, payload, jwtConfig.secret, jwtConfig.expiresIn)
+    logger.info('Jwt token created successfully')
 
-    // const urlConfig: LinkType = {
-    //   host: 'localhost',
-    //   port: process.env.PORT_DEV as string,
-    //   version: 'v1',
-    //   route: 'users',
-    //   path: `forgot/verify?token=${token}`
-    // }
-    // const link = clientUrl(`forgotConfirm?forgotToken=${token}`)
-    // const link = generateUrl(token, urlConfig)
     const link = `${process.env.CLIENT_URL}/api/v1/users/forgot/verify?token=${token}`
     const emailFields: IEmailFields = {
       EmailAddress: user.email,
       FirstName: user.username,
       ConfirmationLink: link
     }
-
-    // if (process.env.NODE_ENV === 'production') {
-      // Will uncomment in production
-      const mail: Mail = new Mail(process.env.COURIER__TEST_KEY as string, emailFields)
-
-       const fields:PasswordReset = {
-         firstName: user.fullname,
-         resetLink: link,
-         companyName: 'wondercart'
-       }
-      // Will uncomment in production
-      const RequestId = await new EmailServices().sendPasswordResetConfirmationEmail(mail, process.env.COURIER_FORGOT_PASSWORD_EMAIL_CONFIRM_TEMPLATE_ID as string,fields)
-
-    // }
+    logger.info('Forgot password email link generated')
 
 
+    const mail: Mail = new Mail(process.env.COURIER__TEST_KEY as string, emailFields)
+
+    const fields: PasswordReset = {
+      firstName: user.fullname,
+      resetLink: link,
+      companyName: 'wondercart'
+    }
+
+    const RequestId = await new EmailServices().sendPasswordResetConfirmationEmail(mail, process.env.COURIER_FORGOT_PASSWORD_EMAIL_CONFIRM_TEMPLATE_ID as string, fields)
+
+    logger.info('Forgot password email sent successfully')
     const response: IResponse = {
       res,
       message: { message: 'An email verification link has been send to your email account.' },

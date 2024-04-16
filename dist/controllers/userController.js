@@ -388,6 +388,7 @@ exports.logoutUser = logoutUser;
 const forgotPassword = async (req, res, next) => {
     try {
         const { email, recaptchaToken } = req.body;
+        Logger_1.default.info('forgot token request initiated');
         if (process.env.NODE_ENV === 'production' && recaptchaToken) {
             Logger_1.default.info('reCaptcha validation started', { email });
             const human = await checkIsHuman(recaptchaToken);
@@ -402,6 +403,7 @@ const forgotPassword = async (req, res, next) => {
         }
         const user = await userService.addForgotPasswordTokenID(userRespository, { email });
         if (user == null) {
+            Logger_1.default.error('User not found');
             next(new CustomError_1.default('Not Found', http_status_codes_1.StatusCodes.NOT_FOUND, false));
             return;
         }
@@ -413,34 +415,25 @@ const forgotPassword = async (req, res, next) => {
             secret: process.env.JWT_SECRET,
             expiresIn: process.env.FORGOT_PASSWORD_LINK_EXPIRY
         };
+        Logger_1.default.info('Creating jwt token');
         const jwt = new Jwt_utils_1.default();
         const token = new jwt_services_1.default().signPayload(jwt, payload, jwtConfig.secret, jwtConfig.expiresIn);
-        // const urlConfig: LinkType = {
-        //   host: 'localhost',
-        //   port: process.env.PORT_DEV as string,
-        //   version: 'v1',
-        //   route: 'users',
-        //   path: `forgot/verify?token=${token}`
-        // }
-        // const link = clientUrl(`forgotConfirm?forgotToken=${token}`)
-        // const link = generateUrl(token, urlConfig)
+        Logger_1.default.info('Jwt token created successfully');
         const link = `${process.env.CLIENT_URL}/api/v1/users/forgot/verify?token=${token}`;
         const emailFields = {
             EmailAddress: user.email,
             FirstName: user.username,
             ConfirmationLink: link
         };
-        // if (process.env.NODE_ENV === 'production') {
-        // Will uncomment in production
+        Logger_1.default.info('Forgot password email link generated');
         const mail = new Email_1.default(process.env.COURIER__TEST_KEY, emailFields);
         const fields = {
             firstName: user.fullname,
             resetLink: link,
             companyName: 'wondercart'
         };
-        // Will uncomment in production
         const RequestId = await new email_services_1.default().sendPasswordResetConfirmationEmail(mail, process.env.COURIER_FORGOT_PASSWORD_EMAIL_CONFIRM_TEMPLATE_ID, fields);
-        // }
+        Logger_1.default.info('Forgot password email sent successfully');
         const response = {
             res,
             message: { message: 'An email verification link has been send to your email account.' },

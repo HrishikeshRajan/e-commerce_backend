@@ -8,27 +8,25 @@ const express_1 = __importDefault(require("express"));
 const userController_1 = require("../controllers/userController");
 const auth_1 = require("../middlewares/auth");
 const image_helper_1 = require("../utils/image.helper");
-const express_rate_limit_1 = require("express-rate-limit");
 const user_schemaTypes_1 = require("../types/zod/user.schemaTypes");
 const userInputValidator_1 = require("../middlewares/userInputValidator");
-const CustomError_1 = __importDefault(require("@utils/CustomError"));
 /**
  * Limits number of requests
  */
-const limiter = (0, express_rate_limit_1.rateLimit)({
-    windowMs: 15 * 60 * 1000,
-    limit: Number(process.env.RATE_LIMIT || '5'),
-    standardHeaders: 'draft-7',
-    legacyHeaders: false,
-    statusCode: 429,
-    handler: (req, res, next, options) => {
-        next(new CustomError_1.default(options.message, options.statusCode, false));
-    }
-});
+// const limiter = rateLimit({
+//   windowMs: 15 * 60 * 1000,
+//   limit: Number(process.env.RATE_LIMIT || '5'), 
+//   standardHeaders: 'draft-7',
+//   legacyHeaders: false,
+//   statusCode: 429,
+//   handler: (req, res, next, options) => {
+//     next(new CustomError(options.message, options.statusCode, false))
+//   }
+// })
 const router = express_1.default.Router();
 // Auth API
 router.route('/register')
-    .post(auth_1.disallowLoggedInUsers, limiter, (0, userInputValidator_1.validateRequest)({ body: user_schemaTypes_1.RegisterSchema }), userController_1.registerUser);
+    .post(auth_1.disallowLoggedInUsers, (0, userInputValidator_1.validateRequest)({ body: user_schemaTypes_1.RegisterSchema }), userController_1.registerUser);
 router.route('/verify')
     .get(auth_1.disallowLoggedInUsers, (0, userInputValidator_1.validateRequest)({ query: user_schemaTypes_1.QueryWithTokenSchema }), userController_1.verifyMailLink);
 router.route('/login')
@@ -37,11 +35,11 @@ router.route('/read')
     .get(auth_1.isLoggedIn, userController_1.readUser);
 router.route('/signout').get(auth_1.isLoggedIn, userController_1.logoutUser);
 router.route('/forgot')
-    .post(limiter, auth_1.disallowLoggedInUsers, (0, userInputValidator_1.validateRequest)({ body: user_schemaTypes_1.ForgotPasswordSchema }), userController_1.forgotPassword);
+    .post(auth_1.disallowLoggedInUsers, (0, userInputValidator_1.validateRequest)({ body: user_schemaTypes_1.ForgotPasswordSchema }), userController_1.forgotPassword);
 router.route('/forgot/verify')
-    .get(limiter, auth_1.disallowLoggedInUsers, userController_1.verifyForgotPassword);
+    .get(auth_1.disallowLoggedInUsers, userController_1.verifyForgotPassword);
 router.route('/forgot/reset')
-    .put(limiter, auth_1.disallowLoggedInUsers, (0, userInputValidator_1.validateRequest)({ body: user_schemaTypes_1.ResetPasswordSchema }), userController_1.resetPassword);
+    .put(auth_1.disallowLoggedInUsers, (0, userInputValidator_1.validateRequest)({ body: user_schemaTypes_1.ResetPasswordSchema }), userController_1.resetPassword);
 router.route('/change/password')
     .put(auth_1.isLoggedIn, (0, userInputValidator_1.validateRequest)({ body: user_schemaTypes_1.ChangePasswordSchema }), userController_1.changePassword);
 router.route('/address')

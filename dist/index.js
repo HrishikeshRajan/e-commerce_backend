@@ -59,6 +59,7 @@ app.use(deserializeUser_1.default);
 // app.set('view engine', 'handlebars')
 // app.set('views', './src/views')
 // app.use(express.static(path.join(__dirname, '/src/public')))
+// app.enable('trust proxy');
 // Route API
 app.use('/api/v1/users/', userRouter_1.default);
 app.use('/api/v1/product/', productRouter_1.default);
