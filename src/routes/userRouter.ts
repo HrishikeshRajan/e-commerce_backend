@@ -30,17 +30,17 @@ import CustomError from '@utils/CustomError'
 /**
  * Limits number of requests
  */
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: Number(process.env.RATE_LIMIT || '5'), 
-  standardHeaders: 'draft-7',
-  legacyHeaders: false,
-  statusCode: 429,
-  handler: (req, res, next, options) => {
-    next(new CustomError(options.message, options.statusCode, false))
-  }
+// const limiter = rateLimit({
+//   windowMs: 15 * 60 * 1000,
+//   limit: Number(process.env.RATE_LIMIT || '5'), 
+//   standardHeaders: 'draft-7',
+//   legacyHeaders: false,
+//   statusCode: 429,
+//   handler: (req, res, next, options) => {
+//     next(new CustomError(options.message, options.statusCode, false))
+//   }
 
-})
+// })
 
 
 
@@ -48,7 +48,7 @@ const router = express.Router()
 
 // Auth API
 router.route('/register')
-  .post(disallowLoggedInUsers, limiter, validateRequest({ body: RegisterSchema }), registerUser)
+  .post(disallowLoggedInUsers, validateRequest({ body: RegisterSchema }), registerUser)
 
 router.route('/verify')
   .get(disallowLoggedInUsers, validateRequest({ query: QueryWithTokenSchema }), verifyMailLink)
@@ -62,13 +62,13 @@ router.route('/read')
 router.route('/signout').get(isLoggedIn, logoutUser)
 
 router.route('/forgot')
-  .post(limiter, disallowLoggedInUsers, validateRequest({ body: ForgotPasswordSchema }), forgotPassword)
+  .post(disallowLoggedInUsers, validateRequest({ body: ForgotPasswordSchema }), forgotPassword)
 
 router.route('/forgot/verify')
-  .get(limiter,disallowLoggedInUsers, verifyForgotPassword)
+  .get(disallowLoggedInUsers, verifyForgotPassword)
 
 router.route('/forgot/reset')
-  .put(limiter, disallowLoggedInUsers, validateRequest({ body: ResetPasswordSchema }), resetPassword)
+  .put( disallowLoggedInUsers, validateRequest({ body: ResetPasswordSchema }), resetPassword)
 
 router.route('/change/password')
   .put(isLoggedIn, validateRequest({ body: ChangePasswordSchema }), changePassword)
