@@ -26,7 +26,7 @@ export default class Mail implements IMAIL {
           FirstName: this.firstname,
           EmailAddress: this.email,
           ConfirmationLink: this.url,
-          CompanyName: 'wondercart'
+          SenderName: 'wondercart'
         },
         routing: {
           method: 'single',

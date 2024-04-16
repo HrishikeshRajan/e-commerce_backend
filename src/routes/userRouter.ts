@@ -32,7 +32,7 @@ import CustomError from '@utils/CustomError'
  */
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 3, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
+  limit: Number(process.env.RATE_LIMIT || '5'), 
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   statusCode: 429,
