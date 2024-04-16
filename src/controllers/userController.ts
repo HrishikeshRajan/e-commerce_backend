@@ -143,7 +143,7 @@ export const registerUser = async (
       ConfirmationLink: link
     }
 
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV !== 'development') {
       logger.info(`Mail service initiated`)
       const mail: Mail = new Mail(process.env.COURIER__TEST_KEY as string, emailFields)
       await new EmailServices().send_mail(mail, process.env.COURIER_CONFIRMATION_TEMPLATE_ID as string)
@@ -311,6 +311,7 @@ export const loginUser = async (
 
     const jwt = new JwtRepository()
     logger.info(`Generating access token, id: ${user._id}`)
+
     const accessToken = new JwtServices().signPayload(jwt, payload, accessOptions.secret, accessOptions.expiresIn)
     logger.info(`Generating refresh token, id: ${user._id}`)
     const refreshToken = new JwtServices().signPayload(jwt, payload, refresOptions.secret, refresOptions.expiresIn)
