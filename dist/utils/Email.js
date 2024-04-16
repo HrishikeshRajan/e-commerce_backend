@@ -14,6 +14,24 @@ class Mail {
         this.email = fields.EmailAddress;
         this.url = fields.ConfirmationLink;
     }
+    async sendPasswordResetConfirmationEmail(templateId, fields) {
+        const { requestId } = await this.courier.send({
+            message: {
+                to: {
+                    email: this.email,
+                },
+                template: templateId,
+                data: {
+                    ...fields
+                },
+                routing: {
+                    method: 'single',
+                    channels: ['email']
+                }
+            }
+        });
+        return requestId;
+    }
     async sendMail(templateId) {
         const { requestId } = await this.courier.send({
             message: {
@@ -25,7 +43,7 @@ class Mail {
                     FirstName: this.firstname,
                     EmailAddress: this.email,
                     ConfirmationLink: this.url,
-                    CompanyName: 'wondercart'
+                    SenderName: 'wondercart'
                 },
                 routing: {
                     method: 'single',

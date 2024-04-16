@@ -130,17 +130,18 @@ const registerUser = async (req, res, next) => {
             FirstName: fullname,
             ConfirmationLink: link
         };
-        if (process.env.NODE_ENV === 'production') {
-            Logger_1.default.info(`Mail service initiated`);
-            const mail = new Email_1.default(process.env.COURIER__TEST_KEY, emailFields);
-            await new email_services_1.default().send_mail(mail, process.env.COURIER_CONFIRMATION_TEMPLATE_ID);
-            Logger_1.default.info('Mail delivery to email successfull', { email });
-        }
+        // if (process.env.NODE_ENV !== 'development') {
+        Logger_1.default.info(`Mail service initiated`);
+        const mail = new Email_1.default(process.env.COURIER__TEST_KEY, emailFields);
+        const result = await new email_services_1.default().send_mail(mail, process.env.COURIER_CONFIRMATION_TEMPLATE_ID);
+        console.log(result);
+        Logger_1.default.info('Mail delivered to email successfully', { email });
+        // }
         Logger_1.default.info('Sending success response back to user', { email });
         const response = {
             res,
             message: {
-                message: 'An verification link has been sent to your email address'
+                message: 'An verification link has been sent to your email address. Please wait for 10mins if you did\'t get the mail'
             },
             success: true,
             statusCode: http_status_codes_1.StatusCodes.CREATED
@@ -423,18 +424,23 @@ const forgotPassword = async (req, res, next) => {
         // }
         // const link = clientUrl(`forgotConfirm?forgotToken=${token}`)
         // const link = generateUrl(token, urlConfig)
-        const link = `http://localhost:4000/api/v1/users/forgot/verify?token=${token}`;
+        const link = `${process.env.CLIENT_URL}/api/v1/users/forgot/verify?token=${token}`;
         const emailFields = {
             EmailAddress: user.email,
             FirstName: user.username,
             ConfirmationLink: link
         };
-        if (process.env.NODE_ENV === 'production') {
-            // Will uncomment in production
-            const mail = new Email_1.default(process.env.COURIER__TEST_KEY, emailFields);
-            // Will uncomment in production
-            const RequestId = await new email_services_1.default().send_mail(mail, 'N6Q2M0HNYY47ADP5DT5C1ECTGY4A');
-        }
+        // if (process.env.NODE_ENV === 'production') {
+        // Will uncomment in production
+        const mail = new Email_1.default(process.env.COURIER__TEST_KEY, emailFields);
+        const fields = {
+            firstName: user.fullname,
+            resetLink: link,
+            companyName: 'wondercart'
+        };
+        // Will uncomment in production
+        const RequestId = await new email_services_1.default().sendPasswordResetConfirmationEmail(mail, process.env.COURIER_FORGOT_PASSWORD_EMAIL_CONFIRM_TEMPLATE_ID, fields);
+        // }
         const response = {
             res,
             message: { message: 'An email verification link has been send to your email account.' },

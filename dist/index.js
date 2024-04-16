@@ -77,9 +77,9 @@ exports.createDatabaseConnection = createDatabaseConnection;
 /*
   Here we handle production error
 */
-if (process.env.NODE_ENV === 'production') {
-    app.use(error_handler_1.productionErrorHandler);
-}
+// if(process.env.NODE_ENV === 'production'){
+//   app.use(errorHandlerV2)
+// }
 // app.use(errorHandler)
 app.use(error_handler_1.errorHandlerV2);
 exports.default = app;

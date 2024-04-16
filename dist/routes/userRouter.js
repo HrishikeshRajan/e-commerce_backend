@@ -17,7 +17,7 @@ const CustomError_1 = __importDefault(require("@utils/CustomError"));
  */
 const limiter = (0, express_rate_limit_1.rateLimit)({
     windowMs: 15 * 60 * 1000,
-    limit: 3,
+    limit: Number(process.env.RATE_LIMIT || '5'),
     standardHeaders: 'draft-7',
     legacyHeaders: false,
     statusCode: 429,

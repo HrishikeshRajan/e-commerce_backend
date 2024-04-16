@@ -6,7 +6,7 @@ import { type UploadApiOptions, type UploadApiResponse } from 'cloudinary'
 import { type Request, type Response, type NextFunction } from 'express'
 import { type JwtPayload } from 'jsonwebtoken'
 import { type imageUrl } from '../types/cloudinary.interfaces'
-import { type IEmailFields, type LinkType } from '../types/IEmail.interfaces' // uncomment in production
+import { PasswordReset, type IEmailFields, type LinkType } from '../types/IEmail.interfaces' // uncomment in production
 
 import { type IResponse } from '../types/IResponse.interfaces'
 import { type ICookieResponse } from '../types/Cookie.interfaces'
@@ -155,7 +155,7 @@ export const registerUser = async (
     const response: IResponse = {
       res,
       message: {
-        message: 'An verification link has been sent to your email address'
+        message: 'An verification link has been sent to your email address. Please wait for 10mins if you did\'t get the mail'
       },
       success: true,
       statusCode: StatusCodes.CREATED
@@ -481,21 +481,26 @@ export const forgotPassword = async (
     // }
     // const link = clientUrl(`forgotConfirm?forgotToken=${token}`)
     // const link = generateUrl(token, urlConfig)
-    const link = `http://localhost:4000/api/v1/users/forgot/verify?token=${token}`
+    const link = `${process.env.CLIENT_URL}/api/v1/users/forgot/verify?token=${token}`
     const emailFields: IEmailFields = {
       EmailAddress: user.email,
       FirstName: user.username,
       ConfirmationLink: link
     }
 
-    if (process.env.NODE_ENV === 'production') {
+    // if (process.env.NODE_ENV === 'production') {
       // Will uncomment in production
       const mail: Mail = new Mail(process.env.COURIER__TEST_KEY as string, emailFields)
 
+       const fields:PasswordReset = {
+         firstName: user.fullname,
+         resetLink: link,
+         companyName: 'wondercart'
+       }
       // Will uncomment in production
-      const RequestId = await new EmailServices().send_mail(mail, 'N6Q2M0HNYY47ADP5DT5C1ECTGY4A' as string)
+      const RequestId = await new EmailServices().sendPasswordResetConfirmationEmail(mail, process.env.COURIER_FORGOT_PASSWORD_EMAIL_CONFIRM_TEMPLATE_ID as string,fields)
 
-    }
+    // }
 
 
     const response: IResponse = {

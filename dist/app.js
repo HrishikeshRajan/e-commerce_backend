@@ -25,7 +25,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const index_1 = __importStar(require("./index"));
 const PORT = process.env.PORT_DEV ?? 4000;
-void (0, index_1.createDatabaseConnection)(process.env.MONGODB_URL_TEST).then(() => {
+void (0, index_1.createDatabaseConnection)(process.env.MONGODB_URL).then(() => {
     index_1.default.listen(PORT, () => {
         console.log(`⚡️[server]: Server is running at http://localhost:${PORT}`);
     });

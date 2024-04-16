@@ -1,5 +1,6 @@
 export interface IMAIL {
   sendMail: (template: string) => Promise<string>
+  sendPasswordResetConfirmationEmail:(templateId:string, fields:PasswordReset) => Promise<string>
 }
 
 export interface IEmailFields {
@@ -7,6 +8,12 @@ export interface IEmailFields {
   FirstName: string
   ConfirmationLink: string
 }
+export interface PasswordReset {
+  firstName: string;
+  resetLink: string;
+  companyName: string,
+}
+
 
 export interface LinkType {
   host: string
