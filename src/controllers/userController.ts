@@ -535,7 +535,8 @@ export const verifyForgotPassword = async (req: Request<{}, IResponse, {}, Query
     const result = new JwtServices().verifyToken(jwt, token, jwtConfig.secret)
 
     if (!isJwtValidationSuccess(result)) {
-      res.redirect(`${process.env.CLIENT_URL as string}expired`); return
+      // next(new CustomError('JWT Expired', StatusCodes.NOT_FOUND, false)); return
+      res.redirect(`${process.env.CLIENT_URL as string}/expired`); return
     }
 
     const { id, email } = result.message?.data;
@@ -544,7 +545,8 @@ export const verifyForgotPassword = async (req: Request<{}, IResponse, {}, Query
       next(new CustomError('User Not Found ', StatusCodes.NOT_FOUND, false)); return
     }
     if (user.forgotPasswordTokenId !== id) {
-      res.redirect(`${process.env.CLIENT_URL as string}expired`); return
+      // next(new CustomError('Request is invalid, id not matching', StatusCodes.NOT_FOUND, false)); return
+      res.redirect(`${process.env.CLIENT_URL as string}/expired`); return
     }
 
     const isToken = await userService.getResetFormToken(userRespository, email)
@@ -568,7 +570,9 @@ export const verifyForgotPassword = async (req: Request<{}, IResponse, {}, Query
 
     const resetFormToken = new JwtServices().signPayload(jwt, payload, jwtConfig.secret, jwtConfig.expiresIn)
 
+    // res.json({'token':resetFormToken})
     res.redirect(process.env.FRONTEND_RESET_PASSWORD_URL as string + '?token=' + resetFormToken)
+
 
   } catch (error: unknown) {
     const errorObj = error as CustomError

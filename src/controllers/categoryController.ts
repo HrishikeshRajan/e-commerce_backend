@@ -109,6 +109,8 @@ export const getAll = async (
 
         const categoryRepo = new CategoryRepo(categoryModel)
         const result = await categoryRepo.getAll()
+        
+        res.setHeader('Cache-Control', 'public, max-age=8600000, must-validate');
 
         const response: IResponse = { res, message: { categories: result }, statusCode: StatusCodes.OK, success: true }
         sendHTTPResponse(response)
