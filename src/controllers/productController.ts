@@ -600,6 +600,7 @@ export const getFilterOptions = async (
         responseData.push(option)
       }
 
+      res.setHeader('Cache-Control','public, max-age=86400000')
 
     const response: IResponse = {
       res,
