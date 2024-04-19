@@ -534,9 +534,8 @@ export const verifyForgotPassword = async (req: Request<{}, IResponse, {}, Query
     }
     const jwt = new JwtRepository()
     const result = new JwtServices().verifyToken(jwt, token, jwtConfig.secret)
-
     if (!isJwtValidationSuccess(result)) {
-      logger.error(`JWT validation failed, reason: ${result.message}`);
+      logger.error(`JWT validation failed, reason: ${result.message.err}`);
       res.redirect(`${process.env.CLIENT_URL as string}/expired`);
       return
     }
