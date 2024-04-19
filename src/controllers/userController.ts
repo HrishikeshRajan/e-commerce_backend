@@ -160,7 +160,11 @@ export const registerUser = async (
       success: true,
       statusCode: StatusCodes.CREATED
     }
-    sendHTTPResponse(response)
+
+    setTimeout(() =>{
+      sendHTTPResponse(response)
+    },5000)
+
   } catch (error: unknown) {
     logger.error('An error occurred', { error });
     next(error)
@@ -460,7 +464,15 @@ export const forgotPassword = async (
 
     if (user == null) {
       logger.error('User not found')
-      next(new CustomError('Not Found', StatusCodes.NOT_FOUND, false));
+      const response: IResponse = {
+        res,
+        message: { message: 'An email verification link has been send to your email account.' },
+        success: true,
+        statusCode: StatusCodes.OK
+      }
+  
+      sendHTTPResponse(response)
+      // next(new CustomError('Not Found', StatusCodes.NOT_FOUND, false));
       return
     }
 
@@ -507,7 +519,6 @@ export const forgotPassword = async (
 
     sendHTTPResponse(response)
   } catch (error: unknown) {
-    console.log(error)
     const errorObj = error as CustomError
     next(new CustomError(errorObj.message, errorObj.code, false))
   }
