@@ -473,6 +473,7 @@ const getFilterOptions = async (req, res, next) => {
             };
             responseData.push(option);
         }
+        res.setHeader('Cache-Control', 'public, max-age=86400000');
         const response = {
             res,
             message: { filters: responseData },

@@ -193,6 +193,7 @@ export const verifyMailLink = async (
       secret: process.env.JWT_SECRET as string
     }
 
+
     const jwt = new JwtRepository()
 
     logger.info('Starting user token validation')
@@ -229,7 +230,7 @@ export const verifyMailLink = async (
       res,
       message: { message: 'Greate! Your account has been verified!', meta: 'Now it\'s shopping time' },
       success: true,
-      statusCode: StatusCodes.ACCEPTED
+      statusCode: StatusCodes.OK
     }
 
     sendHTTPResponse(response)

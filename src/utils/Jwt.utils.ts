@@ -37,7 +37,7 @@ class JwtRepository_v2 implements IJWT {
     try {
       const payload = this.jwt.verify(token, SECRET) as JwtPayload
       return ({ status: 'success', message: { data: payload }, code: 200 })
-    } catch (error: unknown) {
+    } catch (error) {
       return ({ status: 'failure', message: { err: (error as Error).message }, code: 403 })
     }
   }

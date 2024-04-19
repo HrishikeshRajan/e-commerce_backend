@@ -124,7 +124,7 @@ const registerUser = async (req, res, next) => {
         Logger_1.default.info('Creating Jwt token initiated', { email });
         const token = new jwt_services_1.default().signPayload(jwt, payload, jwtConfig.secret, jwtConfig.expiresIn);
         Logger_1.default.info('Token generation successfull', { email });
-        const link = (0, email_helper_utils_1.clientUrl)(`confirm?token=${token}`);
+        const link = (0, email_helper_utils_1.clientUrl)(`/confirm?token=${token}`);
         const emailFields = {
             EmailAddress: user.email,
             FirstName: fullname,
@@ -203,7 +203,7 @@ const verifyMailLink = async (req, res, next) => {
             res,
             message: { message: 'Greate! Your account has been verified!', meta: 'Now it\'s shopping time' },
             success: true,
-            statusCode: http_status_codes_1.StatusCodes.ACCEPTED
+            statusCode: http_status_codes_1.StatusCodes.OK
         };
         (0, response_services_1.sendHTTPResponse)(response);
     }
@@ -419,7 +419,7 @@ const forgotPassword = async (req, res, next) => {
         const jwt = new Jwt_utils_1.default();
         const token = new jwt_services_1.default().signPayload(jwt, payload, jwtConfig.secret, jwtConfig.expiresIn);
         Logger_1.default.info('Jwt token created successfully');
-        const link = `${process.env.CLIENT_URL}/api/v1/users/forgot/verify?token=${token}`;
+        const link = `${process.env.ORIGIN}/api/v1/users/forgot/verify?token=${token}`;
         const emailFields = {
             EmailAddress: user.email,
             FirstName: user.username,
@@ -463,6 +463,7 @@ exports.forgotPassword = forgotPassword;
 const verifyForgotPassword = async (req, res, next) => {
     try {
         const { token } = req.query;
+        Logger_1.default.info('Extracted token from query parameters');
         const jwtConfig = {
             secret: process.env.JWT_SECRET,
             expiresIn: process.env.FORGOT_PASSWORD_LINK_EXPIRY
@@ -470,27 +471,35 @@ const verifyForgotPassword = async (req, res, next) => {
         const jwt = new Jwt_utils_1.default();
         const result = new jwt_services_1.default().verifyToken(jwt, token, jwtConfig.secret);
         if (!(0, Jwt_utils_1.isJwtValidationSuccess)(result)) {
-            res.redirect(`${process.env.CLIENT_URL}expired`);
+            Logger_1.default.error(`JWT validation failed, reason: ${result.message.err}`);
+            res.redirect(`${process.env.CLIENT_URL}/expired`);
             return;
         }
         const { id, email } = result.message?.data;
+        Logger_1.default.info('Decoded JWT payload successfully');
         const user = await userService.findUser(userRespository, { email }, true);
         if (user === null) {
+            Logger_1.default.error('User Not Found');
             next(new CustomError_1.default('User Not Found ', http_status_codes_1.StatusCodes.NOT_FOUND, false));
             return;
         }
         if (user.forgotPasswordTokenId !== id) {
-            res.redirect(`${process.env.CLIENT_URL}expired`);
+            Logger_1.default.error('Token ID mismatch');
+            res.redirect(`${process.env.CLIENT_URL}/expired`);
             return;
         }
+        Logger_1.default.info('User found, token ID matched');
         const isToken = await userService.getResetFormToken(userRespository, email);
         if (!isToken) {
+            Logger_1.default.error('Reset form token creation failed');
             next(new CustomError_1.default('Reset from Token creation failed', http_status_codes_1.StatusCodes.INTERNAL_SERVER_ERROR, false));
             return;
         }
+        Logger_1.default.info('Reset form token created successfully');
         user.forgotPasswordTokenId = '';
         user.forgotPasswordTokenExpiry = '';
         await user.save({ validateBeforeSave: false });
+        Logger_1.default.info('User details updated');
         const response = {
             res,
             message: { message: 'Token verified' },
@@ -503,10 +512,12 @@ const verifyForgotPassword = async (req, res, next) => {
             id: userDetails?.forgotPasswordTokenId
         };
         const resetFormToken = new jwt_services_1.default().signPayload(jwt, payload, jwtConfig.secret, jwtConfig.expiresIn);
+        Logger_1.default.info('Redirecting to reset password page with token');
         res.redirect(process.env.FRONTEND_RESET_PASSWORD_URL + '?token=' + resetFormToken);
     }
     catch (error) {
         const errorObj = error;
+        Logger_1.default.error(`Error occurred: ${errorObj.message}`);
         next(new CustomError_1.default(errorObj.message, errorObj.code, false));
     }
 };

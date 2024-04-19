@@ -88,6 +88,7 @@ const getAll = async (req, res, next) => {
     try {
         const categoryRepo = new category_repository_1.CategoryRepo(categoryModel_1.default);
         const result = await categoryRepo.getAll();
+        res.setHeader('Cache-Control', 'public, max-age=8600000, must-validate');
         const response = { res, message: { categories: result }, statusCode: http_status_codes_1.StatusCodes.OK, success: true };
         (0, response_services_1.sendHTTPResponse)(response);
     }
