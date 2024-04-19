@@ -477,7 +477,7 @@ export const forgotPassword = async (
     const token = new JwtServices().signPayload(jwt, payload, jwtConfig.secret, jwtConfig.expiresIn)
     logger.info('Jwt token created successfully')
 
-    const link = `${process.env.CLIENT_URL}/api/v1/users/forgot/verify?token=${token}`
+    const link = `${process.env.ORIGIN}/api/v1/users/forgot/verify?token=${token}`
     const emailFields: IEmailFields = {
       EmailAddress: user.email,
       FirstName: user.username,
