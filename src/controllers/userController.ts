@@ -526,6 +526,7 @@ export const forgotPassword = async (
 export const verifyForgotPassword = async (req: Request<{}, IResponse, {}, QueryWithToken, {}>, res: Response, next: NextFunction) => {
   try {
     const { token } = req.query
+    logger.info('Extracted token from query parameters');
 
     const jwtConfig = {
       secret: process.env.JWT_SECRET as string,
@@ -535,26 +536,38 @@ export const verifyForgotPassword = async (req: Request<{}, IResponse, {}, Query
     const result = new JwtServices().verifyToken(jwt, token, jwtConfig.secret)
 
     if (!isJwtValidationSuccess(result)) {
-      // next(new CustomError('JWT Expired', StatusCodes.NOT_FOUND, false)); return
-      res.redirect(`${process.env.CLIENT_URL as string}/expired`); return
+      logger.error(`JWT validation failed, reason: ${result}`);
+      res.redirect(`${process.env.CLIENT_URL as string}/expired`);
+      return
     }
 
     const { id, email } = result.message?.data;
+    logger.info('Decoded JWT payload successfully');
+
     const user = await userService.findUser(userRespository, { email }, true)
     if (user === null) {
-      next(new CustomError('User Not Found ', StatusCodes.NOT_FOUND, false)); return
+      logger.error('User Not Found');
+      next(new CustomError('User Not Found ', StatusCodes.NOT_FOUND, false));
+      return
     }
     if (user.forgotPasswordTokenId !== id) {
-      // next(new CustomError('Request is invalid, id not matching', StatusCodes.NOT_FOUND, false)); return
-      res.redirect(`${process.env.CLIENT_URL as string}/expired`); return
+      logger.error('Token ID mismatch');
+      res.redirect(`${process.env.CLIENT_URL as string}/expired`);
+      return
     }
+    logger.info('User found, token ID matched');
 
     const isToken = await userService.getResetFormToken(userRespository, email)
-    if (!isToken) { next(new CustomError('Reset from Token creation failed', StatusCodes.INTERNAL_SERVER_ERROR, false)); return }
-
+    if (!isToken) {
+      logger.error('Reset form token creation failed');
+      next(new CustomError('Reset from Token creation failed', StatusCodes.INTERNAL_SERVER_ERROR, false));
+      return
+    }
+    logger.info('Reset form token created successfully');
     user.forgotPasswordTokenId = ''
     user.forgotPasswordTokenExpiry = ''
     await user.save({ validateBeforeSave: false })
+    logger.info('User details updated');
     const response: IResponse = {
       res,
       message: { message: 'Token verified' },
@@ -569,13 +582,13 @@ export const verifyForgotPassword = async (req: Request<{}, IResponse, {}, Query
 
 
     const resetFormToken = new JwtServices().signPayload(jwt, payload, jwtConfig.secret, jwtConfig.expiresIn)
-
-    // res.json({'token':resetFormToken})
+    logger.info('Redirecting to reset password page with token');
     res.redirect(process.env.FRONTEND_RESET_PASSWORD_URL as string + '?token=' + resetFormToken)
 
 
-  } catch (error: unknown) {
+  } catch (error) {
     const errorObj = error as CustomError
+    logger.error(`Error occurred: ${errorObj.message}`);
     next(new CustomError(errorObj.message, errorObj.code, false))
   }
 }
