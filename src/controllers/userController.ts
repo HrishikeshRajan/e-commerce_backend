@@ -135,7 +135,7 @@ export const registerUser = async (
     const token = new JwtServices().signPayload(jwt, payload, jwtConfig.secret, jwtConfig.expiresIn)
     logger.info('Token generation successfull', { email });
 
-    const link = clientUrl(`confirm?token=${token}`)
+    const link = clientUrl(`/confirm?token=${token}`)
 
     const emailFields: IEmailFields = {
       EmailAddress: user.email,
@@ -470,7 +470,7 @@ export const forgotPassword = async (
     const jwtConfig = {
       secret: process.env.JWT_SECRET as string,
       expiresIn: process.env.FORGOT_PASSWORD_LINK_EXPIRY as string
-    }
+    } 
     logger.info('Creating jwt token')
     const jwt = new JwtRepository()
 
