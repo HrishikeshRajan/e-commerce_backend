@@ -61,7 +61,7 @@ app.use(session({
 app.use('*', cloudinaryConfig)
 
 //Here we handle the JWT token validation
-app.use(deserializeUser)
+// app.use(deserializeUser)
 
 
 // Cloudinary is configured for all routes
