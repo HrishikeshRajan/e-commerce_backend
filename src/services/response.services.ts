@@ -54,14 +54,14 @@ export const sendHTTPWithTokenResponse = ({ res, message, statusCode, success, t
   const options: CookieOptions = {
     maxAge:  24 * 60 * 60 * 1000, // 10minutes
     httpOnly: true,
-    // secure: true,
-    // sameSite:'none'
+    secure: true,  
+    sameSite:'none'
   }
   const accessOptions: CookieOptions = {
     maxAge: 2 * 24 * 60 * 60 * 1000, // 1 day
     httpOnly: true,
-    // secure: true,
-    // sameSite:'none'
+    secure: true,
+    sameSite:'none'
   }
 
   if (expiresIn === 0) {

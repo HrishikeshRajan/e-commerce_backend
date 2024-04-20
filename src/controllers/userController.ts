@@ -405,6 +405,7 @@ export const logoutUser = async (
 
     logger.info(`Configuring cookie fields, id: ${req.user.id}`)
     cache.del(req.user.id)
+    res.setHeader('Clear-Site-Data','"cookies", "storage"')
     const cookieConfig: ICookieResponse = {
       res,
       token: null,

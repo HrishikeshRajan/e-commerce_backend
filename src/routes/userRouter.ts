@@ -100,5 +100,14 @@ router.route('/profile-picture')
 //Is loggedIn 
 router.route('/authStatus')
   .get(isLoggedIn,isUserLoggedInStatus)
+// token exists
+router.get('/authStatus/checkToken', (req, res) => {
+  const token = req.cookies.token;
 
+  if (!token) {
+    return res.status(200).json({ status:false });
+  }
+  
+ return res.status(200).json({ status:true });
+});
 export default router
