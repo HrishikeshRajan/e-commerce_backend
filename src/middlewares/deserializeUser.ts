@@ -61,7 +61,6 @@ const deserializeUser = (req: Request, res: Response, next: NextFunction): void 
 
     }
   } else if (!req.cookies.token && req.cookies.refreshToken) {
-    console.log('token', req.cookies.token, 'refreshTOken', req.cookies.refreshToken)
     logger.info('Access Token is missing. Validating refresh token.');
     const refreshToken = jwtService.verifyToken(JWT, req.cookies?.refreshToken, process.env.JWT_SECRET as string)
     console.log(refreshToken) 

@@ -105,9 +105,9 @@ router.route('/authStatus')
 router.get('/authStatus/checkToken', (req, res) => {
   logger.info('Auth status checking initiated')
   const token = (req.cookies) ? req.cookies.token : null
-  console.log('Showing cookies', req.cookies)
-  logger.info(`AUth status cookies: =>  ${token}`)
+  logger.info(`Cookies found, sending success response`)
   if (!token) {
+    logger.error(`Cookies not found, sending error response`)
     return res.status(200).json({ status: false });
   }
 
