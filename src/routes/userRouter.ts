@@ -27,6 +27,7 @@ import { rateLimit } from 'express-rate-limit'
 import { ParamsSchema, ChangePasswordSchema, ForgotPasswordSchema, LoginSchema, ParamsByIdSchema, PhotoSchema, QueryWithTokenSchema, RegisterSchema, ResetPasswordSchema, UpdateProfileSchema, UserAddressSchema } from '../types/zod/user.schemaTypes'
 import { validateRequest } from '../middlewares/userInputValidator'
 import CustomError from '@utils/CustomError'
+import logger from '@utils/LoggerFactory/Logger'
 /**
  * Limits number of requests
  */
@@ -68,7 +69,7 @@ router.route('/forgot/verify')
   .get(disallowLoggedInUsers, verifyForgotPassword)
 
 router.route('/forgot/reset')
-  .put( disallowLoggedInUsers, validateRequest({ body: ResetPasswordSchema }), resetPassword)
+  .put(disallowLoggedInUsers, validateRequest({ body: ResetPasswordSchema }), resetPassword)
 
 router.route('/change/password')
   .put(isLoggedIn, validateRequest({ body: ChangePasswordSchema }), changePassword)
@@ -99,15 +100,17 @@ router.route('/profile-picture')
 
 //Is loggedIn 
 router.route('/authStatus')
-  .get(isLoggedIn,isUserLoggedInStatus)
+  .get(isLoggedIn, isUserLoggedInStatus)
 // token exists
 router.get('/authStatus/checkToken', (req, res) => {
-  const token = req.cookies.token;
-
+  logger.info('Validating request cookies')
+  const token = (req.cookies) ? req.cookies.token : null
+  console.log(req.cookies)
+  logger.info(`cookikes: ${token}`)
   if (!token) {
-    return res.status(200).json({ status:false });
+    return res.status(200).json({ status: false });
   }
-  
- return res.status(200).json({ status:true });
+
+  return res.status(200).json({ status: true });
 });
 export default router
