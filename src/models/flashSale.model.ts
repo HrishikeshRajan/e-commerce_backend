@@ -7,7 +7,7 @@ export interface FlashSaleDocument extends Document {
     name: string;
     method: Method;
     type: 'PERCENTAGE' | 'FLAT';
-    banner: {
+    banner?: {
         secure_url: string;
     };
     startTime: Date;
