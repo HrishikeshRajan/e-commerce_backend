@@ -259,6 +259,7 @@ export const singleProduct = async (
   }
 }
 
+
 /**
  * API ACCESS: seller
  * Delete the products by seller and products ids

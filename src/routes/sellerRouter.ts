@@ -35,7 +35,6 @@ router.route('/flashsale').post(isLoggedIn,multerUpload,Role(ROLES.SELLER),flash
 router.route('/flashsale').get(flashsale.get)
 router.route('/flashsale/checkout/:saleId').post(isLoggedIn,flashsale.moveToCart)
 
-
 //Promo
 router.route('/promo').post(isLoggedIn,multerUpload,Role(ROLES.SELLER),promo.create)
 router.route('/promo').get(isLoggedIn, promo.get)

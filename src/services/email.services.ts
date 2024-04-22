@@ -1,4 +1,4 @@
-import { PasswordReset, type IMAIL } from '../types/IEmail.interfaces'
+import { NotifyMe, PasswordReset, type IMAIL } from '../types/IEmail.interfaces'
 
 export default class EmailServices {
   async send_mail (obj: IMAIL, template_Id: string) {

@@ -9,15 +9,13 @@ import { convertToBase64 } from '@utils/image.helper';
 import Cloudinary from '@repositories/ImageProcessing.repository';
 import { ImageProcessingServices } from '@services/image.processing.services';
 import { UploadApiOptions, UploadApiResponse } from 'cloudinary';
-import { imageUrl } from 'types/cloudinary.interfaces';
 import { merge } from 'lodash';
-import CartModel, { CartCore, CartItemCore, ORDER_STATUS } from '@models/cartModel';
+import CartModel, { CartItemCore, ORDER_STATUS } from '@models/cartModel';
 import { Types } from 'mongoose';
 import currency from 'currency.js';
 import productModel from '@models/productModel';
 const logger = Loggerfactory.getLogger('development')()
 import mongoose from 'mongoose';
-import { ProductDocument } from 'types/product.interface';
 import CustomError from '@utils/CustomError';
 const handleImageUpload = async (req: Request): Promise<UploadApiResponse> => {
     const options: UploadApiOptions = {
@@ -178,5 +176,4 @@ export const moveToCart = async (
         next(error)
     }
 }
-
 

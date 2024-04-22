@@ -14,6 +14,12 @@ export interface PasswordReset {
   companyName: string,
 }
 
+export interface NotifyMe {
+  FirstName: string;
+  FlashSaleLink: string;
+  Company: string,
+}
+
 
 export interface LinkType {
   host: string

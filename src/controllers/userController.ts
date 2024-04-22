@@ -147,7 +147,7 @@ export const registerUser = async (
     logger.info(`Mail service initiated`)
     const mail: Mail = new Mail(process.env.COURIER__TEST_KEY as string, emailFields)
     const result = await new EmailServices().send_mail(mail, process.env.COURIER_CONFIRMATION_TEMPLATE_ID as string)
-    console.log(result)
+
     logger.info('Mail delivered to email successfully', { email });
     // }
 
