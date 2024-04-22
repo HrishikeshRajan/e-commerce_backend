@@ -309,18 +309,18 @@ export const loginUser = async (
       expiresIn: process.env.ACCESS_TOKEN_EXPIRTY_DEV as string
     }
 
-    logger.info(`Configuring refresh token, id: ${user._id}`)
-    const refresOptions = {
-      secret: process.env.JWT_SECRET as string,
-      expiresIn: process.env.REFRESH_TOKEN_EXPIRTY_DEV as string
-    }
+    // logger.info(`Configuring refresh token, id: ${user._id}`)
+    // const refresOptions = {
+    //   secret: process.env.JWT_SECRET as string,
+    //   expiresIn: process.env.REFRESH_TOKEN_EXPIRTY_DEV as string
+    // }
 
     const jwt = new JwtRepository()
     logger.info(`Generating access token, id: ${user._id}`)
 
     const accessToken = new JwtServices().signPayload(jwt, payload, accessOptions.secret, accessOptions.expiresIn)
-    logger.info(`Generating refresh token, id: ${user._id}`)
-    const refreshToken = new JwtServices().signPayload(jwt, payload, refresOptions.secret, refresOptions.expiresIn)
+    // logger.info(`Generating refresh token, id: ${user._id}`)
+    // const refreshToken = new JwtServices().signPayload(jwt, payload, refresOptions.secret, refresOptions.expiresIn)
 
     logger.info(`Setting cookie expiry, id: ${user._id}`)
     const time = parseInt(process.env.COOKIE_DEV_EXPIRY_TIME as string)
@@ -331,7 +331,7 @@ export const loginUser = async (
       res,
       token: accessToken,
       message: {
-        refreshToken,
+        // refreshToken,  
         userDetails,
       },
       statusCode: 200,

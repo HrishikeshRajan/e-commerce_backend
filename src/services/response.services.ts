@@ -52,17 +52,17 @@ export const sendHTTPWithTokenResponse = ({ res, message, statusCode, success, t
   // set secure:true for production
   const expiryTime = new Date(Date.now() + expiresIn)
   const options: CookieOptions = {
-    maxAge:  24 * 60 * 60 * 1000, // 10minutes
+    maxAge:  24 * 60 * 60 * 1000, //  1 day
     httpOnly: true,
     secure: true,  
     sameSite:'none'
   }
-  const accessOptions: CookieOptions = {
-    maxAge: 2 * 24 * 60 * 60 * 1000, // 1 day
-    httpOnly: true,
-    secure: true,
-    sameSite:'none'
-  }
+  // const accessOptions: CookieOptions = {
+  //   maxAge: 2 * 24 * 60 * 60 * 1000, // 1 day
+  //   httpOnly: true,
+  //   secure: true,
+  //   sameSite:'none'
+  // }
 
   if (expiresIn === 0) {
     res.clearCookie('connect.sid', {
@@ -71,9 +71,9 @@ export const sendHTTPWithTokenResponse = ({ res, message, statusCode, success, t
     res.clearCookie('token', {
       path: '/'
     })
-    res.clearCookie('refreshToken', {
-      path: '/'
-    }) 
+    // res.clearCookie('refreshToken', {
+    //   path: '/'
+    // }) 
 
     res.status(statusCode).json({
       success,
@@ -84,7 +84,7 @@ export const sendHTTPWithTokenResponse = ({ res, message, statusCode, success, t
     return
   }
 
-  res.cookie('refreshToken', message?.refreshToken, accessOptions)
+  // res.cookie('refreshToken', message?.refreshToken, accessOptions)
 
   res.status(statusCode).cookie('token', token, options).json({
     success,

@@ -31,6 +31,8 @@ const handleImageUpload = async (req: Request): Promise<UploadApiResponse> => {
     return imageUrls
 }
 
+// put cookie and jwt have same expiry date
+
 export const create = async (
     req: Request,
     res: Response<IResponse, {}>,
@@ -38,11 +40,15 @@ export const create = async (
     Promise<void> => {
     try {
 
+
+
         const secure_url = await handleImageUpload(req)
         const url = (await secure_url).secure_url
         logger.info(`Flash sale create controller initiated. user: ${req.user.id}`);
 
 
+        req.body.startTime = new Date(JSON.parse(req.body.startTime))
+        req.body.endTime = new Date(JSON.parse(req.body.endTime))
         merge(req.body, { banner: { secure_url: url } })
         merge(req.body, { users: { maxUsersCount: 10 } })
 
