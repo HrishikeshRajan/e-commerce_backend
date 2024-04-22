@@ -37,8 +37,8 @@ export const create = async (
         merge(req.body, { banner: { secure_url: url } })
 
         merge(req.body, { tags: JSON.parse(req.body.tags) })
-        merge(req.body, { startTime: new Date(req.body.startTime) })
-        merge(req.body, { endTime: new Date(req.body.endTime) })
+        merge(req.body, { startTime: new Date(JSON.parse(req.body.startTime)) })
+        merge(req.body, { endTime: new Date(JSON.parse(req.body.endTime)) })
 
         const result = await PromoModel.create(req.body)
 
@@ -97,7 +97,7 @@ export const getAllPromos = async (
     Promise<void> => {
     try {
 
-        const result = await PromoModel.find({ status: 'ACTIVE' })
+        const result = await PromoModel.find({})
 
         const response: IResponse = {
             message: { promos: result, totalPages: result.length },

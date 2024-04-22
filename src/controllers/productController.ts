@@ -225,11 +225,10 @@ export const singleProduct = async (
     })
 
     const promos = await PromoModel.find({
-      'tags.products': new Types.ObjectId(req.params.id),
+      'tags.products': req.params.id,
       method: 'COUPON',
       'status': Status.ACTIVE
     })
-
 
 
     type ProductResponse = {
