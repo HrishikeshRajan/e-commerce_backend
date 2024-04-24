@@ -143,26 +143,12 @@ class UserRepository implements IUserRepository {
    * @returns modified mongoose user instance
    */
 
-  updateAddressHelper(data: UserWithId, addressId: string, newAddress: IAddress): UserWithId {
-    interface Index {
-      index: number
+  updateAddressHelper(user: UserWithId, addressId: string, newAddress: IAddress): UserWithId {
+   const index = user?.address?.findIndex((address: IAddress) => (address._id.toString() === addressId.toString()))
+   if (index !== undefined && index > -1 &&  user.address) {
+      user.address[index] = newAddress
     }
-    const addressIndex: Index = {
-      index: 0
-    }
-    data?.address?.map((address: IAddress, index) => {
-      if (address._id.toString() === addressId) {
-        addressIndex.index = index
-        return address
-      }
-      return address
-    })
-
-    if (data.address !== undefined) {
-      const updatedAddress = Object.assign(data.address[addressIndex.index], newAddress)
-      data.address[addressIndex.index] = updatedAddress
-    }
-    return data
+    return user
   };
 
   /**
@@ -177,14 +163,8 @@ class UserRepository implements IUserRepository {
     const user = await this.findUser({ _id: userId })
     if (user === null) return null
     const updatedUser = this.updateAddressHelper(user, addressId, newAddress)
-    const updatedUserDocument = await this.saveToDatabase(updatedUser)
-    const address = updatedUserDocument.address?.find((address: IAddress, index) => {
-      if (address._id.toString() === addressId) {
-        return address
-      }
-      return address
-    })
-    return address ?? null
+     await this.saveToDatabase(updatedUser)
+    return undefined
   };
 
   async resetPassword(email: FilterQuery<Record<string, string>>, password: string): Promise<UserWithId | null> {
@@ -243,9 +223,11 @@ class UserRepository implements IUserRepository {
     let user = await this.findUser({ _id: userId })
     if (user === null) return null
 
-    const newAddress = user?.address?.filter((address) => address._id.toString() !== addressId.toString())
+    const index = user?.address?.findIndex((address) => address._id.toString() === addressId.toString())
 
-    user.address = newAddress as IAddress[]
+   if(index !== undefined && index > -1 ){
+    user.address?.splice(index,1)
+   }
     const result = await this.saveToDatabase(user)
 
     return result ?? null

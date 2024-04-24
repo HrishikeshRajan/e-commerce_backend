@@ -768,13 +768,12 @@ export const editAddress = async (
     if (!req.user) return
     const { id, email } = req.user;
 
-    const isUpdated = await userService
+    const hasUpdated = await userService
       .updateAddress(userRespository, { address, userId: id, addressId })
-    if (isUpdated === null) { next(new CustomError('User not found', StatusCodes.NOT_FOUND, false)); return }
 
     const response: IResponse = {
       res,
-      message: { address: isUpdated },
+      message: { address: 'Successfull updated' },
       success: true,
       statusCode: StatusCodes.OK
     }

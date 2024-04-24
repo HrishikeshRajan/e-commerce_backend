@@ -433,7 +433,6 @@ export const add = async (
 
             }
             if (item.saleId) {
-                console.log('apply flash sale')
                 const flashsale = await FlashSale.findById<FlashSaleDocument | null>(item.saleId)
 
                 if (isNull<FlashSaleDocument>(flashsale)) {
