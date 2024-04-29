@@ -129,4 +129,5 @@ productSchema.pre('save', function(next) {
   this.updatedAt = new Date(Date.now());
   next();
 });
+
 export default mongoose.model<ProductDocument>('Product', productSchema)

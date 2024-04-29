@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import express, { Express } from 'express'
+import express from 'express'
 import {
   addAddress,
   changePassword,
@@ -22,11 +22,11 @@ import {
 } from '../controllers/userController'
 import { disallowLoggedInUsers, isLoggedIn } from '../middlewares/auth'
 import { multerUpload } from '../utils/image.helper'
-import { rateLimit } from 'express-rate-limit'
+// import { rateLimit } from 'express-rate-limit'
 
-import { ParamsSchema, ChangePasswordSchema, ForgotPasswordSchema, LoginSchema, ParamsByIdSchema, PhotoSchema, QueryWithTokenSchema, RegisterSchema, ResetPasswordSchema, UpdateProfileSchema, UserAddressSchema } from '../types/zod/user.schemaTypes'
+import { ChangePasswordSchema, ForgotPasswordSchema, LoginSchema, ParamsByIdSchema, PhotoSchema, QueryWithTokenSchema, RegisterSchema, ResetPasswordSchema, UpdateProfileSchema, UserAddressSchema } from '../types/zod/user.schemaTypes'
 import { validateRequest } from '../middlewares/userInputValidator'
-import CustomError from '@utils/CustomError'
+// import CustomError from '@utils/CustomError'
 import logger from '@utils/LoggerFactory/Logger'
 /**
  * Limits number of requests
@@ -96,6 +96,14 @@ router.route('/profile-picture')
 
 router.route('/profile-picture')
   .delete(isLoggedIn, deleteProfilePicture)
+
+
+/**
+ * User review
+ */
+router.route('/comment')
+  .post(isLoggedIn, validateRequest({ body: PhotoSchema }), multerUpload, )
+
 
 
 //Is loggedIn 

@@ -10,13 +10,14 @@ import adminRouter from '@routes/adminRouter'
 import sellerRouter from '@routes/sellerRouter'
 import cartRouter from '@routes/cartRouter'
 import orderRouter from '@routes/orderRouter'
+import reviewRouter from '@routes/reviewRouter'
 import { errorHandler, errorHandlerV2, notFound, productionErrorHandler } from './middlewares/error.handler'
 import cookieParser from 'cookie-parser'
 import cloudinaryConfig from './configs/cloudinary.config'
 import session from 'express-session'
 import DatabaseService from './services/database.services'
 import DatabaseSingleton from './configs/databaseSingleton.config'
-import deserializeUser from './middlewares/deserializeUser'
+// import deserializeUser from './middlewares/deserializeUser'
 import compress from 'compression'
 import helmet from 'helmet'
 import cors from 'cors'
@@ -78,6 +79,7 @@ app.use('/api/v1/admin/', adminRouter)
 app.use('/api/v1/seller/', sellerRouter)
 app.use('/api/v1/cart/', cartRouter)
 app.use('/api/v1/orders/',orderRouter)
+app.use('/api/v1/review/',reviewRouter)
 
 // This will catch the unmatched routes and forward to error handler 
 app.use(notFound)
