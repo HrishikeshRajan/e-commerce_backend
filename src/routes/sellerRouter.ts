@@ -41,6 +41,9 @@ router.route('/promo').get(isLoggedIn, promo.get)
 router.route('/promo/all').get(promo.getAllPromos)
 // router.route('/promo/user/all').get(promo.getAllMyPromos)
 router.route('/promo/status').put(isLoggedIn, promo.updatePromoStatus)
+
+//Marketplace
+router.route('/estimateCount').get(isLoggedIn, Role(ROLES.SELLER), seller.countTotals)
 router.param('id',seller.injectUser)
 router.param('shopId',seller.injectShop)
 export default router

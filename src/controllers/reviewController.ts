@@ -52,6 +52,7 @@ export const create = async (
     Promise<void> => {
     try {
 
+
         const ReviewRepo = new ReviewRepository(reviewModel)
         const ReviewService = new ReviewServices()
 
@@ -114,6 +115,7 @@ export const create = async (
         }
         sendHTTPResponse(response)
     } catch (error) {
+        console.log(error)
         if (error instanceof Error) {
             return next(new CustomError('Something went wrong', StatusCodes.INTERNAL_SERVER_ERROR, false))
         }

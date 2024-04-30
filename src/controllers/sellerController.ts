@@ -1,5 +1,5 @@
 
-import { type NextFunction, type Response } from "express"
+import { type Request, type NextFunction, type Response } from "express"
 import userService from '@services/user.services'
 import { sendHTTPResponse } from "@services/response.services"
 import UserRepository from "@repositories/user.repository"
@@ -336,6 +336,26 @@ export const injectShop = async (
 
 
 
+export const countTotals = async (
+    req: Request,
+    res: Response<IResponse>,
+    next: NextFunction) => {
+    try {
+
+        const sellerRepo = new SellerRepository(shopModel)
+        const sellerService = new SellerServices()
+
+        const totalAvailableShops = await sellerService.countTotalShopsBySellerId(sellerRepo, req.user?.id)
+
+        const productRepo = new ProductRepo<ProductDocument>(productModel)
+        const totalAvailableProducts = await productRepo.countTotalProductsBySellerId<string>(req.user.id)
+
+        sendHTTPResponse({ res, message: { shopsCount:totalAvailableShops,totalProducts: totalAvailableProducts }, statusCode: StatusCodes.OK, success: true })
+
+    } catch (error) {
+        next(error)
+    }
+}
 
 
 //Add Shops
