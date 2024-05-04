@@ -445,14 +445,13 @@ export const queryProducts = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-
     const productRepo = new ProductRepo<ProductDocument>(ProductModel)
     const productServices = new ProductServices()
 
     if (!req.query.page) {
       req.query.page = '1'
     }
-    const resultPerPage = 20
+    const resultPerPage = 10
     const query = { ...req.query }
 
     const copyQuery = { ...req.query }
@@ -486,6 +485,8 @@ export const queryProducts = async (
     }
 
     const totalPages = Math.ceil(totalAvailableProducts / resultPerPage)
+
+    res.setHeader('Cache-Control', 'private, max-age=60000, must-validate');
     const response: IResponse = {
       res,
       message: { products: products, brandsCount: [], page: req.query.page, totalPages, itemsShowing: products?.length, totalItems: totalAvailableProducts },
