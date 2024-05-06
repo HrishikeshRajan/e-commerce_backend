@@ -20,7 +20,7 @@ import DatabaseSingleton from './configs/databaseSingleton.config'
 // import deserializeUser from './middlewares/deserializeUser'
 import compress from 'compression'
 import helmet from 'helmet'
-import cors from 'cors'
+import cors, { CorsOptions } from 'cors'
 import morgan from 'morgan'
 
 
@@ -31,13 +31,31 @@ dotenv.config({ path: '.env.test' })
 const app: Express = express()
 
 app.use(morgan('tiny'))
-app.use(cors({
-  origin: true,
-  credentials: true
-}))
+var whitelist = (process.env.WHITELIST_URL as string).split(';')
+
+const corsOptions: CorsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, status?: boolean) => void) => {
+    if (!origin || whitelist.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+};
+
+
+app.use(cors(corsOptions))
+
 
 app.use(compress())
-app.use(helmet())
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      "frame-ancestors": 'none'
+    }
+  }
+}))
 app.use(
   express.json({
     verify: function (req, res, buf) {
@@ -78,8 +96,8 @@ app.use('/api/v1/product/', productRouter)
 app.use('/api/v1/admin/', adminRouter)
 app.use('/api/v1/seller/', sellerRouter)
 app.use('/api/v1/cart/', cartRouter)
-app.use('/api/v1/orders/',orderRouter)
-app.use('/api/v1/review/',reviewRouter)
+app.use('/api/v1/orders/', orderRouter)
+app.use('/api/v1/review/', reviewRouter)
 
 // This will catch the unmatched routes and forward to error handler 
 app.use(notFound)
