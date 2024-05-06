@@ -31,7 +31,7 @@ dotenv.config({ path: '.env.test' })
 const app: Express = express()
 
 app.use(morgan('tiny'))
-var whitelist = (process.env.WHITELIST_URL as string).split(';')
+const whitelist = (process.env.WHITELIST_URL as string).split(';')
 
 const corsOptions: CorsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, status?: boolean) => void) => {
