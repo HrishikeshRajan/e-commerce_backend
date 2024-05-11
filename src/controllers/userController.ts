@@ -331,7 +331,8 @@ export const loginUser = async (
       res,
       token: accessToken,
       message: {
-        // refreshToken,  
+        // refreshToken,
+        accessToken,  
         userDetails,
       },
       statusCode: 200,

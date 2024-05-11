@@ -31,31 +31,29 @@ dotenv.config({ path: '.env.test' })
 const app: Express = express()
 
 app.use(morgan('tiny'))
-const whitelist = (process.env.WHITELIST_URL as string).split(';')
-
-const corsOptions: CorsOptions = {
-  origin: (origin: string | undefined, callback: (err: Error | null, status?: boolean) => void) => {
-    if (!origin || whitelist.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-};
+// const whitelist = (process.env.WHITELIST_URL as string).split(';')
 
 
-app.use(cors(corsOptions))
+// const corsOptions: CorsOptions = {
+//   origin: (origin: string | undefined, callback: (err: Error | null, status?: boolean) => void) => {
+//     if (!origin || whitelist.indexOf(origin) !== -1) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error('Not allowed by CORS'));
+//     }
+//   },
+//   credentials: true,
+// };
+
+
+app.use(cors({
+  origin:true,
+  credentials: true
+}))
 
 
 app.use(compress())
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      "frame-ancestors": 'none'
-    }
-  }
-}))
+app.use(helmet())
 app.use(
   express.json({
     verify: function (req, res, buf) {
