@@ -110,21 +110,21 @@ const productSchema = new Schema<ProductDocument, Model<ProductDocument>>(
   }
 
 )
-productSchema.pre<ProductDocument>(/^save$/, async function (next): Promise<void> {
-  if (!this.isModified('name')) {
-    next(); return
-  }
+// productSchema.pre<ProductDocument>(/^save$/, async function (next): Promise<void> {
+//   if (!this.isModified('name')) {
+//     next(); return
+//   }
 
-  this.name = this.name.split(' ').map((item) => item.charAt(0).toUpperCase() + item.slice(1)).join(' ')
-  if (!this.isModified('category')) {
-    next(); return
-  }
-  this.category = this.name.split(' ').map((item) => item.charAt(0).toUpperCase() + item.slice(1)).join(' ')
-  if (!this.isModified('brand')) {
-    next(); return
-  }
-  this.brand = this.name.split(' ').map((item) => item.charAt(0).toUpperCase() + item.slice(1)).join(' ')
-})
+//   this.name = this..split(' ').map((item) => item.charAt(0).toUpperCase() + item.slice(1)).join(' ')
+//   if (!this.isModified('category')) {
+//     next(); return
+//   }
+//   this.category = this.brand.split(' ').map((item) => item.charAt(0).toUpperCase() + item.slice(1)).join(' ')
+//   if (!this.isModified('brand')) {
+//     next(); return
+//   }
+//   this.brand = this.name.split(' ').map((item) => item.charAt(0).toUpperCase() + item.slice(1)).join(' ')
+// })
 productSchema.pre('save', function(next) {
   this.updatedAt = new Date(Date.now());
   next();

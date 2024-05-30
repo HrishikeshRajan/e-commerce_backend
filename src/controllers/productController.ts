@@ -486,7 +486,7 @@ export const queryProducts = async (
 
     const totalPages = Math.ceil(totalAvailableProducts / resultPerPage)
 
-    res.setHeader('Cache-Control', 'private, max-age=60000, must-validate');
+    // res.setHeader('Cache-Control', 'private, max-age=60000, must-validate');
     const response: IResponse = {
       res,
       message: { products: products, brandsCount: [], page: req.query.page, totalPages, itemsShowing: products?.length, totalItems: totalAvailableProducts },
@@ -601,7 +601,7 @@ export const getFilterOptions = async (
         responseData.push(option)
       }
 
-      res.setHeader('Cache-Control','public, max-age=86400000')
+      // res.setHeader('Cache-Control','public, max-age=86400000')
 
     const response: IResponse = {
       res,
