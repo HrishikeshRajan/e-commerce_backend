@@ -31,22 +31,24 @@ dotenv.config({ path: '.env.test' })
 const app: Express = express()
 
 app.use(morgan('tiny'))
-const whitelist = ['https://e-commerce-frontend-five-mu.vercel.app']
+
+// const whitelist = (process.env.WHITELIST_URL as string).split(';')
+// const corsOptions: CorsOptions = {
+//   origin: (origin: string | undefined, callback: (err: Error | null, status?: boolean) => void) => {
+//     if (!origin || whitelist.indexOf(origin) !== -1) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error('Not allowed by CORS'));
+//     }
+//   },
+//   credentials: true,
+// };
 
 
-const corsOptions: CorsOptions = {
-  origin: (origin: string | undefined, callback: (err: Error | null, status?: boolean) => void) => {
-    if (!origin || whitelist.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-};
-
-
-app.use(cors(corsOptions))
+app.use(cors({
+  origin: 'https://e-commerce-frontend-five-mu.vercel.app',
+  credentials: true
+}))
 
 
 app.use(compress())
