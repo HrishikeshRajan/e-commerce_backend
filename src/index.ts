@@ -31,25 +31,22 @@ dotenv.config({ path: '.env.test' })
 const app: Express = express()
 
 app.use(morgan('tiny'))
-// const whitelist = (process.env.WHITELIST_URL as string).split(';')
+const whitelist = ['https://e-commerce-backend-taupe-one.vercel.app']
 
 
-// const corsOptions: CorsOptions = {
-//   origin: (origin: string | undefined, callback: (err: Error | null, status?: boolean) => void) => {
-//     if (!origin || whitelist.indexOf(origin) !== -1) {
-//       callback(null, true);
-//     } else {
-//       callback(new Error('Not allowed by CORS'));
-//     }
-//   },
-//   credentials: true,
-// };
+const corsOptions: CorsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, status?: boolean) => void) => {
+    if (!origin || whitelist.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+};
 
 
-app.use(cors({
-  origin:true,
-  credentials: true
-}))
+app.use(cors(corsOptions))
 
 
 app.use(compress())
