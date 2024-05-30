@@ -20,7 +20,7 @@ import DatabaseSingleton from './configs/databaseSingleton.config'
 // import deserializeUser from './middlewares/deserializeUser'
 import compress from 'compression'
 import helmet from 'helmet'
-import cors, { CorsOptions } from 'cors'
+// import cors, { CorsOptions } from 'cors'
 import morgan from 'morgan'
 
 
@@ -44,11 +44,26 @@ app.use(morgan('tiny'))
 //   credentials: true,
 // };
 
+app.use((req,res,next)=>{
+  res.setHeader('Access-Control-Allow-Credentials', 'true')
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  // another common pattern
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin as string);
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+  )
+  if (req.method === 'OPTIONS') {
+    res.status(200).end()
+    return
+  }
+})
 
-app.use(cors({
-  origin: 'https://e-commerce-frontend-five-mu.vercel.app',
-  credentials: true
-}))
+// app.use(cors({
+//   origin: 'https://e-commerce-frontend-five-mu.vercel.app',
+//   credentials: true
+// }))
 
 
 app.use(compress())
