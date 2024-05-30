@@ -31,7 +31,7 @@ dotenv.config({ path: '.env.test' })
 const app: Express = express()
 
 app.use(morgan('tiny'))
-const whitelist = ['https://e-commerce-backend-taupe-one.vercel.app']
+const whitelist = ['https://e-commerce-frontend-five-mu.vercel.app']
 
 
 const corsOptions: CorsOptions = {
