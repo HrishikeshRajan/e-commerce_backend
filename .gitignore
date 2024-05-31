@@ -9,3 +9,4 @@ src/controllers/__tests__
 src/repository/__tests__
 
 .vercel
+.enc
