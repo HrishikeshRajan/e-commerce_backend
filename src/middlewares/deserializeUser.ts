@@ -5,7 +5,7 @@ import JwtRepository, { isJwtValidationSuccess } from '../utils/Jwt.utils'
 import JwtServices from '../services/jwt.services'
 import { sendHTTPWithTokenResponse } from '../services/response.services'
 import { type ICookieResponse } from '../types/Cookie.interfaces'
-import logger from '@utils/LoggerFactory/Logger'
+import logger from '../utils/LoggerFactory/Logger'
 
 const JWT = new JwtRepository()
 const jwtService = new JwtServices()

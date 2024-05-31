@@ -4,14 +4,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getSearchSuggestions = void 0;
-const product_repository_1 = require("@repositories/product.repository");
-const CustomError_1 = __importDefault(require("@utils/CustomError"));
-const productModel_1 = __importDefault(require("@models/productModel"));
+const product_repository_1 = require("../repository/product.repository");
+const CustomError_1 = __importDefault(require("../utils/CustomError"));
+const productModel_1 = __importDefault(require("../models/productModel"));
 const http_status_codes_1 = require("http-status-codes");
-const response_services_1 = require("@services/response.services");
+const response_services_1 = require("../services/response.services");
 const fuse_js_1 = __importDefault(require("fuse.js"));
 const node_cache_1 = __importDefault(require("node-cache"));
-const product_services_1 = __importDefault(require("@services/product.services"));
+const product_services_1 = __importDefault(require("../services/product.services"));
 const nodeCache = new node_cache_1.default();
 /**
  * First checks on cache if not then fetch from database

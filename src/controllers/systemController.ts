@@ -1,5 +1,5 @@
-import { sendHTTPResponse } from "@services/response.services"
-import CustomError from "@utils/CustomError"
+import { sendHTTPResponse } from "../services/response.services"
+import CustomError from "../utils/CustomError"
 import { Request, Response, NextFunction } from "express"
 import { StatusCodes } from "http-status-codes"
 import { IResponse } from "types/IResponse.interfaces"

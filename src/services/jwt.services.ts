@@ -1,6 +1,6 @@
 import { type JwtPayload } from 'jsonwebtoken'
 import { type IJWT } from '../types/IJwt.interfaces'
-import { JwtValidationResponse } from '@utils/Jwt.utils'
+import { JwtValidationResponse } from '../utils/Jwt.utils'
 
 /* eslint-disable class-methods-use-this */
 class JwtServices {

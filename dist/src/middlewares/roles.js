@@ -4,10 +4,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Role = void 0;
-const CustomError_1 = __importDefault(require("@utils/CustomError"));
+const CustomError_1 = __importDefault(require("../utils/CustomError"));
 const http_status_codes_1 = require("http-status-codes");
 const lodash_1 = require("lodash");
-const Logger_1 = __importDefault(require("@utils/LoggerFactory/Logger"));
+const Logger_1 = __importDefault(require("../utils/LoggerFactory/Logger"));
 /**
  *
  * @param {string} roles

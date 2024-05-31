@@ -1,4 +1,4 @@
-import { ShopCore, ShopDocument } from "@models/shopModel";
+import { ShopCore, ShopDocument } from "../models/shopModel";
 import { Query } from "mongoose";
 
 export interface ShopQuery {

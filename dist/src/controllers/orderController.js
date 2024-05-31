@@ -32,14 +32,14 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const http_status_codes_1 = require("http-status-codes");
 const response_services_1 = require("../services/response.services");
 const CustomError_1 = __importDefault(require("../utils/CustomError"));
-const cartModel_1 = __importStar(require("@models/cartModel"));
-const orderModel_1 = __importDefault(require("@models/orderModel"));
-const userModel_1 = __importDefault(require("@models/userModel"));
+const cartModel_1 = __importStar(require("../models/cartModel"));
+const orderModel_1 = __importDefault(require("../models/orderModel"));
+const userModel_1 = __importDefault(require("../models/userModel"));
 const stripe_1 = __importDefault(require("stripe"));
 const mongoose_1 = require("mongoose");
-const sort_helper_1 = require("@utils/sort.helper");
-const pipelines_search_1 = require("@utils/pipelines.search");
-const productModel_1 = __importDefault(require("@models/productModel"));
+const sort_helper_1 = require("../utils/sort.helper");
+const pipelines_search_1 = require("../utils/pipelines.search");
+const productModel_1 = __importDefault(require("../models/productModel"));
 dotenv_1.default.config();
 const stripe = new stripe_1.default(process.env.STRIPE_PRIVATE_KEY, {
     typescript: true,

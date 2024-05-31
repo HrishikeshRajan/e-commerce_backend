@@ -3,10 +3,10 @@ import { type Request, type Response, type NextFunction } from 'express'
 import CustomError from '../utils/CustomError'
 
 import JwtServices from '../services/jwt.services'
-import JWT, { isJwtValidationSuccess } from '@utils/Jwt.utils'
+import JWT, { isJwtValidationSuccess } from '../utils/Jwt.utils'
 import { GenericRequest, Token, UserCore } from 'types/IUser.interfaces'
 import { merge } from 'lodash'
-import logger from '@utils/LoggerFactory/Logger'
+import logger from '../utils/LoggerFactory/Logger'
 
 
 /**

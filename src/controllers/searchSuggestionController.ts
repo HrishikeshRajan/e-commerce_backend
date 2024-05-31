@@ -1,14 +1,14 @@
-import { ProductRepo } from "@repositories/product.repository"
-import CustomError from "@utils/CustomError"
+import { ProductRepo } from "../repository/product.repository"
+import CustomError from "../utils/CustomError"
 import { type Request, type Response, type NextFunction } from "express"
 import { ProductDocument } from "types/product.interface"
-import ProductModel from '@models/productModel'
+import ProductModel from '../models/productModel'
 import { StatusCodes } from "http-status-codes"
 import { IResponse } from "types/IResponse.interfaces"
-import { sendHTTPResponse } from "@services/response.services"
+import { sendHTTPResponse } from "../services/response.services"
 import Fuse, { FuseResult, IFuseOptions } from 'fuse.js'
 import NodeCache from "node-cache"
-import ProductServices from "@services/product.services"
+import ProductServices from "../services/product.services"
 
 const nodeCache = new NodeCache();
 

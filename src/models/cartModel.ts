@@ -1,4 +1,4 @@
-import { Flat, Percentage } from "@controllers/cartController";
+import { Flat, Percentage } from "../controllers/cartController";
 import mongoose, { Model, Types } from "mongoose";
 import { ProductCore } from "types/product.interface";
 

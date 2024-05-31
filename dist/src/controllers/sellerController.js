@@ -4,22 +4,22 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.countTotals = exports.injectShop = exports.injectUser = exports.editShop = exports.getShopById = exports.listMyShops = exports.deleteShops = exports.deleteShop = exports.createShop = exports.update = void 0;
-const user_services_1 = __importDefault(require("@services/user.services"));
-const response_services_1 = require("@services/response.services");
-const user_repository_1 = __importDefault(require("@repositories/user.repository"));
-const seller_repository_1 = __importDefault(require("@repositories/seller.repository"));
-const SellerSerivces_1 = __importDefault(require("@services/SellerSerivces"));
-const shopModel_1 = __importDefault(require("@models/shopModel"));
-const shop_helper_1 = require("@utils/shop.helper");
-const user_helper_1 = require("@utils/user.helper");
-const CustomError_1 = __importDefault(require("@utils/CustomError"));
+const user_services_1 = __importDefault(require("../services/user.services"));
+const response_services_1 = require("../services/response.services");
+const user_repository_1 = __importDefault(require("../repository/user.repository"));
+const seller_repository_1 = __importDefault(require("../repository/seller.repository"));
+const SellerSerivces_1 = __importDefault(require("../services/SellerSerivces"));
+const shopModel_1 = __importDefault(require("../models/shopModel"));
+const shop_helper_1 = require("../utils/shop.helper");
+const user_helper_1 = require("../utils/user.helper");
+const CustomError_1 = __importDefault(require("../utils/CustomError"));
 const lodash_1 = require("lodash");
 const http_status_codes_1 = require("http-status-codes");
-const ImageProcessing_repository_1 = __importDefault(require("@repositories/ImageProcessing.repository"));
-const image_processing_services_1 = require("@services/image.processing.services");
-const product_repository_1 = require("@repositories/product.repository");
-const productModel_1 = __importDefault(require("@models/productModel"));
-const user_services_2 = __importDefault(require("@services/user.services"));
+const ImageProcessing_repository_1 = __importDefault(require("../repository/ImageProcessing.repository"));
+const image_processing_services_1 = require("../services/image.processing.services");
+const product_repository_1 = require("../repository/product.repository");
+const productModel_1 = __importDefault(require("../models/productModel"));
+const user_services_2 = __importDefault(require("../services/user.services"));
 /**
  * Update the user document seller property
  * @param req

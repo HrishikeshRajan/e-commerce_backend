@@ -1,4 +1,4 @@
-import { ShopCore, ShopDocument } from "@models/shopModel";
+import { ShopCore, ShopDocument } from "../models/shopModel";
 import { merge } from "lodash";
 import { Model, Query, Types } from "mongoose";
 import { DeleteResult, ISeller } from "types/ISeller.interface";

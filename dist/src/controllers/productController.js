@@ -5,25 +5,25 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.searchProducts = exports.getFilterOptions = exports.getCategories = exports.queryProducts = exports.queryProductsByShopId = exports.getProductById = exports.queryProductsBySellerId = exports.deleteProducts = exports.singleProduct = exports.deleteProduct = exports.update = exports.add = void 0;
 //Repos
-const product_repository_1 = require("@repositories/product.repository");
-const ImageProcessing_repository_1 = __importDefault(require("@repositories/ImageProcessing.repository"));
+const product_repository_1 = require("../repository/product.repository");
+const ImageProcessing_repository_1 = __importDefault(require("../repository/ImageProcessing.repository"));
 //services
-const response_services_1 = require("@services/response.services");
-const image_processing_services_1 = require("@services/image.processing.services");
+const response_services_1 = require("../services/response.services");
+const image_processing_services_1 = require("../services/image.processing.services");
 //models
-const productModel_1 = __importDefault(require("@models/productModel"));
+const productModel_1 = __importDefault(require("../models/productModel"));
 //utils
 const http_status_codes_1 = require("http-status-codes");
 const lodash_1 = require("lodash");
-const product_helper_1 = require("@utils/product.helper");
-const CustomError_1 = __importDefault(require("@utils/CustomError"));
-const SearchEngine_1 = __importDefault(require("@utils/SearchEngine"));
-const Logger_1 = __importDefault(require("@utils/LoggerFactory/Logger"));
-const image_helper_1 = require("@utils/image.helper");
-const promoModel_1 = __importDefault(require("@models/promoModel"));
-const flashSale_model_1 = __importDefault(require("@models/flashSale.model"));
-const product_services_1 = __importDefault(require("@services/product.services"));
-const Cache_1 = require("@utils/Cache");
+const product_helper_1 = require("../utils/product.helper");
+const CustomError_1 = __importDefault(require("../utils/CustomError"));
+const SearchEngine_1 = __importDefault(require("../utils/SearchEngine"));
+const Logger_1 = __importDefault(require("../utils/LoggerFactory/Logger"));
+const image_helper_1 = require("../utils/image.helper");
+const promoModel_1 = __importDefault(require("../models/promoModel"));
+const flashSale_model_1 = __importDefault(require("../models/flashSale.model"));
+const product_services_1 = __importDefault(require("../services/product.services"));
+const Cache_1 = require("../utils/Cache");
 /**
  * API ACCESS: seller
  * Create new product document

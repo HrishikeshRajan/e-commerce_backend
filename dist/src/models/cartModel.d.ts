@@ -1,4 +1,4 @@
-import { Flat, Percentage } from "@controllers/cartController";
+import { Flat, Percentage } from "../controllers/cartController";
 import mongoose, { Types } from "mongoose";
 export interface CartItemCore {
     product: mongoose.Types.ObjectId;

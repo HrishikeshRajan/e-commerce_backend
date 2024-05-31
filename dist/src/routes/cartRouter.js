@@ -27,8 +27,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const cartController = __importStar(require("@controllers/cartController"));
-const auth_1 = require("@middlewares/auth");
+const cartController = __importStar(require("../controllers/cartController"));
+const auth_1 = require("../middlewares/auth");
 const router = express_1.default.Router();
 router.route('/').get(auth_1.isLoggedIn, cartController.get);
 router.route('/ids').get(auth_1.isLoggedIn, cartController.getCartAndUserIds);

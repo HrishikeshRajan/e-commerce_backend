@@ -1,7 +1,7 @@
 import express from "express"
 
-import * as cartController from '@controllers/cartController'
-import { isLoggedIn } from "@middlewares/auth"
+import * as cartController from '../controllers/cartController'
+import { isLoggedIn } from "../middlewares/auth"
 
 const router = express.Router()
 router.route('/').get(isLoggedIn,cartController.get)

@@ -1,4 +1,4 @@
-import { ShopCore } from "@models/shopModel";
+import { ShopCore } from "../models/shopModel";
 import { ISeller } from "types/ISeller.interface";
 
 /**

@@ -4,13 +4,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getAll = exports.deleteCategory = exports.update = exports.create = void 0;
-const categoryModel_1 = __importDefault(require("@models/categoryModel"));
-const ImageProcessing_repository_1 = __importDefault(require("@repositories/ImageProcessing.repository"));
-const category_repository_1 = require("@repositories/category.repository");
-const image_processing_services_1 = require("@services/image.processing.services");
-const response_services_1 = require("@services/response.services");
-const CustomError_1 = __importDefault(require("@utils/CustomError"));
-const image_helper_1 = require("@utils/image.helper");
+const categoryModel_1 = __importDefault(require("../models/categoryModel"));
+const ImageProcessing_repository_1 = __importDefault(require("../repository/ImageProcessing.repository"));
+const category_repository_1 = require("../repository/category.repository");
+const image_processing_services_1 = require("../services/image.processing.services");
+const response_services_1 = require("../services/response.services");
+const CustomError_1 = __importDefault(require("../utils/CustomError"));
+const image_helper_1 = require("../utils/image.helper");
 const http_status_codes_1 = require("http-status-codes");
 const lodash_1 = require("lodash");
 const create = async (req, res, next) => {

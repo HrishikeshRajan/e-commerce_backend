@@ -4,8 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getAuthBackground = exports.addAuthBackground = void 0;
-const response_services_1 = require("@services/response.services");
-const CustomError_1 = __importDefault(require("@utils/CustomError"));
+const response_services_1 = require("../services/response.services");
+const CustomError_1 = __importDefault(require("../utils/CustomError"));
 const http_status_codes_1 = require("http-status-codes");
 const addAuthBackground = async (req, res, next) => {
     try {

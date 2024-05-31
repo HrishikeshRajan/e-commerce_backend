@@ -22,7 +22,7 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-import { CategoryCore, CategoryDocument } from "@models/categoryModel";
+import { CategoryCore, CategoryDocument } from "../models/categoryModel";
 import { Model } from "mongoose";
 export declare class CategoryRepo {
     category: Model<CategoryDocument>;

@@ -1,4 +1,4 @@
-import { ReviewDocument } from "@models/reviewModel";
+import { ReviewDocument } from "../models/reviewModel";
 import { type Request, type Response, type NextFunction } from "express";
 import { IResponse } from "types/IResponse.interfaces";
 import { ReviewDeleteParams, ReviewListByQuery, type Review, type ReviewId } from "types/zod/review.schema.zod";

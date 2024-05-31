@@ -1,5 +1,5 @@
 import { type Request, type NextFunction, type Response } from "express";
-import { ShopCore, ShopDocument } from "@models/shopModel";
+import { ShopCore, ShopDocument } from "../models/shopModel";
 import { GenericRequest, GenericWithShopRequest, Token } from "types/IUser.interfaces";
 import { IResponse } from "types/IResponse.interfaces";
 import { ID } from "../types/zod/user.schemaTypes";

@@ -1,8 +1,8 @@
 import express from 'express'
-import * as reviewController from '@controllers/reviewController'
-import { isLoggedIn } from '@middlewares/auth'
-import { validateRequest } from '@middlewares/userInputValidator'
-import { ReviewDeleteZodSchema, ReviewIdZodSchema, ReviewListByQueryZodSchema, ReviewUpdateZodSchema, ReviewZodSchema, } from 'types/zod/review.schema.zod'
+import * as reviewController from '../controllers/reviewController'
+import { isLoggedIn } from '../middlewares/auth'
+import { validateRequest } from '../middlewares/userInputValidator'
+import { ReviewDeleteZodSchema, ReviewIdZodSchema, ReviewListByQueryZodSchema, ReviewUpdateZodSchema, ReviewZodSchema, } from '../types/zod/review.schema.zod'
 const router = express.Router()
 
 router.route('/')

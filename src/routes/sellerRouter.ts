@@ -1,12 +1,12 @@
 
 import express, { type Router } from 'express'
-import { isLoggedIn } from '@middlewares/auth'
-import * as seller from '@controllers/sellerController'
-import * as category from '@controllers/categoryController'
-import * as flashsale from '@controllers/salesController'
-import * as promo from '@controllers/promoController'
-import { Role } from '@middlewares/roles'
-import { multerUpload } from '@utils/image.helper'
+import { isLoggedIn } from '../middlewares/auth'
+import * as seller from '../controllers/sellerController'
+import * as category from '../controllers/categoryController'
+import * as flashsale from '../controllers/salesController'
+import * as promo from '../controllers/promoController'
+import { Role } from '../middlewares/roles'
+import { multerUpload } from '../utils/image.helper'
 const router: Router = express.Router()
 
 enum ROLES {

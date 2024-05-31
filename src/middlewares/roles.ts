@@ -1,9 +1,9 @@
-import CustomError from '@utils/CustomError'
+import CustomError from '../utils/CustomError'
 import { type Request, type Response, type NextFunction } from 'express'
 import { StatusCodes } from 'http-status-codes'
 import { isEmpty } from 'lodash'
 import { GenericRequest, Token } from 'types/IUser.interfaces'
-import logger from '@utils/LoggerFactory/Logger'
+import logger from '../utils/LoggerFactory/Logger'
 
 
 

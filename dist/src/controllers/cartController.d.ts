@@ -1,7 +1,7 @@
-import { CartCore, CartItemCore, CartItemDocument } from "@models/cartModel";
+import { CartCore, CartItemCore, CartItemDocument } from "../models/cartModel";
 import { Request, Response, NextFunction } from "express";
 import mongoose from "mongoose";
-import { FlashSaleDocument } from "@models/flashSale.model";
+import { FlashSaleDocument } from "../models/flashSale.model";
 import { Promo } from "types/CouponManagement";
 import { IUser } from "types/IUser.interfaces";
 export declare const getGrandTotal: (products: Record<string, CartItemCore>) => string;

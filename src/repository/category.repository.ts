@@ -1,4 +1,4 @@
-import { CategoryCore, CategoryDocument } from "@models/categoryModel";
+import { CategoryCore, CategoryDocument } from "../models/categoryModel";
 import { merge } from "lodash";
 import { Model } from "mongoose";
 

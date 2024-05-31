@@ -27,7 +27,7 @@ import { multerUpload } from '../utils/image.helper'
 import { ChangePasswordSchema, ForgotPasswordSchema, LoginSchema, ParamsByIdSchema, PhotoSchema, QueryWithTokenSchema, RegisterSchema, ResetPasswordSchema, UpdateProfileSchema, UserAddressSchema } from '../types/zod/user.schemaTypes'
 import { validateRequest } from '../middlewares/userInputValidator'
 // import CustomError from '@utils/CustomError'
-import logger from '@utils/LoggerFactory/Logger'
+import logger from '../utils/LoggerFactory/Logger'
 /**
  * Limits number of requests
  */

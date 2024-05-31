@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.notFound = exports.productionErrorHandler = exports.errorHandlerV2 = exports.errorHandler = void 0;
 const zod_1 = require("zod");
 const response_services_1 = require("../services/response.services");
-const CustomError_1 = __importDefault(require("@utils/CustomError"));
+const CustomError_1 = __importDefault(require("../utils/CustomError"));
 /* v1 */
 const errorHandler = (err, req, res, next) => {
     if (err instanceof zod_1.ZodError) {

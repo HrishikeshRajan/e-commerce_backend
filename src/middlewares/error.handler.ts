@@ -1,7 +1,7 @@
 import { type NextFunction, type Request, type Response } from 'express'
 import { ZodError } from 'zod'
 import { sendHTTPErrorResponse, sendHTTPResponse } from '../services/response.services'
-import CustomError from '@utils/CustomError';
+import CustomError from '../utils/CustomError';
 import rateLimit from 'express-rate-limit';
 
 /* v1 */

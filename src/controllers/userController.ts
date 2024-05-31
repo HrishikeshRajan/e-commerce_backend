@@ -16,7 +16,7 @@ import { convertToBase64 } from '../utils/image.helper'
 import EmailServices from '../services/email.services'
 import Mail from '../utils/Email'
 
-import JwtServices from '@services/jwt.services'
+import JwtServices from '../services/jwt.services'
 import { sendHTTPResponse, sendHTTPWithTokenResponse } from '../services/response.services'
 
 import CustomError from '../utils/CustomError'
@@ -32,9 +32,9 @@ import { StatusCodes } from 'http-status-codes'
 import { responseFilter, userFilter } from '../utils/user.helper'
 
 import { Token, TypedRequest, GenericRequest, UserWithId, UserCore } from '../types/IUser.interfaces'
-import logger from '@utils/LoggerFactory/Logger'
-import UserRepository from '@repositories/user.repository'
-import UserServices from '@services/user.services'
+import logger from '../utils/LoggerFactory/Logger'
+import UserRepository from '../repository/user.repository'
+import UserServices from '../services/user.services'
 import NodeCache from 'node-cache'
 const cache = new NodeCache()
 const userRespository = new UserRepository()

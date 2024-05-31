@@ -1,4 +1,4 @@
-import { ReviewDocument } from "@models/reviewModel";
+import { ReviewDocument } from "../models/reviewModel";
 import { Model, Query } from "mongoose";
 import { IReview } from "types/IReview";
 import { Review } from "types/zod/review.schema.zod";

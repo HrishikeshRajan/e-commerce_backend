@@ -4,12 +4,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updatePromoStatus = exports.getAllPromos = exports.get = exports.create = void 0;
-const promoModel_1 = __importDefault(require("@models/promoModel"));
-const ImageProcessing_repository_1 = __importDefault(require("@repositories/ImageProcessing.repository"));
-const image_processing_services_1 = require("@services/image.processing.services");
-const response_services_1 = require("@services/response.services");
-const CustomError_1 = __importDefault(require("@utils/CustomError"));
-const image_helper_1 = require("@utils/image.helper");
+const promoModel_1 = __importDefault(require("../models/promoModel"));
+const ImageProcessing_repository_1 = __importDefault(require("../repository/ImageProcessing.repository"));
+const image_processing_services_1 = require("../services/image.processing.services");
+const response_services_1 = require("../services/response.services");
+const CustomError_1 = __importDefault(require("../utils/CustomError"));
+const image_helper_1 = require("../utils/image.helper");
 const http_status_codes_1 = require("http-status-codes");
 const lodash_1 = require("lodash");
 const handleImageUpload = async (req) => {

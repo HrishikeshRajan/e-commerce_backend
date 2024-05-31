@@ -27,21 +27,21 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.moveToCart = exports.get = exports.create = void 0;
-const LoggerFactory_1 = __importDefault(require("@utils/LoggerFactory/LoggerFactory"));
-const response_services_1 = require("@services/response.services");
+const LoggerFactory_1 = __importDefault(require("../utils/LoggerFactory/LoggerFactory"));
+const response_services_1 = require("../services/response.services");
 const http_status_codes_1 = require("http-status-codes");
-const flashSale_model_1 = __importDefault(require("@models/flashSale.model"));
-const image_helper_1 = require("@utils/image.helper");
-const ImageProcessing_repository_1 = __importDefault(require("@repositories/ImageProcessing.repository"));
-const image_processing_services_1 = require("@services/image.processing.services");
+const flashSale_model_1 = __importDefault(require("../models/flashSale.model"));
+const image_helper_1 = require("../utils/image.helper");
+const ImageProcessing_repository_1 = __importDefault(require("../repository/ImageProcessing.repository"));
+const image_processing_services_1 = require("../services/image.processing.services");
 const lodash_1 = require("lodash");
-const cartModel_1 = __importStar(require("@models/cartModel"));
+const cartModel_1 = __importStar(require("../models/cartModel"));
 const mongoose_1 = require("mongoose");
 const currency_js_1 = __importDefault(require("currency.js"));
-const productModel_1 = __importDefault(require("@models/productModel"));
+const productModel_1 = __importDefault(require("../models/productModel"));
 const logger = LoggerFactory_1.default.getLogger('development')();
 const mongoose_2 = __importDefault(require("mongoose"));
-const CustomError_1 = __importDefault(require("@utils/CustomError"));
+const CustomError_1 = __importDefault(require("../utils/CustomError"));
 const handleImageUpload = async (req) => {
     const options = {
         folder: 'offers',

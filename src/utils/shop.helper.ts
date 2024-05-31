@@ -1,4 +1,4 @@
-import { ShopCore, ShopDocument } from "@models/shopModel";
+import { ShopCore, ShopDocument } from "../models/shopModel";
 import { merge } from "lodash";
 
 export const shopFilter = {

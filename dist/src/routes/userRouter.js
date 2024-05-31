@@ -12,7 +12,7 @@ const image_helper_1 = require("../utils/image.helper");
 const user_schemaTypes_1 = require("../types/zod/user.schemaTypes");
 const userInputValidator_1 = require("../middlewares/userInputValidator");
 // import CustomError from '@utils/CustomError'
-const Logger_1 = __importDefault(require("@utils/LoggerFactory/Logger"));
+const Logger_1 = __importDefault(require("../utils/LoggerFactory/Logger"));
 /**
  * Limits number of requests
  */

@@ -27,16 +27,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const schema = __importStar(require("types/zod/product.schemaTypes"));
+const schema = __importStar(require("../types/zod/product.schemaTypes"));
 //Middlewares
-const roles_1 = require("@middlewares/roles");
-const userInputValidator_1 = require("@middlewares/userInputValidator");
+const roles_1 = require("../middlewares/roles");
+const userInputValidator_1 = require("../middlewares/userInputValidator");
 const auth_1 = require("../middlewares/auth");
 //Controllers
 const product = __importStar(require("../controllers/productController"));
-const suggestion = __importStar(require("@controllers/searchSuggestionController"));
+const suggestion = __importStar(require("../controllers/searchSuggestionController"));
 //Utils
-const image_helper_1 = require("@utils/image.helper");
+const image_helper_1 = require("../utils/image.helper");
 const router = express_1.default.Router();
 var ROLES;
 (function (ROLES) {

@@ -1,22 +1,22 @@
 
-import CartModel, { CART_STATUS, CartCore, CartDocument, CartItemCore, CartItemDocument, ORDER_STATUS } from "@models/cartModel"
-import CustomError from "@utils/CustomError"
+import CartModel, { CART_STATUS, CartCore, CartDocument, CartItemCore, CartItemDocument, ORDER_STATUS } from "../models/cartModel"
+import CustomError from '../utils/CustomError'
 import { Request, Response, NextFunction } from "express"
-import ProductModel from '@models/productModel'
-import { ProductRepo } from "@repositories/product.repository"
+import ProductModel from '../models/productModel'
+import { ProductRepo } from "../repository/product.repository"
 import { ProductCore, ProductDocument } from "types/product.interface"
-import { sendHTTPResponse } from "@services/response.services"
+import { sendHTTPResponse } from "../services/response.services"
 import currency from "currency.js"
 import { StatusCodes, getReasonPhrase } from "http-status-codes"
 import { merge } from "lodash"
 import mongoose from "mongoose"
-import { CartPrice } from "@utils/price.util"
-import FlashSale, { FlashSaleDocument, SalesStatus } from "@models/flashSale.model"
-import { getTax } from "@utils/tax.util"
-import PromoModel, { PromoDocument } from "@models/promoModel"
+import { CartPrice } from "../utils/price.util"
+import FlashSale, { FlashSaleDocument, SalesStatus } from "../models/flashSale.model"
+import { getTax } from "../utils/tax.util"
+import PromoModel, { PromoDocument } from "../models/promoModel"
 import { AppliedPromo, Promo } from "types/CouponManagement"
 import { IUser } from "types/IUser.interfaces"
-import logger from '@utils/LoggerFactory/Logger'
+import logger from '../utils/LoggerFactory/Logger'
 
 const findTotalPrice = async (productId: string, qty: number, productRepo: ProductRepo<ProductDocument>) => {
     const product = await productRepo.findProductById(productId)

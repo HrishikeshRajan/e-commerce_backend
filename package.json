@@ -3,15 +3,10 @@
     "npm": ">=9.5.0",
     "node": ">=18.15.0"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "yarn run ts-node  src/app.ts"
-    }
-  },
   "scripts": {
     "clean": "rimraf dist",
     "build": "tsc",
-    "start": "TS_NODE_BASEURL=./dist node -r tsconfig-paths/register dist/app.js",
+    "start": "TS_NODE_BASEURL=./dist node dist/app.js",
     "dev": " nodemon --watch \"src/**\" --ext \"ts,json\" --inspect=0.0.0.0 --exec \"ts-node  src/app.ts\" ",
     "test": "jest --watch  --detectOpenHandles",
     "test-clear": "jest --clear-cache",
@@ -88,15 +83,5 @@
     "uuid": "^9.0.1",
     "winston": "^3.11.0",
     "zod": "^3.21.4"
-  },
-  "_moduleAliases": {
-    "@routes": "dist/routes",
-    "@services": "dist/services",
-    "@controllers": "dist/controllers",
-    "@repositories": "dist/repository",
-    "@models": "dist/models",
-    "@utils": "dist/utils",
-    "@configs": "dist/configs",
-    "@middlewares": "dist/middlewares"
   }
 }

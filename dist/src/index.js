@@ -7,13 +7,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createDatabaseConnection = void 0;
 const express_1 = __importDefault(require("express"));
 const dotenv_1 = __importDefault(require("dotenv"));
-const userRouter_1 = __importDefault(require("@routes/userRouter"));
-const productRouter_1 = __importDefault(require("@routes/productRouter"));
-const adminRouter_1 = __importDefault(require("@routes/adminRouter"));
-const sellerRouter_1 = __importDefault(require("@routes/sellerRouter"));
-const cartRouter_1 = __importDefault(require("@routes/cartRouter"));
-const orderRouter_1 = __importDefault(require("@routes/orderRouter"));
-const reviewRouter_1 = __importDefault(require("@routes/reviewRouter"));
+const userRouter_1 = __importDefault(require("../src/routes/userRouter"));
+const productRouter_1 = __importDefault(require("../src/routes/productRouter"));
+const adminRouter_1 = __importDefault(require("../src/routes/adminRouter"));
+const sellerRouter_1 = __importDefault(require("../src/routes/sellerRouter"));
+const cartRouter_1 = __importDefault(require("../src/routes/cartRouter"));
+const orderRouter_1 = __importDefault(require("../src/routes/orderRouter"));
+const reviewRouter_1 = __importDefault(require("../src/routes/reviewRouter"));
 const error_handler_1 = require("./middlewares/error.handler");
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const cloudinary_config_1 = __importDefault(require("./configs/cloudinary.config"));
@@ -25,41 +25,24 @@ const compression_1 = __importDefault(require("compression"));
 const helmet_1 = __importDefault(require("helmet"));
 const cors_1 = __importDefault(require("cors"));
 const morgan_1 = __importDefault(require("morgan"));
-require("module-alias/register");
+// import 'module-alias/register'
 dotenv_1.default.config();
 dotenv_1.default.config({ path: '.env.test' });
 const app = (0, express_1.default)();
 app.use((0, morgan_1.default)('tiny'));
-// const whitelist = (process.env.WHITELIST_URL as string).split(';')
-// const corsOptions: CorsOptions = {
-//   origin: (origin: string | undefined, callback: (err: Error | null, status?: boolean) => void) => {
-//     if (!origin || whitelist.indexOf(origin) !== -1) {
-//       callback(null, true);
-//     } else {
-//       callback(new Error('Not allowed by CORS'));
-//     }
-//   },
-//   credentials: true,
-// };
-// app.use((req,res,next)=>{
-//   res.setHeader('Access-Control-Allow-Credentials', 'true')
-//   res.setHeader('Access-Control-Allow-Origin', '*')
-//   // another common pattern
-//   res.setHeader('Access-Control-Allow-Origin', req.headers.origin as string);
-//   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
-//   res.setHeader(
-//     'Access-Control-Allow-Headers',
-//     'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-//   )
-//   if (req.method === 'OPTIONS') {
-//     res.status(200).end()
-//     return
-//   }
-// })
-app.use((0, cors_1.default)({
-    origin: 'https://e-commerce-frontend-five-mu.vercel.app',
-    credentials: true
-}));
+const whitelist = [...process.env.WHITELIST_URL.split(';')];
+const corsOptions = {
+    origin: (origin, callback) => {
+        if (!origin || whitelist.indexOf(origin) !== -1) {
+            callback(null, true);
+        }
+        else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+};
+app.use((0, cors_1.default)(corsOptions));
 app.use((0, compression_1.default)());
 app.use((0, helmet_1.default)());
 app.use(express_1.default.json({

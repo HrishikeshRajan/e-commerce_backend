@@ -1,10 +1,10 @@
-import categoryModel from "@models/categoryModel";
-import Cloudinary from "@repositories/ImageProcessing.repository";
-import { CategoryRepo } from "@repositories/category.repository";
-import { ImageProcessingServices } from "@services/image.processing.services";
-import { sendHTTPResponse } from "@services/response.services";
-import CustomError from "@utils/CustomError";
-import { convertToBase64 } from "@utils/image.helper";
+import categoryModel from "../models/categoryModel";
+import Cloudinary from "../repository/ImageProcessing.repository";
+import { CategoryRepo } from "../repository/category.repository";
+import { ImageProcessingServices } from "../services/image.processing.services";
+import { sendHTTPResponse } from "../services/response.services";
+import CustomError from "../utils/CustomError";
+import { convertToBase64 } from "../utils/image.helper";
 import { UploadApiOptions } from "cloudinary";
 import { type Request, type Response, type NextFunction } from "express";
 import { StatusCodes } from "http-status-codes";

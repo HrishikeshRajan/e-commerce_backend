@@ -1,17 +1,17 @@
 import express, { type Router } from 'express'
-import * as schema from 'types/zod/product.schemaTypes'
+import * as schema from '../types/zod/product.schemaTypes'
 
 //Middlewares
-import { Role } from '@middlewares/roles'
-import { validateRequest } from '@middlewares/userInputValidator'
+import { Role } from '../middlewares/roles'
+import { validateRequest } from '../middlewares/userInputValidator'
 import { isLoggedIn } from '../middlewares/auth'
 
 //Controllers
 import * as product from '../controllers/productController'
-import * as suggestion from '@controllers/searchSuggestionController'
+import * as suggestion from '../controllers/searchSuggestionController'
 
 //Utils
-import { multerUploadArray } from '@utils/image.helper'
+import { multerUploadArray } from '../utils/image.helper'
 
 
 const router: Router = express.Router()

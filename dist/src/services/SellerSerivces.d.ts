@@ -23,20 +23,20 @@
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose" />
 /// <reference types="mongoose/types/inferschematype" />
-import { ShopCore } from "@models/shopModel";
+import { ShopCore } from "../models/shopModel";
 import { ISeller } from "types/ISeller.interface";
 /**
  * @Author Hrishikesh Rajan
  * Higher Level Class that depends for ISeller
  */
 declare class SellerServices {
-    createShop(repo: ISeller, shop: ShopCore): Promise<import("@models/shopModel").ShopDocument>;
-    delete(repo: ISeller, shopId: string): Promise<import("@models/shopModel").ShopDocument | null>;
+    createShop(repo: ISeller, shop: ShopCore): Promise<import("../models/shopModel").ShopDocument>;
+    delete(repo: ISeller, shopId: string): Promise<import("../models/shopModel").ShopDocument | null>;
     deleteShopsByIds(repo: ISeller, shopIds: string[]): Promise<import("types/ISeller.interface").DeleteResult>;
-    findById(repo: ISeller, shopId: string): Promise<import("@models/shopModel").ShopDocument | null>;
-    findShopByOwnerId(repo: ISeller, ownerId: string): import("mongoose").Query<import("@models/shopModel").ShopDocument | null, import("@models/shopModel").ShopDocument, {}, import("@models/shopModel").ShopDocument>;
-    findShopsByOwnerId(repo: ISeller, ownerId: string): Promise<import("@models/shopModel").ShopDocument[] | null>;
-    editById(repo: ISeller, shopId: string, details: ShopCore): Promise<import("@models/shopModel").ShopDocument | null>;
+    findById(repo: ISeller, shopId: string): Promise<import("../models/shopModel").ShopDocument | null>;
+    findShopByOwnerId(repo: ISeller, ownerId: string): import("mongoose").Query<import("../models/shopModel").ShopDocument | null, import("../models/shopModel").ShopDocument, {}, import("../models/shopModel").ShopDocument>;
+    findShopsByOwnerId(repo: ISeller, ownerId: string): Promise<import("../models/shopModel").ShopDocument[] | null>;
+    editById(repo: ISeller, shopId: string, details: ShopCore): Promise<import("../models/shopModel").ShopDocument | null>;
     countTotalShopsBySellerId(repo: ISeller, userId: string): Promise<number>;
 }
 export default SellerServices;

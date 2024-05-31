@@ -27,10 +27,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const reviewController = __importStar(require("@controllers/reviewController"));
-const auth_1 = require("@middlewares/auth");
-const userInputValidator_1 = require("@middlewares/userInputValidator");
-const review_schema_zod_1 = require("types/zod/review.schema.zod");
+const reviewController = __importStar(require("../controllers/reviewController"));
+const auth_1 = require("../middlewares/auth");
+const userInputValidator_1 = require("../middlewares/userInputValidator");
+const review_schema_zod_1 = require("../types/zod/review.schema.zod");
 const router = express_1.default.Router();
 router.route('/')
     .post(auth_1.isLoggedIn, (0, userInputValidator_1.validateRequest)({ body: review_schema_zod_1.ReviewZodSchema }), reviewController.create);

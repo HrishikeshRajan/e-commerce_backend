@@ -29,9 +29,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.disallowLoggedInUsers = exports.isLoggedIn = void 0;
 const CustomError_1 = __importDefault(require("../utils/CustomError"));
 const jwt_services_1 = __importDefault(require("../services/jwt.services"));
-const Jwt_utils_1 = __importStar(require("@utils/Jwt.utils"));
+const Jwt_utils_1 = __importStar(require("../utils/Jwt.utils"));
 const lodash_1 = require("lodash");
-const Logger_1 = __importDefault(require("@utils/LoggerFactory/Logger"));
+const Logger_1 = __importDefault(require("../utils/LoggerFactory/Logger"));
 /**
  * Ensures that the user is logged in for accessing the protected routes.
  *

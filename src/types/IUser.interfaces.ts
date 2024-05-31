@@ -1,7 +1,7 @@
 import { type Query, type Document, type Types, type FilterQuery } from 'mongoose'
 import { type imageUrl } from './cloudinary.interfaces'
 import { ParamsDictionary } from 'express-serve-static-core'
-import { ShopCore } from '@models/shopModel'
+import { ShopCore } from '../models/shopModel'
 export interface Address {
   fullname: string
   city: string

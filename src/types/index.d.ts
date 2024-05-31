@@ -2,7 +2,7 @@ import { type Response as ExpressResponse } from 'express'
 import 'express-session'
 import { type mongooseID } from '../repository/CartRepository'
 import 'express-serve-static-core'
-import { ShopCore } from '@models/shopModel'
+import { ShopCore } from '../models/shopModel'
 
 export { }
 

@@ -29,7 +29,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Jwt_utils_1 = __importStar(require("../utils/Jwt.utils"));
 const jwt_services_1 = __importDefault(require("../services/jwt.services"));
 const response_services_1 = require("../services/response.services");
-const Logger_1 = __importDefault(require("@utils/LoggerFactory/Logger"));
+const Logger_1 = __importDefault(require("../utils/LoggerFactory/Logger"));
 const JWT = new Jwt_utils_1.default();
 const jwtService = new jwt_services_1.default();
 const deserializeUser = (req, res, next) => {

@@ -27,13 +27,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const auth_1 = require("@middlewares/auth");
-const seller = __importStar(require("@controllers/sellerController"));
-const category = __importStar(require("@controllers/categoryController"));
-const flashsale = __importStar(require("@controllers/salesController"));
-const promo = __importStar(require("@controllers/promoController"));
-const roles_1 = require("@middlewares/roles");
-const image_helper_1 = require("@utils/image.helper");
+const auth_1 = require("../middlewares/auth");
+const seller = __importStar(require("../controllers/sellerController"));
+const category = __importStar(require("../controllers/categoryController"));
+const flashsale = __importStar(require("../controllers/salesController"));
+const promo = __importStar(require("../controllers/promoController"));
+const roles_1 = require("../middlewares/roles");
+const image_helper_1 = require("../utils/image.helper");
 const router = express_1.default.Router();
 var ROLES;
 (function (ROLES) {

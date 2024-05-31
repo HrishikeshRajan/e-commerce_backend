@@ -1,4 +1,4 @@
-import { ShopCore, ShopDocument } from "@models/shopModel";
+import { ShopCore, ShopDocument } from "../models/shopModel";
 import { Model, Query } from "mongoose";
 import { DeleteResult, ISeller } from "types/ISeller.interface";
 declare class SellerRepository implements ISeller {
