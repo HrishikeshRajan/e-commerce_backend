@@ -15,7 +15,8 @@
     "dev": " nodemon --watch \"src/**\" --ext \"ts,json\" --inspect=0.0.0.0 --exec \"ts-node  src/app.ts\" ",
     "test": "jest --watch  --detectOpenHandles",
     "test-clear": "jest --clear-cache",
-    "stripe-listen": "stripe listen --forward-to http://localhost:4000"
+    "stripe-listen": "stripe listen --forward-to http://localhost:4000",
+    "vercel-build": "echo hello"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.2",

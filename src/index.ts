@@ -20,7 +20,7 @@ import DatabaseSingleton from './configs/databaseSingleton.config'
 // import deserializeUser from './middlewares/deserializeUser'
 import compress from 'compression'
 import helmet from 'helmet'
-// import cors, { CorsOptions } from 'cors'
+import cors, { CorsOptions } from 'cors'
 import morgan from 'morgan'
 
 
@@ -44,26 +44,26 @@ app.use(morgan('tiny'))
 //   credentials: true,
 // };
 
-app.use((req,res,next)=>{
-  res.setHeader('Access-Control-Allow-Credentials', 'true')
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  // another common pattern
-  res.setHeader('Access-Control-Allow-Origin', req.headers.origin as string);
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-  )
-  if (req.method === 'OPTIONS') {
-    res.status(200).end()
-    return
-  }
-})
+// app.use((req,res,next)=>{
+//   res.setHeader('Access-Control-Allow-Credentials', 'true')
+//   res.setHeader('Access-Control-Allow-Origin', '*')
+//   // another common pattern
+//   res.setHeader('Access-Control-Allow-Origin', req.headers.origin as string);
+//   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
+//   res.setHeader(
+//     'Access-Control-Allow-Headers',
+//     'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+//   )
+//   if (req.method === 'OPTIONS') {
+//     res.status(200).end()
+//     return
+//   }
+// })
 
-// app.use(cors({
-//   origin: 'https://e-commerce-frontend-five-mu.vercel.app',
-//   credentials: true
-// }))
+app.use(cors({
+  origin: 'https://e-commerce-frontend-five-mu.vercel.app',
+  credentials: true
+}))
 
 
 app.use(compress())
@@ -103,6 +103,9 @@ app.use('*', cloudinaryConfig)
 
 // app.enable('trust proxy');
 // Route API
+app.get('/test',(req,res) =>{
+  res.send('hi')
+})
 app.use('/api/v1/users/', userRouter)
 app.use('/api/v1/product/', productRouter)
 app.use('/api/v1/admin/', adminRouter)
@@ -129,4 +132,8 @@ export const createDatabaseConnection = async (url: string): Promise<void> => {
 
 // app.use(errorHandler)
 app.use(errorHandlerV2)
+
+void createDatabaseConnection(process.env.MONGODB_URL as string).then(() => {
+}).catch((e) => { console.log(e) })
+
 export default app
