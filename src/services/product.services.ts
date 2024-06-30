@@ -103,6 +103,10 @@ import { ProductCore, ProductDocument, type IReview, type ITEM, type Product } f
     async getUniqueProductNames(repository: IProduct) {
       return await repository.getUniqueProductNames();
     }
+
+    async getLatestProducts(repository: IProduct) {
+      return await repository.getLatestProducts();
+    }
   
 }
 

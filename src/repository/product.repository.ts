@@ -270,6 +270,11 @@ export class ProductRepo<T extends ProductDocument> implements IProduct {
   }
 
 
+   async getLatestProducts() {
+         const products = await this.ProductModel.find().sort({'_id':-1}).limit(10)
+         return products
+   }
+
 }
 
 // /**

@@ -26,6 +26,7 @@ export interface IProduct {
   getColorCount: (category: string) => Promise<Array<ColorCount>>;
   getBrandCount: (category: string) => Promise<Array<BrandCount>>;
   getUniqueProductNames: () => Promise<Array<ProductNameCount>>;
+  getLatestProducts: () => any;
   
 }
 

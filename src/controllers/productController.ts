@@ -685,21 +685,37 @@ export const searchProducts = async (
 }
 
 
-// /**
-//  * test code
-//  * @param req 
-//  * @param res 
-//  */
-// export const testQuery = async (
-//   req: GenericRequestWithQuery<{}, { [key: string]: string | undefined }, {}, {}>,
-//   res: Response
-// ) => {
-//   const query = req.query
-//   const searchEngine = new SearchEngine(productModel, query).search().filter().pager(5)
-//   const result = await (await searchEngine).query?.clone()
+/** API ACCESS: User
+* Fetch latest products
+* @param GenericRequest 
+* @param res 
+* @param next 
+* @returns void
+*/
+export const getLatestProducts = async (
+ req: GenericRequestWithQuery<{}, {}, {}, {}>,
+ res: Response,
+ next: NextFunction
+): Promise<void> => {
+ try {
+   const productRepo = new ProductRepo<ProductDocument>(ProductModel)
+   const productService = new ProductServices()
 
-//   res.json({ result, count: result?.length })
-// }
+
+    const products = await productService.getLatestProducts(productRepo)
+
+   const response: IResponse = {
+     res,
+     message: { products },
+     statusCode: StatusCodes.OK,
+     success: true
+   }
+   sendHTTPResponse(response)
+ } catch (error: any) {
+   const errorObj = error as CustomError
+   next(new CustomError(errorObj.message, errorObj.code, false))
+ }
+}
 
 // create coupon
 // delete coupon

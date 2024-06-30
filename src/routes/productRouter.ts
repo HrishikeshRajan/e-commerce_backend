@@ -39,6 +39,8 @@ router.route('/filter').get(product.getFilterOptions)
 
 router.route('/search').get(product.searchProducts)
 
+
 //API ACCESS: user
 router.route('/search/suggestions').get(suggestion.getSearchSuggestions)
+router.route('/home/latest').get(product.getLatestProducts)
 export default router

@@ -50,7 +50,7 @@ export const sendHTTPWithTokenResponse = ({ res, message, statusCode, success, t
   const expiresIn = parseInt(cookie?.expires as string)
   // 23 hrs
   // set secure:true for production
-  const expiryTime = new Date(Date.now() + expiresIn)
+  // const expiryTime = new Date(Date.now() + expiresIn)
   // console.log('s',Boolean(process.env.SECURE))
   const options: CookieOptions = {
     maxAge:  24 * 60 * 60 * 1000, //  1 day
